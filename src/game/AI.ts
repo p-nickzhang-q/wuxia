@@ -1,19 +1,32 @@
+import { GameState, CharacterState, Card, MartialArtSkill, GamePhase } from './types'
+
 export class AI {
-  constructor(game) {
+  private game: GameState
+
+  constructor(game: GameState) {
     this.game = game
   }
 
   // 执行AI回合
-  async executeTurn() {
-    const enemy = this.game.enemy
-    const player = this.game.player
+  async executeTurn(): Promise<void> {
+    const enemy = this.game.enemy!
+    const player = this.game.player!
+
+    console.log('AI executeTurn start')
+    console.log('enemy agility:', enemy.agility)
+    console.log('enemy hp:', enemy.hp)
+    console.log('enemy hand:', enemy.hand.length)
 
     await this.delay(800)
 
     let hadAction = false
+    let actionCount = 0
+    const maxActions = 10 // 防止无限循环
 
-    while (enemy.agility > 0 && enemy.isAlive() && player.isAlive()) {
+    while (enemy.agility > 0 && enemy.isAlive() && player.isAlive() && actionCount < maxActions) {
+      console.log('AI deciding action, agility:', enemy.agility)
       const action = this.decideAction()
+      console.log('AI action:', action)
 
       if (!action) {
         this.game.addLog(`${enemy.name}没有可用的招式`)
@@ -21,8 +34,9 @@ export class AI {
       }
 
       hadAction = true
+      actionCount++
 
-      if (action.type === 'skill') {
+      if (action.type === 'skill' && action.skillId) {
         const result = this.game.useSkill(action.skillId, action.cardId)
         if (result.extraAction || result.followUp) {
           await this.delay(500)
@@ -32,7 +46,7 @@ export class AI {
         this.game.useBasicCard(action.cardId)
       }
 
-      if (this.game.phase === 'gameOver') {
+      if (this.game.phase === GamePhase.GAME_OVER) {
         return
       }
 
@@ -43,11 +57,13 @@ export class AI {
       await this.delay(600)
     }
 
-    if (this.game.phase !== 'gameOver') {
+    console.log('AI turn ended, hadAction:', hadAction)
+
+    if (this.game.phase !== GamePhase.GAME_OVER) {
       if (this.game.shouldSwitchActor()) {
         this.game.switchActor()
-        this.game.addLog(`轮到${this.game.currentActor.name}行动`)
-        this.game.phase = 'selecting'
+        this.game.addLog(`轮到${this.game.currentActor!.name}行动`)
+        this.game.phase = GamePhase.SELECTING
       } else if (enemy.agility <= 0 || !hadAction) {
         this.game.endTurn()
       }
@@ -55,9 +71,9 @@ export class AI {
   }
 
   // 决定行动
-  decideAction() {
-    const enemy = this.game.enemy
-    const player = this.game.player
+  decideAction(): { type: 'skill' | 'basic'; skillId?: string; cardId: string } | null {
+    const enemy = this.game.enemy!
+    const player = this.game.player!
     const currentAgility = enemy.agility
 
     const availableCards = enemy.getAvailableCards(currentAgility)
@@ -80,7 +96,7 @@ export class AI {
     }
 
     // 选择攻击卡牌
-    const attackCard = this.selectAttackCard(availableCards, enemy, player)
+    const attackCard = this.selectAttackCard(availableCards, player)
     if (attackCard) {
       return { type: 'basic', cardId: attackCard.instanceId }
     }
@@ -91,7 +107,7 @@ export class AI {
   }
 
   // 尝试使用武功招式
-  tryUseSkill(enemy, player, currentAgility) {
+  private tryUseSkill(enemy: CharacterState, player: CharacterState, currentAgility: number): { type: 'skill'; skillId: string; cardId: string } | null {
     if (!enemy.skills || enemy.skills.length === 0) {
       return null
     }
@@ -121,7 +137,7 @@ export class AI {
   }
 
   // 判断是否应该现在使用武功招式
-  shouldUseSkillNow(enemy, player, skill) {
+  private shouldUseSkillNow(enemy: CharacterState, player: CharacterState, skill: MartialArtSkill): boolean {
     // 玩家血量低时，用武功招式斩杀
     if (player.hp <= 15 && enemy.mp >= skill.mpCost) {
       return true
@@ -137,14 +153,14 @@ export class AI {
   }
 
   // 判断是否应该防御
-  shouldDefend(enemy, player) {
+  private shouldDefend(enemy: CharacterState, player: CharacterState): boolean {
     const hpRatio = enemy.hp / enemy.maxHp
     const playerHpRatio = player.hp / player.maxHp
     return hpRatio < 0.4 && enemy.shield < 3 && playerHpRatio > 0.5
   }
 
   // 选择防御卡牌
-  selectDefendCard(cards) {
+  private selectDefendCard(cards: Card[]): Card | null {
     const defendCards = cards.filter(c => c.baseShield > 0)
     if (defendCards.length > 0) {
       return defendCards.sort((a, b) => {
@@ -158,10 +174,10 @@ export class AI {
   }
 
   // 选择攻击卡牌
-  selectAttackCard(cards, enemy, player) {
+  private selectAttackCard(cards: Card[], player: CharacterState): Card | null {
     const attackCards = cards.filter(c => c.baseDamage > 0)
     if (attackCards.length === 0) {
-      return cards[0]
+      return cards[0] || null
     }
 
     if (player.shield > 0) {
@@ -176,13 +192,13 @@ export class AI {
   }
 
   // 选择最低消耗卡牌
-  selectLowestCostCard(cards) {
+  private selectLowestCostCard(cards: Card[]): Card | null {
     if (!cards || cards.length === 0) return null
     return cards.sort((a, b) => a.agilityCost - b.agilityCost)[0]
   }
 
   // 延迟函数
-  delay(ms) {
+  private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
 }

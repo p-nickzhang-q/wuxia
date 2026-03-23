@@ -1,13 +1,7 @@
-// 基础招式卡牌类型
-export const CardType = {
-  EMPTY_HAND: '空手',
-  SHORT_WEAPON: '短兵',
-  LONG_WEAPON: '长兵',
-  LEG: '腿法'
-}
+import { CardType, BasicCardTemplate, Card } from '../game/types'
 
 // 基础招式卡牌数据
-export const basicCards = {
+export const basicCards: Record<string, BasicCardTemplate> = {
   // 空手类
   fist: {
     id: 'fist',
@@ -127,7 +121,7 @@ export const basicCards = {
 }
 
 // 创建基础招式卡牌实例
-export function createBasicCard(cardId, instanceId) {
+export function createBasicCard(cardId: string, instanceId?: string): Card | null {
   const template = basicCards[cardId]
   if (!template) return null
   return {
@@ -136,3 +130,6 @@ export function createBasicCard(cardId, instanceId) {
     isBasicCard: true
   }
 }
+
+// 重新导出 CardType 以便其他模块使用
+export { CardType } from '../game/types'

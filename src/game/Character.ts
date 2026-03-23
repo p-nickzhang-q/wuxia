@@ -1,18 +1,19 @@
-import { reactive } from 'vue'
-import { createBasicCard } from '../data/cards.js'
-import { passiveSkills, TriggerTiming } from '../data/skills.js'
+import { Card, CharacterState, CharacterConfig, MartialArtSkill, PassiveSkill, TriggerTiming, GameState, MartialArt } from './types'
+import { createBasicCard } from '../data/cards'
 
-export function createCharacter(characterConfig, martialArtsList) {
+// 创建角色
+export function createCharacter(characterConfig: CharacterConfig, martialArtsList: MartialArt[]): CharacterState {
   // 收集所有武功招式和内功
-  const skills = []
-  const passives = []
+  const skills: MartialArtSkill[] = []
+  const passives: PassiveSkill[] = []
 
   martialArtsList.forEach(art => {
     if (art.skill) skills.push(art.skill)
     if (art.passive) passives.push(art.passive)
   })
 
-  const character = reactive({
+  const character: CharacterState = {
+    id: characterConfig.id,
     name: characterConfig.name,
     title: characterConfig.title,
     description: characterConfig.description,
@@ -25,22 +26,18 @@ export function createCharacter(characterConfig, martialArtsList) {
     agilityBonus: 0,
     shield: 0,
 
-    // 武功配置
-    skills: skills,        // 武功招式列表
-    passives: passives,    // 内功列表
+    skills: skills,
+    passives: passives,
     martialArtsNames: martialArtsList.map(a => a.name),
 
-    // 卡组
     deckTemplate: characterConfig.deck,
     deck: [],
     hand: [],
     discardPile: [],
 
-    // 状态效果
     debuffs: [],
     dots: [],
 
-    // 方法
     initDeck() {
       this.deck = []
       this.hand = []
@@ -63,8 +60,8 @@ export function createCharacter(characterConfig, martialArtsList) {
       }
     },
 
-    drawCards(count) {
-      const drawn = []
+    drawCards(count: number) {
+      const drawn: Card[] = []
       for (let i = 0; i < count; i++) {
         if (this.deck.length === 0) {
           if (this.discardPile.length === 0) break
@@ -74,7 +71,7 @@ export function createCharacter(characterConfig, martialArtsList) {
         }
 
         if (this.deck.length > 0 && this.hand.length < 7) {
-          const card = this.deck.pop()
+          const card = this.deck.pop()!
           this.hand.push(card)
           drawn.push(card)
         }
@@ -82,7 +79,7 @@ export function createCharacter(characterConfig, martialArtsList) {
       return drawn
     },
 
-    playCard(cardInstanceId) {
+    playCard(cardInstanceId: string) {
       const index = this.hand.findIndex(c => c.instanceId === cardInstanceId)
       if (index !== -1) {
         const card = this.hand.splice(index, 1)[0]
@@ -100,15 +97,15 @@ export function createCharacter(characterConfig, martialArtsList) {
       this.agility = this.getCurrentAgility()
       this.debuffs = this.debuffs.filter(debuff => {
         if (debuff.type === 'agility') {
-          this.agility = Math.max(0, this.agility - debuff.value)
+          this.agility = Math.max(0, this.agility - (debuff.value as number))
         }
         debuff.duration--
         return debuff.duration > 0
       })
     },
 
-    onTurnStart(game) {
-      const messages = []
+    onTurnStart(_game: GameState) {
+      const messages: string[] = []
 
       this.dots = this.dots.filter(dot => {
         this.hp -= dot.value
@@ -121,7 +118,7 @@ export function createCharacter(characterConfig, martialArtsList) {
       this.passives.forEach(passive => {
         if (passive.trigger === TriggerTiming.TURN_START) {
           const msg = passive.effect(this)
-          if (msg) messages.push(msg)
+          if (msg) messages.push(typeof msg === 'string' ? msg : msg.message || '')
         }
       })
 
@@ -129,42 +126,43 @@ export function createCharacter(characterConfig, martialArtsList) {
     },
 
     onTurnEnd() {
-      const messages = []
+      const messages: string[] = []
 
       this.passives.forEach(passive => {
         if (passive.trigger === TriggerTiming.TURN_END) {
           const msg = passive.effect(this)
-          if (msg) messages.push(msg)
+          if (msg) messages.push(typeof msg === 'string' ? msg : msg.message || '')
         }
       })
 
       return messages
     },
 
-    takeDamage(damage, attacker = null, game = null) {
-      let messages = []
+    takeDamage(damage: number, attacker: CharacterState | null = null, _game: GameState | null = null) {
+      const messages: string[] = []
       let actualDamage = damage
 
       // 触发所有内功（伤害减免/闪避）
-      this.passives.forEach(passive => {
+      for (const passive of this.passives) {
         if (passive.trigger === TriggerTiming.ON_TAKE_DAMAGE) {
           const result = passive.effect(this, damage)
           if (result) {
-            if (result.message) messages.push(result.message)
-            if (result.dodged) {
-              if (result.reflectDamage && attacker) {
-                attacker.hp -= result.reflectDamage
-                messages.push(`${attacker.name}受到反弹伤害${result.reflectDamage}点`)
+            const effectResult = typeof result === 'string' ? { message: result } : result
+            if (effectResult.message) messages.push(effectResult.message)
+            if (effectResult.dodged) {
+              if (effectResult.reflectDamage && attacker) {
+                attacker.hp -= effectResult.reflectDamage
+                messages.push(`${attacker.name}受到反弹伤害${effectResult.reflectDamage}点`)
               }
               actualDamage = 0
               return { damage: 0, messages }
             }
-            if (result.reducedDamage !== undefined) {
-              actualDamage = result.reducedDamage
+            if (effectResult.reducedDamage !== undefined) {
+              actualDamage = effectResult.reducedDamage
             }
           }
         }
-      })
+      }
 
       if (actualDamage === 0) {
         return { damage: 0, messages }
@@ -192,19 +190,19 @@ export function createCharacter(characterConfig, martialArtsList) {
       return { damage: actualDamage, messages }
     },
 
-    heal(amount) {
+    heal(amount: number) {
       const actualHeal = Math.min(amount, this.maxHp - this.hp)
       this.hp += actualHeal
       return actualHeal
     },
 
-    recoverMp(amount) {
+    recoverMp(amount: number) {
       const actualRecover = Math.min(amount, this.maxMp - this.mp)
       this.mp += actualRecover
       return actualRecover
     },
 
-    useMp(amount) {
+    useMp(amount: number) {
       if (this.mp >= amount) {
         this.mp -= amount
         return true
@@ -216,11 +214,11 @@ export function createCharacter(characterConfig, martialArtsList) {
       return this.hp > 0
     },
 
-    addDot(value, duration) {
+    addDot(value: number, duration: number) {
       this.dots.push({ value, duration })
     },
 
-    addDebuff(type, value, duration) {
+    addDebuff(type: 'agility' | 'disableCardType', value: number | import('./types').CardType, duration: number) {
       this.debuffs.push({ type, value, duration })
     },
 
@@ -228,7 +226,7 @@ export function createCharacter(characterConfig, martialArtsList) {
       return [...this.hand]
     },
 
-    getAvailableCards(currentAgility) {
+    getAvailableCards(currentAgility: number) {
       return this.hand.filter(card => {
         if (card.agilityCost > currentAgility) return false
         const disabledType = this.debuffs.find(d => d.type === 'disableCardType')
@@ -237,8 +235,7 @@ export function createCharacter(characterConfig, martialArtsList) {
       })
     },
 
-    // 检查是否可以使用某个武功招式
-    canUseSkill(skill, card, currentAgility) {
+    canUseSkill(skill: MartialArtSkill, card: Card, currentAgility: number) {
       if (!skill) return false
 
       const requiredType = skill.requiredCardType
@@ -249,15 +246,13 @@ export function createCharacter(characterConfig, martialArtsList) {
       return typeMatch && mpEnough && agilityEnough
     },
 
-    // 获取可用于某个武功招式的手牌
-    getSkillCards(skill, currentAgility) {
+    getSkillCards(skill: MartialArtSkill, currentAgility: number) {
       if (!skill) return []
 
       return this.hand.filter(card => this.canUseSkill(skill, card, currentAgility))
     },
 
-    // 获取所有可用的武功招式（有对应手牌且资源足够）
-    getAvailableSkills(currentAgility) {
+    getAvailableSkills(currentAgility: number) {
       return this.skills.filter(skill => {
         const hasCard = this.hand.some(card => {
           const typeMatch = skill.requiredCardType === 'any' || card.type === skill.requiredCardType
@@ -265,26 +260,8 @@ export function createCharacter(characterConfig, martialArtsList) {
         })
         return hasCard && this.mp >= skill.mpCost && currentAgility >= skill.agilityCost
       })
-    },
-
-    // 触发内功效果（用于武功招式使用时）
-    triggerPassives(triggerTiming, ...args) {
-      const messages = []
-      this.passives.forEach(passive => {
-        if (passive.trigger === triggerTiming) {
-          const result = passive.effect(this, ...args)
-          if (result) {
-            if (typeof result === 'string') {
-              messages.push(result)
-            } else if (result.message) {
-              messages.push(result.message)
-            }
-          }
-        }
-      })
-      return messages
     }
-  })
+  }
 
   // 初始化内功效果
   character.passives.forEach(passive => {
@@ -298,7 +275,7 @@ export function createCharacter(characterConfig, martialArtsList) {
 
 // 保持向后兼容的类
 export class Character {
-  constructor(config, martialArtsList) {
+  constructor(config: CharacterConfig, martialArtsList: MartialArt[]) {
     const char = createCharacter(config, martialArtsList)
     Object.assign(this, char)
   }

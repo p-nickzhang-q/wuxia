@@ -1,17 +1,7 @@
-import { CardType } from './cards.js'
-
-// 触发时机枚举
-export const TriggerTiming = {
-  TURN_START: 'onTurnStart',
-  TURN_END: 'onTurnEnd',
-  ON_DAMAGE: 'onDamage',
-  ON_TAKE_DAMAGE: 'onTakeDamage',
-  ON_PLAY_CARD: 'onPlayCard',
-  ON_SKILL_USE: 'onSkillUse'
-}
+import { CardType, TriggerTiming, MartialArtSkill, PassiveSkill, MartialArt, CharacterConfig, CharacterState, PassiveEffectResult } from '../game/types'
 
 // ==================== 武功招式数据 ====================
-export const martialArtSkills = {
+export const martialArtSkills: Record<string, MartialArtSkill> = {
   // 空手类武功招式
   dragonPalm: {
     id: 'dragonPalm',
@@ -84,8 +74,8 @@ export const martialArtSkills = {
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 5,
     agilityCost: 2,
-    effects: [{ type: 'damage', value: 8 }, { type: 'firstStrike', value: true }],
-    description: '造成8点伤害，先制攻击'
+    effects: [{ type: 'damage', value: 8 }],
+    description: '造成8点伤害'
   },
   goldenSnake: {
     id: 'goldenSnake',
@@ -122,7 +112,7 @@ export const martialArtSkills = {
     requiredCardType: CardType.LONG_WEAPON,
     mpCost: 3,
     agilityCost: 4,
-    effects: [{ type: 'damage', value: 7 }, { type: 'followUp', value: true }],
+    effects: [{ type: 'damage', value: 7 }, { type: 'followUp' }],
     description: '造成7点伤害，可追击一次'
   },
   overlordSpear: {
@@ -187,7 +177,7 @@ export const martialArtSkills = {
     requiredCardType: CardType.LEG,
     mpCost: 4,
     agilityCost: 3,
-    effects: [{ type: 'damage', value: 5 }, { type: 'extraAction', value: true }],
+    effects: [{ type: 'damage', value: 5 }, { type: 'extraAction' }],
     description: '造成5点伤害，可再行动一次'
   },
   springLeg: {
@@ -234,7 +224,7 @@ export const martialArtSkills = {
     requiredCardType: 'any',
     mpCost: 2,
     agilityCost: 2,
-    effects: [{ type: 'mimic', value: true }],
+    effects: [{ type: 'mimic' }],
     description: '模仿对方上次使用的武功招式'
   },
   lifeDeath: {
@@ -249,12 +239,12 @@ export const martialArtSkills = {
 }
 
 // ==================== 内功数据 ====================
-export const passiveSkills = {
+export const passiveSkills: Record<string, PassiveSkill> = {
   goldenBell: {
     id: 'goldenBell',
     name: '金钟罩',
     trigger: TriggerTiming.TURN_START,
-    effect: (character) => {
+    effect: (character: CharacterState): string => {
       character.shield += 5
       return `${character.name}的金钟罩发动，获得5点护盾`
     },
@@ -264,7 +254,7 @@ export const passiveSkills = {
     id: 'muscleChange',
     name: '易筋经',
     trigger: TriggerTiming.TURN_START,
-    effect: (character) => {
+    effect: (character: CharacterState): string => {
       character.mp = Math.min(character.maxMp, character.mp + 3)
       return `${character.name}的易筋经发动，恢复3点内力`
     },
@@ -274,7 +264,7 @@ export const passiveSkills = {
     id: 'nineYang',
     name: '九阳神功',
     trigger: TriggerTiming.TURN_START,
-    effect: (character) => {
+    effect: (character: CharacterState): string => {
       character.hp = Math.min(character.maxHp, character.hp + 4)
       return `${character.name}的九阳神功发动，恢复4点体力`
     },
@@ -284,11 +274,11 @@ export const passiveSkills = {
     id: 'lingbo',
     name: '凌波微步',
     trigger: TriggerTiming.TURN_START,
-    effect: (character) => {
+    effect: (character: CharacterState): string => {
       character.agilityBonus = (character.agilityBonus || 0) + 2
       return `${character.name}的凌波微步发动，轻功+2`
     },
-    initEffect: (character) => {
+    initEffect: (character: CharacterState): void => {
       character.agilityBonus = 5
     },
     description: '初始轻功+5，每回合轻功+2'
@@ -297,7 +287,7 @@ export const passiveSkills = {
     id: 'northernMingPassive',
     name: '北冥神功',
     trigger: TriggerTiming.ON_DAMAGE,
-    effect: (character, damage) => {
+    effect: (character: CharacterState, damage: number): string | null => {
       const recover = Math.floor(damage * 0.5)
       character.mp = Math.min(character.maxMp, character.mp + recover)
       return recover > 0 ? `${character.name}的北冥神功发动，恢复${recover}点内力` : null
@@ -308,7 +298,7 @@ export const passiveSkills = {
     id: 'starAbsorbingPassive',
     name: '吸星大法',
     trigger: TriggerTiming.ON_DAMAGE,
-    effect: (character, damage) => {
+    effect: (character: CharacterState, damage: number): string | null => {
       const recover = Math.floor(damage * 0.5)
       character.hp = Math.min(character.maxHp, character.hp + recover)
       return recover > 0 ? `${character.name}的吸星大法发动，恢复${recover}点体力` : null
@@ -319,7 +309,7 @@ export const passiveSkills = {
     id: 'taiChiHeart',
     name: '太极心法',
     trigger: TriggerTiming.ON_TAKE_DAMAGE,
-    effect: (character, damage) => {
+    effect: (character: CharacterState, damage: number): PassiveEffectResult => {
       const reduction = Math.floor(damage * 0.25)
       return { reducedDamage: damage - reduction, message: `${character.name}的太极心法发动，伤害减少25%` }
     },
@@ -329,7 +319,7 @@ export const passiveSkills = {
     id: 'qiankun',
     name: '乾坤大挪移',
     trigger: TriggerTiming.ON_TAKE_DAMAGE,
-    effect: (character, damage) => {
+    effect: (character: CharacterState, damage: number): PassiveEffectResult | null => {
       if (Math.random() < 0.2) {
         const reflect = Math.floor(damage * 0.5)
         return { dodged: true, reflectDamage: reflect, message: `${character.name}的乾坤大挪移发动，闪避并反弹${reflect}点伤害` }
@@ -342,7 +332,7 @@ export const passiveSkills = {
     id: 'nineYin',
     name: '九阴真经',
     trigger: TriggerTiming.ON_SKILL_USE,
-    effect: (character, skill) => {
+    effect: (character: CharacterState, skill: MartialArtSkill): string | null => {
       if (skill.mpCost > 0) {
         skill.mpCostReduction = 1
         return `${character.name}的九阴真经发动，内力消耗-1`
@@ -355,7 +345,7 @@ export const passiveSkills = {
     id: 'congenital',
     name: '先天功',
     trigger: TriggerTiming.ON_SKILL_USE,
-    effect: (character, skill, damage) => {
+    effect: (character: CharacterState, _skill: MartialArtSkill, damage?: number): PassiveEffectResult | null => {
       if (damage) {
         const bonus = Math.floor(damage * 0.2)
         return { bonusDamage: bonus, message: `${character.name}的先天功发动，伤害+20%` }
@@ -368,7 +358,7 @@ export const passiveSkills = {
     id: 'dragonElephant',
     name: '龙象般若功',
     trigger: TriggerTiming.ON_PLAY_CARD,
-    effect: (character, card, damage) => {
+    effect: (character: CharacterState, card: { isBasicCard: boolean }, damage?: number): PassiveEffectResult | null => {
       if (card.isBasicCard && damage) {
         return { bonusDamage: 2, message: `${character.name}的龙象般若功发动，基础招式伤害+2` }
       }
@@ -379,9 +369,7 @@ export const passiveSkills = {
 }
 
 // ==================== 武功配置 ====================
-// 武功可以包含：武功招式、内功，或两者都有
-export const martialArts = {
-  // 降龙掌 - 有武功招式和内功
+export const martialArts: Record<string, MartialArt> = {
   dragonPalm: {
     id: 'dragonPalm',
     name: '降龙掌',
@@ -389,7 +377,6 @@ export const martialArts = {
     passive: passiveSkills.congenital,
     description: '降龙十八掌 + 先天功'
   },
-  // 太极拳 - 有武功招式和内功
   taiChi: {
     id: 'taiChi',
     name: '太极拳',
@@ -397,7 +384,6 @@ export const martialArts = {
     passive: passiveSkills.taiChiHeart,
     description: '太极拳 + 太极心法'
   },
-  // 一阳指 - 有武功招式和内功
   oneYangFinger: {
     id: 'oneYangFinger',
     name: '一阳指',
@@ -405,7 +391,6 @@ export const martialArts = {
     passive: passiveSkills.nineYin,
     description: '一阳指 + 九阴真经'
   },
-  // 独孤九剑 - 有武功招式和内功
   nineSwordsStyle: {
     id: 'nineSwordsStyle',
     name: '独孤九剑',
@@ -413,7 +398,6 @@ export const martialArts = {
     passive: passiveSkills.qiankun,
     description: '独孤九剑 + 乾坤大挪移'
   },
-  // 辟邪剑法 - 有武功招式和内功
   evilSwordStyle: {
     id: 'evilSwordStyle',
     name: '辟邪剑法',
@@ -421,7 +405,6 @@ export const martialArts = {
     passive: passiveSkills.lingbo,
     description: '辟邪剑法 + 凌波微步'
   },
-  // 打狗棒法 - 有武功招式和内功
   dogBeatingStyle: {
     id: 'dogBeatingStyle',
     name: '打狗棒法',
@@ -429,7 +412,6 @@ export const martialArts = {
     passive: passiveSkills.nineYang,
     description: '打狗棒法 + 九阳神功'
   },
-  // 杨家枪 - 有武功招式和内功
   yangSpearStyle: {
     id: 'yangSpearStyle',
     name: '杨家枪',
@@ -437,7 +419,6 @@ export const martialArts = {
     passive: passiveSkills.dragonElephant,
     description: '杨家枪 + 龙象般若功'
   },
-  // 霸王枪 - 有武功招式和内功
   overlordSpearStyle: {
     id: 'overlordSpearStyle',
     name: '霸王枪',
@@ -445,7 +426,6 @@ export const martialArts = {
     passive: passiveSkills.congenital,
     description: '霸王枪 + 先天功'
   },
-  // 佛山无影脚 - 有武功招式和内功
   shadowlessKickStyle: {
     id: 'shadowlessKickStyle',
     name: '佛山无影脚',
@@ -453,7 +433,6 @@ export const martialArts = {
     passive: passiveSkills.muscleChange,
     description: '佛山无影脚 + 易筋经'
   },
-  // 生死符 - 有武功招式和内功
   lifeDeathStyle: {
     id: 'lifeDeathStyle',
     name: '生死符',
@@ -461,7 +440,6 @@ export const martialArts = {
     passive: passiveSkills.northernMingPassive,
     description: '生死符 + 北冥神功'
   },
-  // 少林 - 有武功招式和内功
   shaolin: {
     id: 'shaolin',
     name: '少林',
@@ -469,7 +447,6 @@ export const martialArts = {
     passive: passiveSkills.goldenBell,
     description: '大力金刚掌 + 金钟罩'
   },
-  // 明教 - 有武功招式和内功
   mingSect: {
     id: 'mingSect',
     name: '明教',
@@ -485,23 +462,6 @@ export const martialArts = {
     passive: passiveSkills.qiankun,
     description: '乾坤大挪移(招式) + 乾坤大挪移(内功)'
   },
-  // 仅内功 - 金钟罩
-  goldenBellOnly: {
-    id: 'goldenBellOnly',
-    name: '金钟罩',
-    skill: null,
-    passive: passiveSkills.goldenBell,
-    description: '仅内功：每回合获得5点护盾'
-  },
-  // 仅武功招式 - 七伤拳
-  sevenInjuryOnly: {
-    id: 'sevenInjuryOnly',
-    name: '七伤拳',
-    skill: martialArtSkills.sevenInjury,
-    passive: null,
-    description: '仅招式：造成8点伤害，自损2点'
-  },
-  // 吸星大法 - 有武功招式和内功
   starAbsorbingStyle: {
     id: 'starAbsorbingStyle',
     name: '吸星大法',
@@ -509,7 +469,6 @@ export const martialArts = {
     passive: passiveSkills.starAbsorbingPassive,
     description: '吸星大法(招式) + 吸星大法(内功)'
   },
-  // 北冥神功 - 有武功招式和内功
   northernMingStyle: {
     id: 'northernMingStyle',
     name: '北冥神功',
@@ -520,9 +479,7 @@ export const martialArts = {
 }
 
 // ==================== 角色配置 ====================
-// 角色包含：名称、属性（体力、内力、轻功）、武功列表、卡组
-export const characters = {
-  // 乔峰 - 降龙十八掌
+export const characters: Record<string, CharacterConfig> = {
   qiaoFeng: {
     id: 'qiaoFeng',
     name: '乔峰',
@@ -531,7 +488,7 @@ export const characters = {
     hp: 65,
     mp: 20,
     agility: 10,
-    martialArts: ['dragonPalm'], // 武功列表
+    martialArts: ['dragonPalm'],
     deck: [
       'fist', 'fist', 'fist', 'fist',
       'palm', 'palm', 'palm', 'palm',
@@ -541,7 +498,6 @@ export const characters = {
       'jumpKick', 'jumpKick'
     ]
   },
-  // 张三丰 - 太极拳
   zhangSanFeng: {
     id: 'zhangSanFeng',
     name: '张三丰',
@@ -560,7 +516,6 @@ export const characters = {
       'jumpKick', 'jumpKick', 'jumpKick'
     ]
   },
-  // 段誉 - 一阳指
   duanYu: {
     id: 'duanYu',
     name: '段誉',
@@ -579,7 +534,6 @@ export const characters = {
       'jumpKick', 'jumpKick'
     ]
   },
-  // 令狐冲 - 独孤九剑
   lingHuChong: {
     id: 'lingHuChong',
     name: '令狐冲',
@@ -598,7 +552,6 @@ export const characters = {
       'jumpKick', 'jumpKick'
     ]
   },
-  // 林平之 - 辟邪剑法
   linPingZhi: {
     id: 'linPingZhi',
     name: '林平之',
@@ -616,7 +569,6 @@ export const characters = {
       'sweepKick', 'sweepKick', 'sweepKick'
     ]
   },
-  // 洪七公 - 打狗棒法
   hongQiGong: {
     id: 'hongQiGong',
     name: '洪七公',
@@ -634,7 +586,6 @@ export const characters = {
       'sweepKick', 'sweepKick', 'sweepKick', 'sweepKick'
     ]
   },
-  // 杨延昭 - 杨家枪
   yangYanZhao: {
     id: 'yangYanZhao',
     name: '杨延昭',
@@ -653,7 +604,6 @@ export const characters = {
       'jumpKick', 'jumpKick'
     ]
   },
-  // 项羽 - 霸王枪
   xiangYu: {
     id: 'xiangYu',
     name: '项羽',
@@ -671,7 +621,6 @@ export const characters = {
       'sweepKick', 'sweepKick', 'sweepKick'
     ]
   },
-  // 黄飞鸿 - 佛山无影脚
   huangFeiHong: {
     id: 'huangFeiHong',
     name: '黄飞鸿',
@@ -690,7 +639,6 @@ export const characters = {
       'jumpKick', 'jumpKick', 'jumpKick', 'jumpKick'
     ]
   },
-  // 天山童姥 - 生死符
   tongLao: {
     id: 'tongLao',
     name: '天山童姥',
@@ -711,7 +659,6 @@ export const characters = {
       'sweepKick', 'sweepKick'
     ]
   },
-  // 少林高僧 - 金钟罩+大力金刚掌
   shaolinMonk: {
     id: 'shaolinMonk',
     name: '少林高僧',
@@ -729,7 +676,6 @@ export const characters = {
       'sweepKick', 'sweepKick', 'sweepKick', 'sweepKick'
     ]
   },
-  // 张无忌 - 明教
   zhangWuJi: {
     id: 'zhangWuJi',
     name: '张无忌',
@@ -752,7 +698,6 @@ export const characters = {
       'parry', 'parry'
     ]
   },
-  // 任我行 - 吸星大法
   renWoXing: {
     id: 'renWoXing',
     name: '任我行',
@@ -774,7 +719,6 @@ export const characters = {
       'parry', 'parry'
     ]
   },
-  // 虚竹 - 北冥神功
   xuZhu: {
     id: 'xuZhu',
     name: '虚竹',
@@ -799,7 +743,7 @@ export const characters = {
 }
 
 // 获取角色的所有武功
-export function getCharacterMartialArts(characterId) {
+export function getCharacterMartialArts(characterId: string): MartialArt[] {
   const character = characters[characterId]
   if (!character) return []
 
@@ -815,10 +759,5 @@ export function getCharacterMartialArts(characterId) {
   })
 }
 
-// 创建角色卡组
-export function createCharacterDeck(characterId) {
-  const character = characters[characterId]
-  if (!character) return []
-
-  return [...character.deck]
-}
+// 重新导出类型
+export { TriggerTiming } from '../game/types'
