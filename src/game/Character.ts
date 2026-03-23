@@ -8,7 +8,10 @@ export function createCharacter(characterConfig: CharacterConfig, martialArtsLis
   const passives: PassiveSkill[] = []
 
   martialArtsList.forEach(art => {
-    if (art.skill) skills.push(art.skill)
+    // 支持多个武功招式
+    if (art.skills && art.skills.length > 0) {
+      skills.push(...art.skills)
+    }
     if (art.passive) passives.push(art.passive)
   })
 

@@ -204,7 +204,6 @@ export class SkillButton extends Container {
 export class BattleLog extends Container {
   private logContainer: Container
   private logs: Array<{ text: Text; container: Container }> = []
-  private maxLogs: number = 20
   private renderer: Renderer
   private clipMask: Graphics
   private scrollBar: Graphics
@@ -276,12 +275,6 @@ export class BattleLog extends Container {
 
     this.logs.push({ text, container })
 
-    // 限制日志数量
-    while (this.logs.length > this.maxLogs) {
-      const old = this.logs.shift()!
-      this.logContainer.removeChild(old.container)
-    }
-
     // 更新位置
     this.updatePositions()
 
@@ -292,10 +285,6 @@ export class BattleLog extends Container {
 
   // 同步日志（不自动滚动）
   syncLog(message: string): void {
-    // 检查是否已存在相同日志
-    const exists = this.logs.some(log => log.text.text === message)
-    if (exists) return
-
     const text = new Text({
       text: message,
       style: {
@@ -312,11 +301,6 @@ export class BattleLog extends Container {
     this.logContainer.addChild(container)
 
     this.logs.push({ text, container })
-
-    while (this.logs.length > this.maxLogs) {
-      const old = this.logs.shift()!
-      this.logContainer.removeChild(old.container)
-    }
 
     this.updatePositions()
 

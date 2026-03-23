@@ -129,14 +129,34 @@ export class Renderer {
     this.height = container.clientHeight || 720
 
     this.app = new Application()
-    await this.app.init({
-      width: this.width,
-      height: this.height,
-      backgroundColor: Colors.BACKGROUND,
-      antialias: true,
-      resolution: window.devicePixelRatio || 1,
-      autoDensity: true
-    })
+
+    // 强制使用 Canvas2D 渲染器
+    const preferences: ('webgl' | 'webgpu' | 'canvas')[] = ['canvas', 'webgl']
+    let initialized = false
+
+    for (const pref of preferences) {
+      try {
+        await this.app.init({
+          width: this.width,
+          height: this.height,
+          backgroundColor: Colors.BACKGROUND,
+          antialias: true,
+          resolution: window.devicePixelRatio || 1,
+          autoDensity: true,
+          preference: pref,
+          autoStart: true  // 自动开始渲染循环
+        })
+        initialized = true
+        console.log(`Renderer initialized with ${pref}`)
+        break
+      } catch (e) {
+        console.warn(`Failed to initialize with ${pref}:`, e)
+      }
+    }
+
+    if (!initialized) {
+      throw new Error('Failed to initialize renderer with any backend')
+    }
 
     container.appendChild(this.app.canvas)
     this.stage = this.app.stage

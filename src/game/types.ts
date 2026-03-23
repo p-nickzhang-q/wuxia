@@ -82,7 +82,7 @@ export interface PassiveSkill {
 export interface MartialArt {
   id: string
   name: string
-  skill: MartialArtSkill | null
+  skills: MartialArtSkill[]  // 支持多个武功招式
   passive: PassiveSkill | null
   description: string
 }
