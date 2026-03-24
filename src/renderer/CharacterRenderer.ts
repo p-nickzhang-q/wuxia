@@ -1,20 +1,22 @@
-import { Container, Graphics, Text } from 'pixi.js'
+import { Container, Graphics, Text, Sprite, Assets } from 'pixi.js'
 import { CharacterState } from '../game/types'
 import { Colors, TextStyles, Renderer } from './Renderer'
 
 // 角色面板尺寸
-const PANEL_WIDTH = 200
+const PANEL_WIDTH = 320
 const BASE_PANEL_HEIGHT = 155  // 基础高度（无内功时）
 const BAR_WIDTH = 170
 const BAR_HEIGHT = 12
-const BAR_X = 10  // 条形图X偏移
+const BAR_X = 130  // 条形图X偏移（给立绘留空间）
 const PASSIVE_LINE_HEIGHT = 22  // 每个内功行高
+const PORTRAIT_SIZE = 120  // 立绘尺寸
 
 // 角色渲染器
 export class CharacterRenderer extends Container {
   private isEnemy: boolean
 
   private background: Graphics
+  private portrait: Sprite | null = null
   private nameText: Text
   private titleText: Text
 
@@ -39,12 +41,15 @@ export class CharacterRenderer extends Container {
     this.background = renderer.createGraphics()
     this.addChild(this.background)
 
+    // 角色立绘
+    this.loadPortrait(character.name)
+
     // 角色名称
-    this.nameText = renderer.createText(character.name, TextStyles.CHARACTER_NAME, 10, 8)
+    this.nameText = renderer.createText(character.name, TextStyles.CHARACTER_NAME, BAR_X, 8)
     this.addChild(this.nameText)
 
     // 角色称号
-    this.titleText = renderer.createText(character.title, TextStyles.CHARACTER_TITLE, 10, 28)
+    this.titleText = renderer.createText(character.title, TextStyles.CHARACTER_TITLE, BAR_X, 28)
     this.addChild(this.titleText)
 
     // HP 条
@@ -72,27 +77,43 @@ export class CharacterRenderer extends Container {
     this.mpBar.addChild(this.mpText)
 
     // 护盾显示
-    this.shieldText = renderer.createText('', TextStyles.STATS, 10, 95)
+    this.shieldText = renderer.createText('', TextStyles.STATS, BAR_X, 95)
     this.shieldText.style.fill = Colors.TEXT_GREEN
     this.addChild(this.shieldText)
 
     // 轻功显示
-    this.agilityText = renderer.createText('', TextStyles.STATS, 100, 95)
+    this.agilityText = renderer.createText('', TextStyles.STATS, BAR_X + 80, 95)
     this.agilityText.style.fill = Colors.AGILITY_BAR
     this.addChild(this.agilityText)
 
     // 武功信息
-    this.martialArtsText = renderer.createText('', TextStyles.SKILL_NAME, 10, 115)
+    this.martialArtsText = renderer.createText('', TextStyles.SKILL_NAME, BAR_X, 115)
     this.martialArtsText.style.fontSize = 10
     this.addChild(this.martialArtsText)
 
     // 内功容器
     this.passiveContainer = new Container()
+    this.passiveContainer.x = BAR_X
     this.passiveContainer.y = 135
     this.addChild(this.passiveContainer)
 
     // 初始绘制
     this.update(character)
+  }
+
+  // 加载角色立绘
+  private async loadPortrait(name: string): Promise<void> {
+    try {
+      const texture = await Assets.load(`/assets/characters/${name}.png`)
+      this.portrait = new Sprite(texture)
+      this.portrait.x = 5
+      this.portrait.y = 5
+      this.portrait.width = PORTRAIT_SIZE
+      this.portrait.height = PORTRAIT_SIZE
+      this.addChildAt(this.portrait, 1)  // 插入到背景之后
+    } catch (error) {
+      console.warn(`无法加载角色立绘: ${name}`, error)
+    }
   }
 
   // 绘制背景
@@ -171,14 +192,14 @@ export class CharacterRenderer extends Container {
         text: `◈ ${passive.name}`,
         style: { fontSize: 10, fill: Colors.MP_BAR }
       })
-      nameText.x = 10
+      nameText.x = 0
       nameText.y = yPos
       this.passiveContainer.addChild(nameText)
 
       // 内功效果描述
       const descText = new Text({
         text: passive.description,
-        style: { fontSize: 9, fill: Colors.TEXT_SECONDARY, wordWrap: true, wordWrapWidth: 180 }
+        style: { fontSize: 9, fill: Colors.TEXT_SECONDARY, wordWrap: true, wordWrapWidth: 170 }
       })
       descText.x = 20
       descText.y = yPos + 12
