@@ -1,7 +1,8 @@
 import { Container, Graphics, Text } from 'pixi.js'
 import { Colors, TextStyles, Renderer } from './Renderer'
+import { LayoutConstants } from './LayoutConstants'
 
-// 按钮类
+// 按钮类 - 使用响应式尺寸
 export class Button extends Container {
   private background: Graphics
   private labelText: Text
@@ -12,8 +13,8 @@ export class Button extends Container {
 
   constructor(
     text: string,
-    width: number = 120,
-    height: number = 40,
+    width: number = LayoutConstants.buttonWidth(),
+    height: number = LayoutConstants.buttonHeight(),
     renderer: Renderer
   ) {
     super()
@@ -43,7 +44,7 @@ export class Button extends Container {
   private drawBackground(width: number, height: number): void {
     const color = this.isDisabled ? Colors.BUTTON_DISABLED : Colors.BUTTON_NORMAL
     this.background.clear()
-    this.background.roundRect(0, 0, width, height, 8)
+    this.background.roundRect(0, 0, width, height, 10)
     this.background.fill(color)
     this.background.stroke({ color: Colors.TEXT_GOLD, width: 2 })
   }
@@ -57,7 +58,7 @@ export class Button extends Container {
   private handleHover(isHover: boolean): void {
     if (!this.isDisabled) {
       this.background.clear()
-      this.background.roundRect(0, 0, this.btnWidth, this.btnHeight, 8)
+      this.background.roundRect(0, 0, this.btnWidth, this.btnHeight, 10)
       this.background.fill(isHover ? Colors.BUTTON_HOVER : Colors.BUTTON_NORMAL)
       this.background.stroke({ color: Colors.TEXT_GOLD, width: 2 })
     }
@@ -78,7 +79,7 @@ export class Button extends Container {
   }
 }
 
-// 技能按钮类
+// 技能按钮类 - 使用响应式尺寸
 export class SkillButton extends Container {
   private background: Graphics
   private nameLabel: Text
@@ -88,8 +89,8 @@ export class SkillButton extends Container {
   private onClick?: (skillId: string) => void
   private isAvailable: boolean = true
   private isSelected: boolean = false
-  private btnWidth: number = 140
-  private btnHeight: number = 60
+  private btnWidth: number
+  private btnHeight: number
 
   constructor(
     skillId: string,
@@ -101,25 +102,27 @@ export class SkillButton extends Container {
   ) {
     super()
     this.skillId = skillId
+    this.btnWidth = LayoutConstants.skillBtnWidth()
+    this.btnHeight = LayoutConstants.skillBtnHeight()
 
     this.background = renderer.createGraphics()
     this.addChild(this.background)
 
     // 技能名称
-    this.nameLabel = renderer.createText(name, TextStyles.SKILL_NAME, 5, 5)
-    this.nameLabel.style.fontSize = 12
+    this.nameLabel = renderer.createText(name, TextStyles.SKILL_NAME, 8, 6)
+    this.nameLabel.style.fontSize = LayoutConstants.fontSkillName()
     this.addChild(this.nameLabel)
 
     // 消耗
-    this.costLabel = renderer.createText(`MP:${mpCost} 轻功:${agilityCost}`, TextStyles.CARD_STATS, 5, 22)
-    this.costLabel.style.fontSize = 10
+    this.costLabel = renderer.createText(`MP:${mpCost} 轻功:${agilityCost}`, TextStyles.CARD_STATS, 8, 28)
+    this.costLabel.style.fontSize = LayoutConstants.fontCardType()
     this.addChild(this.costLabel)
 
     // 描述
-    this.descLabel = renderer.createText(description, TextStyles.CARD_TYPE, 5, 38)
-    this.descLabel.style.fontSize = 9
+    this.descLabel = renderer.createText(description, TextStyles.CARD_TYPE, 8, 48)
+    this.descLabel.style.fontSize = LayoutConstants.fontCardType()
     this.descLabel.style.wordWrap = true
-    this.descLabel.style.wordWrapWidth = this.btnWidth - 10
+    this.descLabel.style.wordWrapWidth = this.btnWidth - 16
     this.addChild(this.descLabel)
 
     this.drawBackground()
@@ -140,7 +143,7 @@ export class SkillButton extends Container {
     if (this.isSelected) {
       color = 0x5a3a6e
       borderColor = Colors.TEXT_GOLD
-      borderWidth = 3
+      borderWidth = 4
     } else if (this.isAvailable) {
       color = 0x3a2a4e
       borderColor = Colors.TEXT_RED
@@ -152,13 +155,12 @@ export class SkillButton extends Container {
     }
 
     this.background.clear()
-    this.background.roundRect(0, 0, this.btnWidth, this.btnHeight, 6)
+    this.background.roundRect(0, 0, this.btnWidth, this.btnHeight, 8)
     this.background.fill(color)
     this.background.stroke({ color: borderColor, width: borderWidth })
   }
 
   private handleClick(): void {
-    // 即使不可用也可以点击选中
     if (this.onClick) {
       this.onClick(this.skillId)
     }
@@ -173,7 +175,7 @@ export class SkillButton extends Container {
         color = isHover ? 0x444444 : 0x333333
       }
       this.background.clear()
-      this.background.roundRect(0, 0, this.btnWidth, this.btnHeight, 6)
+      this.background.roundRect(0, 0, this.btnWidth, this.btnHeight, 8)
       this.background.fill(color)
       const borderColor = this.isAvailable ? Colors.TEXT_RED : 0x555555
       this.background.stroke({ color: borderColor, width: this.isAvailable ? 2 : 1 })
@@ -200,7 +202,7 @@ export class SkillButton extends Container {
   }
 }
 
-// 战斗日志组件
+// 战斗日志组件 - 使用响应式尺寸
 export class BattleLog extends Container {
   private logContainer: Container
   private logs: Array<{ text: Text; container: Container }> = []
@@ -209,43 +211,48 @@ export class BattleLog extends Container {
   private scrollBar: Graphics
   private scrollY: number = 0
   private contentHeight: number = 0
-  private userScrolled: boolean = false  // 用户是否手动滚动过
+  private userScrolled: boolean = false
 
-  private readonly panelWidth: number = 380
-  private readonly panelHeight: number = 180  // 缩小高度，适合顶部
-  private readonly padding: number = 10
+  private panelWidth: number
+  private panelHeight: number
+  private readonly padding: number
 
   constructor(renderer: Renderer) {
     super()
     this.renderer = renderer
+    this.panelWidth = LayoutConstants.logWidth()
+    this.panelHeight = LayoutConstants.logHeight()
+    this.padding = LayoutConstants.scaleValue(12)
 
     // 背景
     const bg = renderer.createGraphics()
-    bg.roundRect(0, 0, this.panelWidth, this.panelHeight, 8)
+    bg.roundRect(0, 0, this.panelWidth, this.panelHeight, 10)
     bg.fill({ color: Colors.PANEL_BG, alpha: 0.85 })
     bg.stroke({ color: Colors.TEXT_SECONDARY, width: 1 })
     this.addChild(bg)
 
     // 标题
-    const title = renderer.createText('战斗日志', TextStyles.STATS, this.padding, 5)
+    const title = renderer.createText('战斗日志', TextStyles.STATS, this.padding, 6)
     title.style.fill = Colors.TEXT_GOLD
-    title.style.fontSize = 12
+    title.style.fontSize = LayoutConstants.fontStats()
     this.addChild(title)
+
+    const titleHeight = LayoutConstants.scaleValue(28)
 
     // 遮罩
     this.clipMask = renderer.createGraphics()
-    this.clipMask.rect(0, 22, this.panelWidth - 20, this.panelHeight - 32)
+    this.clipMask.rect(0, titleHeight, this.panelWidth - 25, this.panelHeight - titleHeight - 12)
     this.clipMask.fill(0xffffff)
     this.addChild(this.clipMask)
 
     // 日志容器
-    this.logContainer = renderer.createContainer(this.padding, 25)
+    this.logContainer = renderer.createContainer(this.padding, titleHeight + 3)
     this.logContainer.mask = this.clipMask
     this.addChild(this.logContainer)
 
     // 滚动条背景
     const scrollBg = renderer.createGraphics()
-    scrollBg.rect(this.panelWidth - 15, 22, 10, this.panelHeight - 32)
+    scrollBg.rect(this.panelWidth - 18, titleHeight, 12, this.panelHeight - titleHeight - 12)
     scrollBg.fill(0x333333)
     this.addChild(scrollBg)
 
@@ -263,10 +270,10 @@ export class BattleLog extends Container {
       text: message,
       style: {
         fontFamily: 'Arial, sans-serif',
-        fontSize: 12,
+        fontSize: LayoutConstants.fontLog(),
         fill: Colors.TEXT_SECONDARY,
         wordWrap: true,
-        wordWrapWidth: this.panelWidth - 40
+        wordWrapWidth: this.panelWidth - 45
       }
     })
 
@@ -276,24 +283,20 @@ export class BattleLog extends Container {
 
     this.logs.push({ text, container })
 
-    // 更新位置
     this.updatePositions()
-
-    // 新日志添加时重置用户滚动状态并滚动到底部
     this.userScrolled = false
     this.scrollToBottom()
   }
 
-  // 同步日志（不自动滚动）
   syncLog(message: string): void {
     const text = new Text({
       text: message,
       style: {
         fontFamily: 'Arial, sans-serif',
-        fontSize: 12,
+        fontSize: LayoutConstants.fontLog(),
         fill: Colors.TEXT_SECONDARY,
         wordWrap: true,
-        wordWrapWidth: this.panelWidth - 40
+        wordWrapWidth: this.panelWidth - 45
       }
     })
 
@@ -305,7 +308,6 @@ export class BattleLog extends Container {
 
     this.updatePositions()
 
-    // 只有用户没有手动滚动时才自动滚动
     if (!this.userScrolled) {
       this.scrollToBottom()
     }
@@ -315,48 +317,50 @@ export class BattleLog extends Container {
     let y = 0
     for (const log of this.logs) {
       log.container.y = y
-      y += log.text.height + 4
+      y += log.text.height + 5
     }
     this.contentHeight = y
     this.updateScrollBar()
   }
 
   private updateScrollBar(): void {
-    const viewHeight = this.panelHeight - 32
-    const scrollBarHeight = Math.max(25, (viewHeight / Math.max(this.contentHeight, viewHeight)) * viewHeight)
+    const titleHeight = LayoutConstants.scaleValue(28)
+    const viewHeight = this.panelHeight - titleHeight - 12
+    const scrollBarHeight = Math.max(30, (viewHeight / Math.max(this.contentHeight, viewHeight)) * viewHeight)
 
     this.scrollBar.clear()
     if (this.contentHeight > viewHeight) {
       const maxScroll = this.contentHeight - viewHeight
       const scrollRatio = maxScroll > 0 ? this.scrollY / maxScroll : 0
-      const scrollBarY = 22 + scrollRatio * (viewHeight - scrollBarHeight)
+      const scrollBarY = titleHeight + scrollRatio * (viewHeight - scrollBarHeight)
 
-      this.scrollBar.rect(this.panelWidth - 15, scrollBarY, 10, scrollBarHeight)
+      this.scrollBar.rect(this.panelWidth - 18, scrollBarY, 12, scrollBarHeight)
       this.scrollBar.fill(Colors.TEXT_GOLD)
     }
   }
 
   private handleWheel(e: WheelEvent): void {
-    const viewHeight = this.panelHeight - 32
+    const titleHeight = LayoutConstants.scaleValue(28)
+    const viewHeight = this.panelHeight - titleHeight - 12
     const maxScroll = Math.max(0, this.contentHeight - viewHeight)
 
     this.scrollY += e.deltaY * 0.5
     this.scrollY = Math.max(0, Math.min(this.scrollY, maxScroll))
 
-    this.logContainer.y = 25 - this.scrollY
+    this.logContainer.y = titleHeight + 3 - this.scrollY
     this.updateScrollBar()
 
-    // 标记用户手动滚动
     if (this.scrollY < maxScroll) {
       this.userScrolled = true
     }
   }
 
   private scrollToBottom(): void {
-    const viewHeight = this.panelHeight - 32
+    const titleHeight = LayoutConstants.scaleValue(28)
+    const viewHeight = this.panelHeight - titleHeight - 12
     const maxScroll = Math.max(0, this.contentHeight - viewHeight)
     this.scrollY = maxScroll
-    this.logContainer.y = 25 - this.scrollY
+    this.logContainer.y = titleHeight + 3 - this.scrollY
     this.updateScrollBar()
   }
 
@@ -374,7 +378,7 @@ export class BattleLog extends Container {
   }
 }
 
-// 状态栏组件
+// 状态栏组件 - 使用响应式尺寸
 export class StatusBar extends Container {
   private background: Graphics
   private turnText: Text
@@ -383,22 +387,27 @@ export class StatusBar extends Container {
   constructor(renderer: Renderer) {
     super()
 
+    const width = LayoutConstants.statusWidth()
+    const height = LayoutConstants.statusHeight()
+
     this.background = renderer.createGraphics()
     this.addChild(this.background)
 
-    this.turnText = renderer.createText('回合 1', TextStyles.STATS, 10, 8)
+    this.turnText = renderer.createText('回合 1', TextStyles.STATS, 12, 8)
     this.turnText.style.fill = Colors.TEXT_GOLD
+    this.turnText.style.fontSize = LayoutConstants.fontStats()
     this.addChild(this.turnText)
 
-    this.phaseText = renderer.createText('选择阶段', TextStyles.STATS, 100, 8)
+    this.phaseText = renderer.createText('选择阶段', TextStyles.STATS, 110, 8)
+    this.phaseText.style.fontSize = LayoutConstants.fontStats()
     this.addChild(this.phaseText)
 
-    this.drawBackground()
+    this.drawBackground(width, height)
   }
 
-  private drawBackground(): void {
+  private drawBackground(width: number, height: number): void {
     this.background.clear()
-    this.background.roundRect(0, 0, 200, 35, 6)
+    this.background.roundRect(0, 0, width, height, 8)
     this.background.fill(Colors.PANEL_BG)
     this.background.stroke({ color: Colors.TEXT_SECONDARY, width: 1 })
   }
@@ -412,7 +421,7 @@ export class StatusBar extends Container {
   }
 }
 
-// 提示框组件
+// 提示框组件 - 使用响应式尺寸
 export class Tooltip extends Container {
   private background: Graphics
   private tooltipText: Text
@@ -424,20 +433,19 @@ export class Tooltip extends Container {
     this.background = renderer.createGraphics()
     this.addChild(this.background)
 
-    this.tooltipText = renderer.createText('', TextStyles.LOG, 10, 8)
-    this.tooltipText.style.wordWrapWidth = 200
+    this.tooltipText = renderer.createText('', TextStyles.LOG, 12, 8)
+    this.tooltipText.style.wordWrapWidth = LayoutConstants.scaleValue(220)
     this.addChild(this.tooltipText)
   }
 
   show(message: string, x: number, y: number): void {
     this.tooltipText.text = message
 
-    // 计算尺寸
-    const width = Math.min(this.tooltipText.width + 20, 220)
-    const height = this.tooltipText.height + 16
+    const width = Math.min(this.tooltipText.width + 24, LayoutConstants.scaleValue(240))
+    const height = this.tooltipText.height + 20
 
     this.background.clear()
-    this.background.roundRect(0, 0, width, height, 4)
+    this.background.roundRect(0, 0, width, height, 6)
     this.background.fill({ color: 0x000000, alpha: 0.9 })
     this.background.stroke({ color: Colors.TEXT_GOLD, width: 1 })
 

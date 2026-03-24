@@ -1,21 +1,9 @@
 import { Container, Graphics, Text } from 'pixi.js'
 import { Card, CardType } from '../game/types'
 import { Colors, TextStyles, Renderer } from './Renderer'
+import { LayoutConstants } from './LayoutConstants'
 
-// 卡牌尺寸常量
-export const CARD_WIDTH = 80
-export const CARD_HEIGHT = 110
-export const CARD_RADIUS = 8
-
-// 卡牌颜色配置
-const CardColors = {
-  [CardType.EMPTY_HAND]: { bg: 0x2a3a5e, border: 0x4a6a9e },
-  [CardType.SHORT_WEAPON]: { bg: 0x3a2a4e, border: 0x6a4a8e },
-  [CardType.LONG_WEAPON]: { bg: 0x3a4a2e, border: 0x6a8a4e },
-  [CardType.LEG]: { bg: 0x4e2a3a, border: 0x8e4a6a }
-}
-
-// 卡牌渲染器
+// 卡牌渲染器 - 使用响应式尺寸
 export class CardRenderer extends Container {
   private card: Card
   private background: Graphics
@@ -32,16 +20,19 @@ export class CardRenderer extends Container {
     super()
 
     this.card = card
+
+    const cardWidth = LayoutConstants.cardWidth()
+    const cardHeight = LayoutConstants.cardHeight()
+
     this.background = renderer.createGraphics()
     this.addChild(this.background)
 
     // 卡牌名称
-    this.nameText = renderer.createText(card.name, TextStyles.CARD_NAME, 8, 8)
-    this.nameText.style.fontSize = 13
+    this.nameText = renderer.createText(card.name, TextStyles.CARD_NAME, 10, 10)
     this.addChild(this.nameText)
 
     // 卡牌类型
-    this.typeText = renderer.createText(card.type, TextStyles.CARD_TYPE, 8, 28)
+    this.typeText = renderer.createText(card.type, TextStyles.CARD_TYPE, 10, 35)
     this.addChild(this.typeText)
 
     // 属性统计
@@ -50,12 +41,12 @@ export class CardRenderer extends Container {
     if (card.baseShield > 0) statsStr += `护盾:${card.baseShield} `
     if (card.selfDamage) statsStr += `反伤:${card.selfDamage}`
 
-    this.statsText = renderer.createText(statsStr.trim(), TextStyles.CARD_STATS, 8, CARD_HEIGHT - 40)
+    this.statsText = renderer.createText(statsStr.trim(), TextStyles.CARD_STATS, 10, cardHeight - 50)
     this.addChild(this.statsText)
 
     // 轻功消耗
-    this.costText = renderer.createText(`${card.agilityCost}`, TextStyles.STATS, CARD_WIDTH - 25, CARD_HEIGHT - 25)
-    this.costText.style.fontSize = 16
+    this.costText = renderer.createText(`${card.agilityCost}`, TextStyles.STATS, cardWidth - 35, cardHeight - 30)
+    this.costText.style.fontSize = LayoutConstants.fontTitle()
     this.costText.style.fill = Colors.TEXT_GOLD
     this.addChild(this.costText)
 
@@ -72,20 +63,35 @@ export class CardRenderer extends Container {
 
   // 绘制卡牌背景
   private drawBackground(): void {
-    const colors = CardColors[this.card.type] || CardColors[CardType.EMPTY_HAND]
+    const cardWidth = LayoutConstants.cardWidth()
+    const cardHeight = LayoutConstants.cardHeight()
+    const cardRadius = LayoutConstants.cardRadius()
+
+    const colors = this.getCardColors()
     const bgColor = this.isPlayable ? colors.bg : 0x333333
     const borderColor = this.isSelected ? Colors.TEXT_GOLD : (this.isPlayable ? colors.border : 0x555555)
 
     this.background.clear()
-    this.background.roundRect(0, 0, CARD_WIDTH, CARD_HEIGHT, CARD_RADIUS)
+    this.background.roundRect(0, 0, cardWidth, cardHeight, cardRadius)
     this.background.fill(bgColor)
-    this.background.stroke({ color: borderColor, width: this.isSelected ? 3 : 2 })
+    this.background.stroke({ color: borderColor, width: this.isSelected ? 4 : 2 })
 
     // 如果不可用，添加遮罩效果
     if (!this.isPlayable) {
-      this.background.rect(0, 0, CARD_WIDTH, CARD_HEIGHT)
+      this.background.rect(0, 0, cardWidth, cardHeight)
       this.background.fill({ color: 0x000000, alpha: 0.3 })
     }
+  }
+
+  // 获取卡牌颜色配置
+  private getCardColors(): { bg: number; border: number } {
+    const cardColors: Record<CardType, { bg: number; border: number }> = {
+      [CardType.EMPTY_HAND]: { bg: 0x2a3a5e, border: 0x4a6a9e },
+      [CardType.SHORT_WEAPON]: { bg: 0x3a2a4e, border: 0x6a4a8e },
+      [CardType.LONG_WEAPON]: { bg: 0x3a4a2e, border: 0x6a8a4e },
+      [CardType.LEG]: { bg: 0x4e2a3a, border: 0x8e4a6a }
+    }
+    return cardColors[this.card.type] || cardColors[CardType.EMPTY_HAND]
   }
 
   // 处理点击
@@ -97,7 +103,6 @@ export class CardRenderer extends Container {
 
   // 处理悬停
   private handleHover(isHover: boolean): void {
-    // 只改变鼠标样式，不影响Y位置
     if (!this.isSelected) {
       this.cursor = isHover && this.isPlayable ? 'pointer' : (this.isPlayable ? 'pointer' : 'not-allowed')
     }
@@ -105,7 +110,7 @@ export class CardRenderer extends Container {
 
   // 更新Y位置（根据选中状态）
   private updateYPosition(): void {
-    const offsetY = this.isSelected ? -15 : 0  // 选中时上移15像素
+    const offsetY = this.isSelected ? -20 : 0  // 选中时上移
     this.y = this.baseY + offsetY
   }
 
@@ -142,6 +147,9 @@ export class CardRenderer extends Container {
   // 更新卡牌数据
   update(card: Card): void {
     this.card = card
+    const cardWidth = LayoutConstants.cardWidth()
+    const cardHeight = LayoutConstants.cardHeight()
+
     this.nameText.text = card.name
     this.typeText.text = card.type
 
@@ -151,7 +159,10 @@ export class CardRenderer extends Container {
     if (card.selfDamage) statsStr += `反伤:${card.selfDamage}`
 
     this.statsText.text = statsStr.trim()
+    this.statsText.y = cardHeight - 50
     this.costText.text = `${card.agilityCost}`
+    this.costText.x = cardWidth - 35
+    this.costText.y = cardHeight - 30
     this.drawBackground()
   }
 
@@ -223,5 +234,13 @@ export class CardRenderer extends Container {
   // 延迟
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms))
+  }
+}
+
+// 导出获取卡牌尺寸的函数（供外部使用）
+export function getCardDimensions(): { width: number; height: number } {
+  return {
+    width: LayoutConstants.cardWidth(),
+    height: LayoutConstants.cardHeight()
   }
 }

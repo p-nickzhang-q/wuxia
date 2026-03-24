@@ -1,4 +1,5 @@
 import { Application, Container, Text, TextStyle, Graphics } from 'pixi.js'
+import { LayoutConstants } from './LayoutConstants'
 
 // 颜色常量
 export const Colors = {
@@ -22,89 +23,131 @@ export const Colors = {
   BUTTON_DISABLED: 0x444444
 }
 
-// 文字样式
-export const TextStyles = {
-  TITLE: new TextStyle({
-    fontFamily: 'Arial, sans-serif',
-    fontSize: 32,
-    fill: Colors.TEXT_GOLD,
-    fontWeight: 'bold',
-    dropShadow: { color: 0x000000, blur: 4, distance: 2 }
-  }),
-  SUBTITLE: new TextStyle({
-    fontFamily: 'Arial, sans-serif',
-    fontSize: 18,
-    fill: Colors.TEXT_SECONDARY
-  }),
-  CARD_NAME: new TextStyle({
-    fontFamily: 'Arial, sans-serif',
-    fontSize: 14,
-    fill: Colors.TEXT_PRIMARY,
-    fontWeight: 'bold'
-  }),
-  CARD_TYPE: new TextStyle({
-    fontFamily: 'Arial, sans-serif',
-    fontSize: 11,
-    fill: Colors.TEXT_SECONDARY
-  }),
-  CARD_STATS: new TextStyle({
-    fontFamily: 'Arial, sans-serif',
-    fontSize: 12,
-    fill: Colors.TEXT_GOLD
-  }),
-  CHARACTER_NAME: new TextStyle({
-    fontFamily: 'Arial, sans-serif',
-    fontSize: 18,
-    fill: Colors.TEXT_GOLD,
-    fontWeight: 'bold'
-  }),
-  CHARACTER_TITLE: new TextStyle({
-    fontFamily: 'Arial, sans-serif',
-    fontSize: 12,
-    fill: Colors.TEXT_SECONDARY
-  }),
-  STATS: new TextStyle({
-    fontFamily: 'Arial, sans-serif',
-    fontSize: 14,
-    fill: Colors.TEXT_PRIMARY
-  }),
-  BUTTON: new TextStyle({
-    fontFamily: 'Arial, sans-serif',
-    fontSize: 16,
-    fill: Colors.TEXT_PRIMARY,
-    fontWeight: 'bold'
-  }),
-  LOG: new TextStyle({
-    fontFamily: 'Arial, sans-serif',
-    fontSize: 12,
-    fill: Colors.TEXT_SECONDARY,
-    wordWrap: true,
-    wordWrapWidth: 300
-  }),
-  SKILL_NAME: new TextStyle({
-    fontFamily: 'Arial, sans-serif',
-    fontSize: 12,
-    fill: Colors.TEXT_RED,
-    fontWeight: 'bold'
-  }),
-  SELECT_NAME: new TextStyle({
-    fontFamily: 'Arial, sans-serif',
-    fontSize: 16,
-    fill: Colors.TEXT_GOLD,
-    fontWeight: 'bold'
-  }),
-  SELECT_TITLE: new TextStyle({
-    fontFamily: 'Arial, sans-serif',
-    fontSize: 11,
-    fill: Colors.TEXT_SECONDARY
-  }),
-  SELECT_DESC: new TextStyle({
-    fontFamily: 'Arial, sans-serif',
-    fontSize: 10,
-    fill: Colors.TEXT_SECONDARY,
-    wordWrap: true,
-    wordWrapWidth: 150
-  })
+// 文字样式 - 动态生成，基于当前scale
+export class TextStyles {
+
+  static get TITLE(): TextStyle {
+    return new TextStyle({
+      fontFamily: 'Arial, sans-serif',
+      fontSize: LayoutConstants.fontTitle(),
+      fill: Colors.TEXT_GOLD,
+      fontWeight: 'bold',
+      dropShadow: { color: 0x000000, blur: 4, distance: 2 }
+    })
+  }
+
+  static get SUBTITLE(): TextStyle {
+    return new TextStyle({
+      fontFamily: 'Arial, sans-serif',
+      fontSize: LayoutConstants.fontSubtitle(),
+      fill: Colors.TEXT_SECONDARY
+    })
+  }
+
+  static get CARD_NAME(): TextStyle {
+    return new TextStyle({
+      fontFamily: 'Arial, sans-serif',
+      fontSize: LayoutConstants.fontCardName(),
+      fill: Colors.TEXT_PRIMARY,
+      fontWeight: 'bold'
+    })
+  }
+
+  static get CARD_TYPE(): TextStyle {
+    return new TextStyle({
+      fontFamily: 'Arial, sans-serif',
+      fontSize: LayoutConstants.fontCardType(),
+      fill: Colors.TEXT_SECONDARY
+    })
+  }
+
+  static get CARD_STATS(): TextStyle {
+    return new TextStyle({
+      fontFamily: 'Arial, sans-serif',
+      fontSize: LayoutConstants.fontCardStats(),
+      fill: Colors.TEXT_GOLD
+    })
+  }
+
+  static get CHARACTER_NAME(): TextStyle {
+    return new TextStyle({
+      fontFamily: 'Arial, sans-serif',
+      fontSize: LayoutConstants.fontCharacterName(),
+      fill: Colors.TEXT_GOLD,
+      fontWeight: 'bold'
+    })
+  }
+
+  static get CHARACTER_TITLE(): TextStyle {
+    return new TextStyle({
+      fontFamily: 'Arial, sans-serif',
+      fontSize: LayoutConstants.fontCharacterTitle(),
+      fill: Colors.TEXT_SECONDARY
+    })
+  }
+
+  static get STATS(): TextStyle {
+    return new TextStyle({
+      fontFamily: 'Arial, sans-serif',
+      fontSize: LayoutConstants.fontStats(),
+      fill: Colors.TEXT_PRIMARY
+    })
+  }
+
+  static get BUTTON(): TextStyle {
+    return new TextStyle({
+      fontFamily: 'Arial, sans-serif',
+      fontSize: LayoutConstants.fontButton(),
+      fill: Colors.TEXT_PRIMARY,
+      fontWeight: 'bold'
+    })
+  }
+
+  static get LOG(): TextStyle {
+    return new TextStyle({
+      fontFamily: 'Arial, sans-serif',
+      fontSize: LayoutConstants.fontLog(),
+      fill: Colors.TEXT_SECONDARY,
+      wordWrap: true,
+      wordWrapWidth: LayoutConstants.logWidth() - 40
+    })
+  }
+
+  static get SKILL_NAME(): TextStyle {
+    return new TextStyle({
+      fontFamily: 'Arial, sans-serif',
+      fontSize: LayoutConstants.fontSkillName(),
+      fill: Colors.TEXT_RED,
+      fontWeight: 'bold'
+    })
+  }
+
+  static get SELECT_NAME(): TextStyle {
+    return new TextStyle({
+      fontFamily: 'Arial, sans-serif',
+      fontSize: LayoutConstants.fontCharacterName(),
+      fill: Colors.TEXT_GOLD,
+      fontWeight: 'bold'
+    })
+  }
+
+  static get SELECT_TITLE(): TextStyle {
+    return new TextStyle({
+      fontFamily: 'Arial, sans-serif',
+      fontSize: LayoutConstants.fontCharacterTitle(),
+      fill: Colors.TEXT_SECONDARY
+    })
+  }
+
+  static get SELECT_DESC(): TextStyle {
+    return new TextStyle({
+      fontFamily: 'Arial, sans-serif',
+      fontSize: LayoutConstants.fontCardType(),
+      fill: Colors.TEXT_SECONDARY,
+      wordWrap: true,
+      wordWrapWidth: LayoutConstants.scaleValue(160)
+    })
+  }
 }
 
 // 渲染器类
@@ -114,6 +157,7 @@ export class Renderer {
   private width: number
   private height: number
   private scale: number
+  private resizeCallbacks: Set<() => void> = new Set()
 
   constructor() {
     this.app = null as any
@@ -127,6 +171,10 @@ export class Renderer {
   async init(container: HTMLElement): Promise<void> {
     this.width = container.clientWidth || 1280
     this.height = container.clientHeight || 720
+
+    // 计算并设置初始scale
+    this.scale = Math.min(this.width / LayoutConstants.BASE_WIDTH, this.height / LayoutConstants.BASE_HEIGHT)
+    LayoutConstants.scale = this.scale
 
     this.app = new Application()
 
@@ -171,7 +219,23 @@ export class Renderer {
     this.height = container.clientHeight || 720
 
     this.app.renderer.resize(this.width, this.height)
-    this.scale = Math.min(this.width / 1280, this.height / 720)
+    this.scale = Math.min(this.width / LayoutConstants.BASE_WIDTH, this.height / LayoutConstants.BASE_HEIGHT)
+
+    // 更新LayoutConstants
+    LayoutConstants.scale = this.scale
+
+    // 通知所有注册的回调
+    this.resizeCallbacks.forEach(cb => cb())
+  }
+
+  // 注册resize回调
+  onResize(callback: () => void): void {
+    this.resizeCallbacks.add(callback)
+  }
+
+  // 移除resize回调
+  offResize(callback: () => void): void {
+    this.resizeCallbacks.delete(callback)
   }
 
   // 获取舞台
