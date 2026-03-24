@@ -212,7 +212,7 @@ export class BattleLog extends Container {
   private userScrolled: boolean = false  // 用户是否手动滚动过
 
   private readonly panelWidth: number = 380
-  private readonly panelHeight: number = 280
+  private readonly panelHeight: number = 180  // 缩小高度，适合顶部
   private readonly padding: number = 10
 
   constructor(renderer: Renderer) {
@@ -222,29 +222,30 @@ export class BattleLog extends Container {
     // 背景
     const bg = renderer.createGraphics()
     bg.roundRect(0, 0, this.panelWidth, this.panelHeight, 8)
-    bg.fill({ color: Colors.PANEL_BG, alpha: 0.9 })
+    bg.fill({ color: Colors.PANEL_BG, alpha: 0.85 })
     bg.stroke({ color: Colors.TEXT_SECONDARY, width: 1 })
     this.addChild(bg)
 
     // 标题
     const title = renderer.createText('战斗日志', TextStyles.STATS, this.padding, 5)
     title.style.fill = Colors.TEXT_GOLD
+    title.style.fontSize = 12
     this.addChild(title)
 
     // 遮罩
     this.clipMask = renderer.createGraphics()
-    this.clipMask.rect(0, 25, this.panelWidth - 20, this.panelHeight - 35)
+    this.clipMask.rect(0, 22, this.panelWidth - 20, this.panelHeight - 32)
     this.clipMask.fill(0xffffff)
     this.addChild(this.clipMask)
 
     // 日志容器
-    this.logContainer = renderer.createContainer(this.padding, 28)
+    this.logContainer = renderer.createContainer(this.padding, 25)
     this.logContainer.mask = this.clipMask
     this.addChild(this.logContainer)
 
     // 滚动条背景
     const scrollBg = renderer.createGraphics()
-    scrollBg.rect(this.panelWidth - 15, 25, 10, this.panelHeight - 35)
+    scrollBg.rect(this.panelWidth - 15, 22, 10, this.panelHeight - 32)
     scrollBg.fill(0x333333)
     this.addChild(scrollBg)
 
@@ -314,21 +315,21 @@ export class BattleLog extends Container {
     let y = 0
     for (const log of this.logs) {
       log.container.y = y
-      y += log.text.height + 5
+      y += log.text.height + 4
     }
     this.contentHeight = y
     this.updateScrollBar()
   }
 
   private updateScrollBar(): void {
-    const viewHeight = this.panelHeight - 35
-    const scrollBarHeight = Math.max(30, (viewHeight / Math.max(this.contentHeight, viewHeight)) * viewHeight)
+    const viewHeight = this.panelHeight - 32
+    const scrollBarHeight = Math.max(25, (viewHeight / Math.max(this.contentHeight, viewHeight)) * viewHeight)
 
     this.scrollBar.clear()
     if (this.contentHeight > viewHeight) {
       const maxScroll = this.contentHeight - viewHeight
       const scrollRatio = maxScroll > 0 ? this.scrollY / maxScroll : 0
-      const scrollBarY = 25 + scrollRatio * (viewHeight - scrollBarHeight)
+      const scrollBarY = 22 + scrollRatio * (viewHeight - scrollBarHeight)
 
       this.scrollBar.rect(this.panelWidth - 15, scrollBarY, 10, scrollBarHeight)
       this.scrollBar.fill(Colors.TEXT_GOLD)
@@ -336,13 +337,13 @@ export class BattleLog extends Container {
   }
 
   private handleWheel(e: WheelEvent): void {
-    const viewHeight = this.panelHeight - 35
+    const viewHeight = this.panelHeight - 32
     const maxScroll = Math.max(0, this.contentHeight - viewHeight)
 
     this.scrollY += e.deltaY * 0.5
     this.scrollY = Math.max(0, Math.min(this.scrollY, maxScroll))
 
-    this.logContainer.y = 28 - this.scrollY
+    this.logContainer.y = 25 - this.scrollY
     this.updateScrollBar()
 
     // 标记用户手动滚动
@@ -352,10 +353,10 @@ export class BattleLog extends Container {
   }
 
   private scrollToBottom(): void {
-    const viewHeight = this.panelHeight - 35
+    const viewHeight = this.panelHeight - 32
     const maxScroll = Math.max(0, this.contentHeight - viewHeight)
     this.scrollY = maxScroll
-    this.logContainer.y = 28 - this.scrollY
+    this.logContainer.y = 25 - this.scrollY
     this.updateScrollBar()
   }
 

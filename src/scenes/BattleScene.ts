@@ -116,39 +116,39 @@ export class BattleScene extends Scene {
     this.statusBar.y = 10
     this.addChild(this.statusBar)
 
-    // 敌人面板 - 左上角
-    this.enemyRenderer = new CharacterRenderer(this.enemyConfig!, true, this.renderer)
-    this.enemyRenderer.x = 20
-    this.enemyRenderer.y = 50
-    this.addChild(this.enemyRenderer)
-
-    // 玩家面板 - 左下角（留出空间给技能和手牌）
-    this.playerRenderer = new CharacterRenderer(this.playerConfig!, false, this.renderer)
-    this.playerRenderer.x = 20
-    this.playerRenderer.y = size.height - 240
-    this.addChild(this.playerRenderer)
-
-    // 战斗日志 - 右侧
+    // 战斗日志 - 顶部中央（状态栏下方）
     this.battleLog = new BattleLog(this.renderer)
-    this.battleLog.x = size.width - 380
-    this.battleLog.y = 50
+    this.battleLog.x = size.width / 2 - 190
+    this.battleLog.y = 55
     this.addChild(this.battleLog)
 
-    // 结束回合按钮
+    // 玩家面板 - 左下角
+    this.playerRenderer = new CharacterRenderer(this.playerConfig!, false, this.renderer)
+    this.playerRenderer.x = 30
+    this.playerRenderer.y = size.height - this.playerRenderer.getSize().height - 200  // 底部预留手牌空间
+    this.addChild(this.playerRenderer)
+
+    // 敌人面板 - 右下角（对称）
+    this.enemyRenderer = new CharacterRenderer(this.enemyConfig!, true, this.renderer)
+    this.enemyRenderer.x = size.width - this.enemyRenderer.getSize().width - 30
+    this.enemyRenderer.y = size.height - this.enemyRenderer.getSize().height - 200
+    this.addChild(this.enemyRenderer)
+
+    // 结束回合按钮 - 右下角
     this.endTurnButton = new Button('结束回合', 100, 35, this.renderer)
-    this.endTurnButton.x = size.width - 150
+    this.endTurnButton.x = size.width - 120
     this.endTurnButton.y = size.height - 50
     this.endTurnButton.setOnClick(() => this.handleEndTurn())
     this.addChild(this.endTurnButton)
 
-    // 确认按钮
+    // 确认按钮 - 底部中央偏左
     this.confirmButton = new Button('确认', 80, 35, this.renderer)
     this.confirmButton.x = size.width / 2 - 90
     this.confirmButton.y = size.height - 50
     this.confirmButton.setOnClick(() => this.handleConfirm())
     this.addChild(this.confirmButton)
 
-    // 取消按钮
+    // 取消按钮 - 底部中央偏右
     this.cancelButton = new Button('取消', 80, 35, this.renderer)
     this.cancelButton.x = size.width / 2 + 10
     this.cancelButton.y = size.height - 50
@@ -232,10 +232,10 @@ export class BattleScene extends Scene {
     const availableCards = this.playerConfig.getAvailableCards(this.playerConfig.agility)
     const availableIds = availableCards.map(c => c.instanceId)
 
-    // 手牌在底部（给按钮留出空间）
+    // 手牌在底部中央
     const totalWidth = hand.length * (CARD_WIDTH + 10) - 10
     const startX = (size.width - totalWidth) / 2
-    const y = size.height - 180  // 往上移，给按钮留空间
+    const y = size.height - 165  // 底部位置
 
     hand.forEach((card, index) => {
       const cardRenderer = new CardRenderer(card, this.renderer)
@@ -277,9 +277,10 @@ export class BattleScene extends Scene {
     const skills = this.playerConfig.skills
     const size = this.renderer.getSize()
 
-    // 技能按钮在玩家面板右侧
-    const startX = 400
-    const y = size.height - 230
+    // 技能按钮在底部手牌上方，居中显示
+    const totalWidth = skills.length * 145 - 5
+    const startX = (size.width - totalWidth) / 2
+    const y = size.height - 235
 
     skills.forEach((skill, index) => {
       const btn = new SkillButton(
@@ -290,7 +291,7 @@ export class BattleScene extends Scene {
         skill.description,
         this.renderer
       )
-      btn.x = startX + index * 150
+      btn.x = startX + index * 145
       btn.y = y
 
       // 判断技能是否可用
