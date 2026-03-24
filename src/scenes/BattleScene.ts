@@ -116,22 +116,22 @@ export class BattleScene extends Scene {
     this.statusBar.y = 10
     this.addChild(this.statusBar)
 
-    // 敌人面板 - 上方
+    // 敌人面板 - 左上角
     this.enemyRenderer = new CharacterRenderer(this.enemyConfig!, true, this.renderer)
     this.enemyRenderer.x = 20
-    this.enemyRenderer.y = 60
+    this.enemyRenderer.y = 50
     this.addChild(this.enemyRenderer)
 
-    // 玩家面板 - 下方（留出空间给技能和手牌）
+    // 玩家面板 - 左下角（留出空间给技能和手牌）
     this.playerRenderer = new CharacterRenderer(this.playerConfig!, false, this.renderer)
     this.playerRenderer.x = 20
-    this.playerRenderer.y = size.height - 320
+    this.playerRenderer.y = size.height - 240
     this.addChild(this.playerRenderer)
 
     // 战斗日志 - 右侧
     this.battleLog = new BattleLog(this.renderer)
-    this.battleLog.x = size.width - 400
-    this.battleLog.y = 60
+    this.battleLog.x = size.width - 380
+    this.battleLog.y = 50
     this.addChild(this.battleLog)
 
     // 结束回合按钮
@@ -278,8 +278,8 @@ export class BattleScene extends Scene {
     const size = this.renderer.getSize()
 
     // 技能按钮在玩家面板右侧
-    const startX = 230
-    const y = size.height - 310
+    const startX = 400
+    const y = size.height - 230
 
     skills.forEach((skill, index) => {
       const btn = new SkillButton(
