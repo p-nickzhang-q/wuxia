@@ -4,10 +4,11 @@ import { Colors, TextStyles, Renderer } from './Renderer'
 
 // 角色面板尺寸
 const PANEL_WIDTH = 200
-const PANEL_HEIGHT = 150
+const BASE_PANEL_HEIGHT = 155  // 基础高度（无内功时）
 const BAR_WIDTH = 170
 const BAR_HEIGHT = 12
 const BAR_X = 10  // 条形图X偏移
+const PASSIVE_LINE_HEIGHT = 22  // 每个内功行高
 
 // 角色渲染器
 export class CharacterRenderer extends Container {
@@ -24,6 +25,10 @@ export class CharacterRenderer extends Container {
   private shieldText: Text
   private agilityText: Text
   private martialArtsText: Text
+
+  // 内功相关 - 使用容器动态管理
+  private passiveContainer: Container
+  private currentPanelHeight: number = BASE_PANEL_HEIGHT
 
   constructor(character: CharacterState, isEnemy: boolean, renderer: Renderer) {
     super()
@@ -81,15 +86,20 @@ export class CharacterRenderer extends Container {
     this.martialArtsText.style.fontSize = 10
     this.addChild(this.martialArtsText)
 
+    // 内功容器
+    this.passiveContainer = new Container()
+    this.passiveContainer.y = 135
+    this.addChild(this.passiveContainer)
+
     // 初始绘制
-    this.drawBackground()
     this.update(character)
   }
 
   // 绘制背景
-  private drawBackground(): void {
+  private drawBackground(height: number): void {
+    this.currentPanelHeight = height
     this.background.clear()
-    this.background.roundRect(0, 0, PANEL_WIDTH, PANEL_HEIGHT, 10)
+    this.background.roundRect(0, 0, PANEL_WIDTH, height, 10)
     this.background.fill({ color: Colors.PANEL_BG, alpha: 0.9 })
     this.background.stroke({ color: this.isEnemy ? Colors.TEXT_RED : Colors.TEXT_BLUE, width: 2 })
   }
@@ -138,10 +148,52 @@ export class CharacterRenderer extends Container {
     if (character.martialArtsNames && character.martialArtsNames.length > 0) {
       this.martialArtsText.text = `武功: ${character.martialArtsNames.join(', ')}`
     }
+
+    // 更新内功信息 - 显示名称和效果
+    this.updatePassives(character)
+  }
+
+  // 更新内功显示
+  private updatePassives(character: CharacterState): void {
+    // 清除旧的内功显示
+    this.passiveContainer.removeChildren()
+
+    const passives = character.passives || []
+    if (passives.length === 0) {
+      this.drawBackground(BASE_PANEL_HEIGHT)
+      return
+    }
+
+    let yPos = 0
+    for (const passive of passives) {
+      // 内功名称
+      const nameText = new Text({
+        text: `◈ ${passive.name}`,
+        style: { fontSize: 10, fill: Colors.MP_BAR }
+      })
+      nameText.x = 10
+      nameText.y = yPos
+      this.passiveContainer.addChild(nameText)
+
+      // 内功效果描述
+      const descText = new Text({
+        text: passive.description,
+        style: { fontSize: 9, fill: Colors.TEXT_SECONDARY, wordWrap: true, wordWrapWidth: 180 }
+      })
+      descText.x = 20
+      descText.y = yPos + 12
+      this.passiveContainer.addChild(descText)
+
+      yPos += PASSIVE_LINE_HEIGHT + 12
+    }
+
+    // 根据内功数量调整面板高度
+    const panelHeight = BASE_PANEL_HEIGHT + passives.length * (PASSIVE_LINE_HEIGHT + 12)
+    this.drawBackground(panelHeight)
   }
 
   // 获取面板尺寸
   getSize(): { width: number; height: number } {
-    return { width: PANEL_WIDTH, height: PANEL_HEIGHT }
+    return { width: PANEL_WIDTH, height: this.currentPanelHeight }
   }
 }

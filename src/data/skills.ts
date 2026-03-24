@@ -884,10 +884,9 @@ export const characters: Record<string, CharacterConfig> = {
     agility: 10,
     martialArts: ['tianShanZheMeiArt', 'tianShanLiuYangArt', 'lifeDeathArt', 'northernMingArt'],
     deck: [
-      'fist', 'fist', 'fist', 'fist', 'fist',
+      'fist', 'fist', 'fist', 'fist', 'fist', 'fist',
       'palm', 'palm', 'palm', 'palm', 'palm',
       'elbow', 'elbow', 'elbow', 'elbow',
-      'stab', 'stab',
       'frontKick', 'frontKick',
       'sweepKick', 'sweepKick'
     ]

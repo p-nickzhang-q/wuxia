@@ -207,12 +207,22 @@ export class CharacterSelectScene extends Scene {
     const config = characters[id]
     const martialArtsList = getCharacterMartialArts(id)
 
+    // 计算面板高度：基础高度 + 武功数量 * 行高
+    const lineHeight = 22
+    const baseHeight = 40
+    let totalLines = 0
+    martialArtsList.forEach(art => {
+      totalLines++ // 武功名称
+      if (art.passive) totalLines++ // 内功效果
+    })
+    const panelHeight = baseHeight + totalLines * lineHeight + 20
+
     // 详情面板放在角色网格下方，按钮上方
-    this.detailPanel = this.renderer.createContainer(size.width / 2 - 200, size.height - 250)
+    this.detailPanel = this.renderer.createContainer(size.width / 2 - 250, size.height - 280)
 
     // 背景
     const bg = this.renderer.createGraphics()
-    bg.roundRect(0, 0, 400, 150, 10)
+    bg.roundRect(0, 0, 500, panelHeight, 10)
     bg.fill({ color: Colors.PANEL_BG, alpha: 0.9 })
     bg.stroke({ color: Colors.TEXT_GOLD, width: 2 })
     this.detailPanel.addChild(bg)
@@ -245,7 +255,36 @@ export class CharacterSelectScene extends Scene {
       descText.y = yPos
       this.detailPanel.addChild(descText)
 
-      yPos += 25
+      yPos += lineHeight
+
+      // 显示内功效果
+      if (art.passive) {
+        const passiveIcon = new Text({
+          text: '◈',
+          style: { fontSize: 11, fill: Colors.MP_BAR }
+        })
+        passiveIcon.x = 25
+        passiveIcon.y = yPos
+        this.detailPanel.addChild(passiveIcon)
+
+        const passiveName = new Text({
+          text: art.passive.name,
+          style: { fontSize: 11, fill: Colors.MP_BAR }
+        })
+        passiveName.x = 40
+        passiveName.y = yPos
+        this.detailPanel.addChild(passiveName)
+
+        const passiveDesc = new Text({
+          text: art.passive.description,
+          style: { fontSize: 10, fill: Colors.TEXT_SECONDARY }
+        })
+        passiveDesc.x = 120
+        passiveDesc.y = yPos
+        this.detailPanel.addChild(passiveDesc)
+
+        yPos += lineHeight
+      }
     }
 
     this.addChild(this.detailPanel)
