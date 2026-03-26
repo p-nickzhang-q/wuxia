@@ -31,6 +31,11 @@ export class LayoutConstants {
   static readonly BASE_STATUS_WIDTH = 240
   static readonly BASE_STATUS_HEIGHT = 42
 
+  // 轻功轴基准尺寸
+  static readonly BASE_AGILITY_AXIS_WIDTH = 600
+  static readonly BASE_AGILITY_AXIS_HEIGHT = 60
+  static readonly BASE_AGILITY_MARKER_SIZE = 14
+
   // 字体基准大小
   static readonly BASE_FONT_TITLE = 38
   static readonly BASE_FONT_SUBTITLE = 20
@@ -81,6 +86,11 @@ export class LayoutConstants {
   // 状态栏尺寸
   static statusWidth(): number { return Math.round(this.BASE_STATUS_WIDTH * this._scale) }
   static statusHeight(): number { return Math.round(this.BASE_STATUS_HEIGHT * this._scale) }
+
+  // 轻功轴尺寸
+  static agilityAxisWidth(): number { return Math.round(this.BASE_AGILITY_AXIS_WIDTH * this._scale) }
+  static agilityAxisHeight(): number { return Math.round(this.BASE_AGILITY_AXIS_HEIGHT * this._scale) }
+  static agilityMarkerSize(): number { return Math.round(this.BASE_AGILITY_MARKER_SIZE * this._scale) }
 
   // 字体大小
   static fontTitle(): number { return Math.round(this.BASE_FONT_TITLE * this._scale) }

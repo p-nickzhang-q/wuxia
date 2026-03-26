@@ -458,3 +458,176 @@ export class Tooltip extends Container {
     this.visible = false
   }
 }
+
+// 轻功轴组件 - 显示行动顺序
+export class AgilityAxis extends Container {
+  private background: Graphics
+  private axisLine: Graphics
+  private playerMarker: Graphics
+  private enemyMarker: Graphics
+  private playerNameText: Text
+  private enemyNameText: Text
+  private playerAgilityText: Text
+  private enemyAgilityText: Text
+  private turnArrow: Graphics
+  private renderer: Renderer
+  private axisWidth: number
+  private axisHeight: number
+  private maxAgility: number = 50
+  private readonly padding: number
+
+  constructor(renderer: Renderer) {
+    super()
+    this.renderer = renderer
+    this.axisWidth = LayoutConstants.agilityAxisWidth()
+    this.axisHeight = LayoutConstants.agilityAxisHeight()
+    this.padding = LayoutConstants.scaleValue(40)
+
+    // 背景
+    this.background = renderer.createGraphics()
+    this.addChild(this.background)
+
+    // 轴线
+    this.axisLine = renderer.createGraphics()
+    this.addChild(this.axisLine)
+
+    // 玩家标记
+    this.playerMarker = renderer.createGraphics()
+    this.addChild(this.playerMarker)
+
+    // 敌人标记
+    this.enemyMarker = renderer.createGraphics()
+    this.addChild(this.enemyMarker)
+
+    // 玩家名字
+    this.playerNameText = renderer.createText('', TextStyles.STATS, 0, 0)
+    this.playerNameText.anchor.set(0.5)
+    this.playerNameText.style.fill = Colors.TEXT_RED
+    this.addChild(this.playerNameText)
+
+    // 敌人名字
+    this.enemyNameText = renderer.createText('', TextStyles.STATS, 0, 0)
+    this.enemyNameText.anchor.set(0.5)
+    this.enemyNameText.style.fill = Colors.TEXT_BLUE
+    this.addChild(this.enemyNameText)
+
+    // 玩家轻功数值
+    this.playerAgilityText = renderer.createText('', TextStyles.CARD_STATS, 0, 0)
+    this.playerAgilityText.anchor.set(0.5)
+    this.addChild(this.playerAgilityText)
+
+    // 敌人轻功数值
+    this.enemyAgilityText = renderer.createText('', TextStyles.CARD_STATS, 0, 0)
+    this.enemyAgilityText.anchor.set(0.5)
+    this.addChild(this.enemyAgilityText)
+
+    // 当前行动箭头
+    this.turnArrow = renderer.createGraphics()
+    this.addChild(this.turnArrow)
+
+    this.drawStaticElements()
+  }
+
+  private drawStaticElements(): void {
+    const markerSize = LayoutConstants.agilityMarkerSize()
+    const axisY = this.axisHeight * 0.55
+
+    // 背景
+    this.background.clear()
+    this.background.roundRect(0, 0, this.axisWidth, this.axisHeight, 8)
+    this.background.fill({ color: Colors.PANEL_BG, alpha: 0.85 })
+    this.background.stroke({ color: Colors.TEXT_SECONDARY, width: 1 })
+
+    // 轴线
+    this.axisLine.clear()
+    this.axisLine.moveTo(this.padding, axisY)
+    this.axisLine.lineTo(this.axisWidth - this.padding, axisY)
+    this.axisLine.stroke({ color: Colors.TEXT_SECONDARY, width: 2 })
+
+    // 刻度 0
+    const zeroText = this.renderer.createText('0', TextStyles.CARD_STATS, this.padding, axisY + 5)
+    zeroText.anchor.set(0.5, 0)
+    zeroText.style.fill = Colors.TEXT_SECONDARY
+    zeroText.style.fontSize = LayoutConstants.fontCardType()
+    this.addChild(zeroText)
+
+    // 刻度 max
+    const maxText = this.renderer.createText(`${this.maxAgility}`, TextStyles.CARD_STATS, this.axisWidth - this.padding, axisY + 5)
+    maxText.anchor.set(0.5, 0)
+    maxText.style.fill = Colors.TEXT_SECONDARY
+    maxText.style.fontSize = LayoutConstants.fontCardType()
+    this.addChild(maxText)
+
+    // 玩家标记（红色圆形）
+    this.playerMarker.clear()
+    this.playerMarker.circle(0, axisY, markerSize)
+    this.playerMarker.fill(Colors.TEXT_RED)
+    this.playerMarker.stroke({ color: Colors.TEXT_PRIMARY, width: 2 })
+
+    // 敌人标记（蓝色圆形）
+    this.enemyMarker.clear()
+    this.enemyMarker.circle(0, axisY, markerSize)
+    this.enemyMarker.fill(Colors.TEXT_BLUE)
+    this.enemyMarker.stroke({ color: Colors.TEXT_PRIMARY, width: 2 })
+  }
+
+  update(
+    playerName: string,
+    playerAgility: number,
+    enemyName: string,
+    enemyAgility: number,
+    currentActor: 'player' | 'enemy' | null
+  ): void {
+    const markerSize = LayoutConstants.agilityMarkerSize()
+    const axisY = this.axisHeight * 0.55
+    const axisLength = this.axisWidth - this.padding * 2
+
+    // 更新角色名
+    this.playerNameText.text = playerName
+    this.enemyNameText.text = enemyName
+
+    // 计算位置（轻功值映射到轴位置）
+    const playerX = this.padding + Math.min(playerAgility / this.maxAgility, 1) * axisLength
+    const enemyX = this.padding + Math.min(enemyAgility / this.maxAgility, 1) * axisLength
+
+    // 更新标记位置
+    this.playerMarker.x = playerX
+    this.enemyMarker.x = enemyX
+
+    // 更新名字位置（标记上方）
+    this.playerNameText.x = playerX
+    this.playerNameText.y = axisY - markerSize - 18
+    this.enemyNameText.x = enemyX
+    this.enemyNameText.y = axisY - markerSize - 18
+
+    // 更新轻功数值位置（标记下方）
+    this.playerAgilityText.text = `${playerAgility}`
+    this.playerAgilityText.x = playerX
+    this.playerAgilityText.y = axisY + markerSize + 8
+    this.enemyAgilityText.text = `${enemyAgility}`
+    this.enemyAgilityText.x = enemyX
+    this.enemyAgilityText.y = axisY + markerSize + 8
+
+    // 更新当前行动箭头
+    this.turnArrow.clear()
+    if (currentActor !== null) {
+      const turnX = playerAgility >= enemyAgility ? playerX : enemyX
+      this.turnArrow.x = turnX
+      this.turnArrow.y = axisY - markerSize - 28
+
+      // 绘制向下箭头
+      const arrowSize = LayoutConstants.scaleValue(8)
+      this.turnArrow.moveTo(-arrowSize, -arrowSize)
+      this.turnArrow.lineTo(0, 0)
+      this.turnArrow.lineTo(arrowSize, -arrowSize)
+      this.turnArrow.stroke({ color: Colors.TEXT_GOLD, width: 3 })
+
+      // "当前行动"文字
+      const turnText = this.renderer.createText('当前行动', TextStyles.CARD_STATS, 0, -arrowSize * 2 - 2)
+      turnText.anchor.set(0.5, 1)
+      turnText.style.fill = Colors.TEXT_GOLD
+      turnText.style.fontSize = LayoutConstants.fontCardType()
+      this.turnArrow.addChild(turnText)
+    }
+  }
+}

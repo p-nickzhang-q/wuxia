@@ -2,7 +2,7 @@ import { Scene } from './Scene'
 import { Renderer } from '../renderer/Renderer'
 import { CardRenderer, getCardDimensions } from '../renderer/CardRenderer'
 import { CharacterRenderer } from '../renderer/CharacterRenderer'
-import { Button, SkillButton, BattleLog, StatusBar } from '../renderer/UIComponents'
+import { Button, SkillButton, BattleLog, StatusBar, AgilityAxis } from '../renderer/UIComponents'
 import { createGame } from '../game/Game'
 import { createCharacter } from '../game/Character'
 import { AI } from '../game/AI'
@@ -24,6 +24,7 @@ export class BattleScene extends Scene {
   private skillButtons: SkillButton[] = []
   private battleLog: BattleLog | null = null
   private statusBar: StatusBar | null = null
+  private agilityAxis: AgilityAxis | null = null
   private endTurnButton: Button | null = null
   private confirmButton: Button | null = null
   private cancelButton: Button | null = null
@@ -144,6 +145,13 @@ export class BattleScene extends Scene {
     this.battleLog.y = size.height * 0.02 + LayoutConstants.statusHeight() + 10
     this.addChild(this.battleLog)
 
+    // 轻功轴 - 战斗日志下方
+    const axisWidth = LayoutConstants.agilityAxisWidth()
+    this.agilityAxis = new AgilityAxis(this.renderer)
+    this.agilityAxis.x = size.width / 2 - axisWidth / 2
+    this.agilityAxis.y = size.height * 0.02 + LayoutConstants.statusHeight() + LayoutConstants.logHeight() + 20
+    this.addChild(this.agilityAxis)
+
     // 玩家面板 - 左下角
     this.playerRenderer = new CharacterRenderer(this.playerConfig!, false, this.renderer)
     const playerPanelSize = this.playerRenderer.getSize()
@@ -194,6 +202,18 @@ export class BattleScene extends Scene {
     // 更新角色面板
     this.playerRenderer?.update(this.playerConfig!)
     this.enemyRenderer?.update(this.enemyConfig!)
+
+    // 更新轻功轴
+    if (this.agilityAxis && this.playerConfig && this.enemyConfig && this.game) {
+      this.agilityAxis.update(
+        this.playerConfig.name,
+        this.playerConfig.agility,
+        this.enemyConfig.name,
+        this.enemyConfig.agility,
+        this.game.currentActor === this.game.player ? 'player' :
+          this.game.currentActor === this.game.enemy ? 'enemy' : null
+      )
+    }
 
     // 同步战斗日志到UI
     this.syncBattleLog()
