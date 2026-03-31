@@ -80,6 +80,10 @@ export function createCharacter(characterConfig: CharacterConfig, martialArtsLis
           drawn.push(card)
         }
       }
+      // 发出抽牌事件
+      if (drawn.length > 0) {
+        eventManager.emit(GameEventType.CARD_DRAWN, { character: this, cards: drawn })
+      }
       return drawn
     },
 

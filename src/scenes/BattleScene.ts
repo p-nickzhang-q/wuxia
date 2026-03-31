@@ -39,6 +39,10 @@ export class BattleScene extends Scene {
   private isAIProcessing: boolean = false
   private isGameOver: boolean = false  // 防止重复处理游戏结束
 
+  // 抽牌动画相关
+  private isFirstHandUpdate: boolean = true // 是否是首次更新手牌
+  private pendingDrawAnimations: string[] = [] // 待动画的新牌ID
+
   // 回调
   private onBattleEnd?: (playerWon: boolean) => void
 
@@ -69,6 +73,8 @@ export class BattleScene extends Scene {
     this.isAIProcessing = false
     this.selectedCard = null
     this.isGameOver = false
+    this.isFirstHandUpdate = true
+    this.pendingDrawAnimations = []
   }
 
   onEnter(): void {
@@ -117,6 +123,7 @@ export class BattleScene extends Scene {
     eventManager.off(GameEventType.CHARACTER_DAMAGED, this.onCharacterDamaged)
     eventManager.off(GameEventType.CHARACTER_SHIELD, this.onCharacterShield)
     eventManager.off(GameEventType.TURN_START, this.onTurnStart)
+    eventManager.off(GameEventType.CARD_DRAWN, this.onCardDrawn)
   }
 
   // 处理窗口resize
@@ -150,6 +157,8 @@ export class BattleScene extends Scene {
     eventManager.on(GameEventType.CHARACTER_SHIELD, this.onCharacterShield.bind(this))
     // 回合开始事件
     eventManager.on(GameEventType.TURN_START, this.onTurnStart.bind(this))
+    // 抽牌事件
+    eventManager.on(GameEventType.CARD_DRAWN, this.onCardDrawn.bind(this))
   }
 
   // 伤害事件回调
@@ -207,6 +216,22 @@ export class BattleScene extends Scene {
     // 显示回合数字特效（屏幕上方居中）
     const size = this.renderer.getSize()
     this.showTurnNumberEffect(turnNumber, size.width / 2, size.height * 0.15)
+  }
+
+  // 抽牌事件回调
+  private onCardDrawn(event: { data?: { character?: any; cards?: any[] } }): void {
+    if (!this.playerConfig) return
+
+    const character = event.data?.character
+    const cards = event.data?.cards
+
+    // 只处理玩家抽牌
+    if (character !== this.playerConfig || !cards) return
+
+    // 记录需要动画的新牌ID
+    cards.forEach(card => {
+      this.pendingDrawAnimations.push(card.instanceId)
+    })
   }
 
   // 显示回合开始特效
@@ -399,12 +424,34 @@ export class BattleScene extends Scene {
     const startX = (size.width - totalWidth) / 2
     const y = size.height - cardDims.height - LayoutConstants.buttonHeight() - 25
 
+    // 牌堆位置（屏幕中央）
+    const deckX = size.width / 2
+    const deckY = size.height / 2
+
     hand.forEach((card, index) => {
       const cardRenderer = new CardRenderer(card, this.renderer)
       const cardX = startX + index * cardSpacing
       const cardY = y
-      cardRenderer.x = cardX
-      cardRenderer.y = cardY
+
+      // 检查是否需要抽牌动画（首次更新或待动画列表中的牌）
+      const needsAnimation = this.isFirstHandUpdate || this.pendingDrawAnimations.includes(card.instanceId)
+
+      if (needsAnimation) {
+        // 从牌堆位置开始
+        cardRenderer.x = deckX
+        cardRenderer.y = deckY
+        cardRenderer.alpha = 0
+
+        // 延迟动画，让每张牌依次飞入
+        const delay = index * 100 // 每张牌延迟100ms
+        setTimeout(() => {
+          tweenManager.create(cardRenderer, { x: cardX, y: cardY, alpha: 1 }, 300, Easing.easeOutQuad)
+        }, delay)
+      } else {
+        cardRenderer.x = cardX
+        cardRenderer.y = cardY
+      }
+
       cardRenderer.setBaseY(cardY)  // 设置基础Y位置
 
       // 设置是否可用
@@ -425,6 +472,10 @@ export class BattleScene extends Scene {
       this.addChild(cardRenderer)
       this.cardRenderers.push(cardRenderer)
     })
+
+    // 清空待动画列表，标记首次更新完成
+    this.pendingDrawAnimations = []
+    this.isFirstHandUpdate = false
   }
 
   // 更新技能按钮
