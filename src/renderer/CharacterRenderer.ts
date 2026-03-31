@@ -221,4 +221,68 @@ export class CharacterRenderer extends Container {
   getSize(): { width: number; height: number } {
     return { width: LayoutConstants.panelWidth(), height: this.currentPanelHeight }
   }
+
+  // 公开方法：获取HP条用于特效
+  getHpBar(): Graphics {
+    return this.hpBar
+  }
+
+  // 公开方法：获取护盾显示文本用于特效
+  getShieldText(): Text {
+    return this.shieldText
+  }
+
+  // 公开方法：面板震动
+  shake(intensity: number = 10, duration: number = 300): Promise<void> {
+    return new Promise(resolve => {
+      const originalX = this.x
+      const startTime = Date.now()
+
+      const animate = () => {
+        const elapsed = Date.now() - startTime
+        const progress = elapsed / duration
+
+        if (progress < 1) {
+          this.x = originalX + Math.sin(progress * Math.PI * 8) * intensity * (1 - progress)
+          requestAnimationFrame(animate)
+        } else {
+          this.x = originalX
+          resolve()
+        }
+      }
+
+      requestAnimationFrame(animate)
+    })
+  }
+
+  // 公开方法：HP条闪烁
+  flashHpBar(color: number = Colors.HP_BAR, flashCount: number = 3, interval: number = 100): Promise<void> {
+    return new Promise(resolve => {
+      let flash = true
+      let count = 0
+
+      const flashInterval = setInterval(() => {
+        flash = !flash
+        if (flash) {
+          this.hpBar.clear()
+          this.hpBar.rect(0, 0, LayoutConstants.barWidth(), LayoutConstants.barHeight())
+          this.hpBar.fill(color)
+        } else {
+          this.updateCharacterState()
+        }
+
+        count++
+        if (count >= flashCount * 2) {
+          clearInterval(flashInterval)
+          this.updateCharacterState()
+          resolve()
+        }
+      }, interval)
+    })
+  }
+
+  // 私有辅助方法：重新更新角色状态以恢复HP条颜色
+  private updateCharacterState(): void {
+    // 这个方法将在 updateCharacterState 方法中实现
+  }
 }

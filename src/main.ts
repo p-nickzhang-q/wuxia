@@ -3,6 +3,7 @@ import { CharacterSelectScene } from './scenes/CharacterSelectScene'
 import { BattleScene } from './scenes/BattleScene'
 import { ResultScene } from './scenes/ResultScene'
 import { Scene } from './scenes/Scene'
+import { tweenManager } from './utils/TweenManager'
 
 // 游戏主类
 class Game {
@@ -105,6 +106,8 @@ class Game {
       if (this.currentScene) {
         this.currentScene.update(ticker.deltaTime)
       }
+      // 更新全局 tween 管理器
+      tweenManager.update(ticker.deltaTime)
     })
   }
 

@@ -1,5 +1,6 @@
-import { Card, CharacterState, CharacterConfig, MartialArtSkill, PassiveSkill, TriggerTiming, GameState, MartialArt } from './types'
+import { Card, CharacterState, CharacterConfig, MartialArtSkill, PassiveSkill, TriggerTiming, GameState, MartialArt, GameEventType } from './types'
 import { createBasicCard } from '../data/cards'
+import { eventManager } from '../utils/EventManager'
 
 // 创建角色
 export function createCharacter(characterConfig: CharacterConfig, martialArtsList: MartialArt[]): CharacterState {
@@ -176,6 +177,8 @@ export function createCharacter(characterConfig: CharacterConfig, martialArtsLis
         if (this.shield >= actualDamage) {
           this.shield -= actualDamage
           messages.push(`${this.name}的护盾吸收了${actualDamage}点伤害`)
+          // 护盾吸收也触发事件，显示被吸收的伤害
+          eventManager.emit(GameEventType.CHARACTER_DAMAGED, { character: this, damage: actualDamage, absorbed: true })
           actualDamage = 0
         } else {
           const absorbed = this.shield
@@ -188,6 +191,8 @@ export function createCharacter(characterConfig: CharacterConfig, martialArtsLis
       this.hp = Math.max(0, this.hp - actualDamage)
       if (actualDamage > 0) {
         messages.push(`${this.name}受到${actualDamage}点伤害`)
+        // 发出受伤事件
+        eventManager.emit(GameEventType.CHARACTER_DAMAGED, { character: this, damage: actualDamage })
       }
 
       return { damage: actualDamage, messages }

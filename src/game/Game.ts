@@ -1,4 +1,5 @@
-import { CharacterState, GameState, GamePhase, MartialArtSkill, SkillEffect, TriggerTiming } from './types'
+import { CharacterState, GameState, GamePhase, MartialArtSkill, SkillEffect, TriggerTiming, GameEventType } from './types'
+import { eventManager } from '../utils/EventManager'
 
 // 创建游戏状态
 export function createGame(): GameState {
@@ -55,6 +56,9 @@ export function createGame(): GameState {
         this.endGame()
         return
       }
+
+      // 发出回合开始事件
+      eventManager.emit(GameEventType.TURN_START, { turnNumber: this.currentTurn })
 
       this.decideTurnOrder()
     },
@@ -131,6 +135,8 @@ export function createGame(): GameState {
       if (totalShield > 0) {
         actor.shield += totalShield
         logMsg += `，获得${totalShield}点护盾`
+        // 发出护盾变化事件
+        eventManager.emit(GameEventType.CHARACTER_SHIELD, { character: actor, amount: totalShield })
       }
       if (card.selfDamage) {
         actor.hp -= card.selfDamage
@@ -239,6 +245,8 @@ export function createGame(): GameState {
           if (effect.ignoreShield) {
             opponent.hp -= totalDamage
             actualDamage = totalDamage
+            // 发出受伤事件（无视护盾的情况）
+            eventManager.emit(GameEventType.CHARACTER_DAMAGED, { character: opponent, damage: actualDamage })
           } else {
             const result = opponent.takeDamage(totalDamage, actor, this)
             actualDamage = result.damage
@@ -254,6 +262,9 @@ export function createGame(): GameState {
 
         case 'shield':
           actor.shield += effect.value!
+          const shieldChange = effect.value!
+          // 发出护盾变化事件
+          eventManager.emit(GameEventType.CHARACTER_SHIELD, { character: actor, amount: shieldChange })
           break
 
         case 'selfDamage':

@@ -24,6 +24,33 @@ export enum GamePhase {
   GAME_OVER = 'gameOver'
 }
 
+// ==================== 事件类型 ====================
+export enum GameEventType {
+  // 游戏事件
+  GAME_START = 'gameStart',
+  GAME_END = 'gameEnd',
+  TURN_START = 'turnStart',
+  TURN_END = 'turnEnd',
+
+  // 角色事件
+  CHARACTER_DAMAGED = 'characterDamaged',
+  CHARACTER_HEALED = 'characterHealed',
+  CHARACTER_SHIELD = 'characterShield',
+  CHARACTER_DEATH = 'characterDeath',
+
+  // 卡牌事件
+  CARD_DRAWN = 'cardDrawn',
+  CARD_PLAYED = 'cardPlayed',
+  CARD_DISCARDED = 'cardDiscarded',
+
+  // 技能事件
+  SKILL_USED = 'skillUsed',
+
+  // UI 事件
+  UI_UPDATE = 'uiUpdate',
+  LOG_MESSAGE = 'logMessage'
+}
+
 // ==================== 卡牌接口 ====================
 export interface Card {
   id: string

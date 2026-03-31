@@ -1,5 +1,5 @@
 import { Scene } from './Scene'
-import { Renderer } from '../renderer/Renderer'
+import { Renderer, Colors } from '../renderer/Renderer'
 import { CardRenderer, getCardDimensions } from '../renderer/CardRenderer'
 import { CharacterRenderer } from '../renderer/CharacterRenderer'
 import { Button, SkillButton, BattleLog, StatusBar, AgilityAxis } from '../renderer/UIComponents'
@@ -7,8 +7,12 @@ import { createGame } from '../game/Game'
 import { createCharacter } from '../game/Character'
 import { AI } from '../game/AI'
 import { characters, getCharacterMartialArts } from '../data/skills'
-import { CharacterState, GamePhase, MartialArtSkill } from '../game/types'
+import { CharacterState, GamePhase, MartialArtSkill, GameEventType } from '../game/types'
 import { LayoutConstants } from '../renderer/LayoutConstants'
+import { effectManager } from '../utils/EffectManager'
+import { eventManager } from '../utils/EventManager'
+import { tweenManager, Easing } from '../utils/TweenManager'
+import { Text, TextStyle } from 'pixi.js'
 
 // 战斗场景
 export class BattleScene extends Scene {
@@ -80,8 +84,14 @@ export class BattleScene extends Scene {
     this.createUI()
     this.updateUI()
 
+    // 添加特效管理器到场景
+    this.addChild(effectManager)
+
     // 注册resize回调
     this.renderer.onResize(() => this.handleResize())
+
+    // 注册事件监听器
+    this.registerEventListeners()
 
     // 检查是否轮到 AI 行动
     this.checkAITurn()
@@ -90,12 +100,23 @@ export class BattleScene extends Scene {
   onExit(): void {
     // 移除resize回调
     this.renderer.offResize(() => this.handleResize())
+    // 移除事件监听器
+    this.unregisterEventListeners()
+    // 移除特效管理器
+    this.removeChild(effectManager)
     this.clear()
     this.playerConfig = null
     this.enemyConfig = null
     this.game = null
     this.ai = null
     this.isAIProcessing = false
+  }
+
+  // 移除事件监听器
+  private unregisterEventListeners(): void {
+    eventManager.off(GameEventType.CHARACTER_DAMAGED, this.onCharacterDamaged)
+    eventManager.off(GameEventType.CHARACTER_SHIELD, this.onCharacterShield)
+    eventManager.off(GameEventType.TURN_START, this.onTurnStart)
   }
 
   // 处理窗口resize
@@ -119,6 +140,98 @@ export class BattleScene extends Scene {
     if (this.game.phase !== GamePhase.SELECTING) return
 
     this.handleAITurn()
+  }
+
+  // 注册事件监听器
+  private registerEventListeners(): void {
+    // 伤害事件
+    eventManager.on(GameEventType.CHARACTER_DAMAGED, this.onCharacterDamaged.bind(this))
+    // 护盾事件
+    eventManager.on(GameEventType.CHARACTER_SHIELD, this.onCharacterShield.bind(this))
+    // 回合开始事件
+    eventManager.on(GameEventType.TURN_START, this.onTurnStart.bind(this))
+  }
+
+  // 伤害事件回调
+  private onCharacterDamaged(event: { data?: { character?: any; damage?: number } }): void {
+    if (!this.game || !this.playerConfig || !this.enemyConfig) return
+
+    const character = event.data?.character
+    const damage = event.data?.damage
+
+    if (!character || !damage) return
+
+    // 确定是哪个角色受伤
+    const targetRenderer = character === this.playerConfig
+      ? this.playerRenderer
+      : this.enemyRenderer
+    if (!targetRenderer) return
+
+    // 计算伤害数字显示位置
+    const panelCenterX = targetRenderer.x + LayoutConstants.panelWidth() / 2
+    const panelCenterY = targetRenderer.y + LayoutConstants.portraitHeight() / 2
+
+    // 播放特效（并行执行）
+    effectManager.shakeCharacter(targetRenderer, 10, 300)
+    effectManager.showDamageNumber(damage, panelCenterX, panelCenterY)
+  }
+
+  // 护盾事件回调
+  private onCharacterShield(event: { data?: { character?: any; amount?: number } }): void {
+    if (!this.game || !this.playerConfig || !this.enemyConfig) return
+
+    const character = event.data?.character
+    const amount = event.data?.amount
+
+    if (!character || !amount || amount <= 0) return
+
+    // 确定是哪个角色获得护盾
+    const targetRenderer = character === this.playerConfig
+      ? this.playerRenderer
+      : this.enemyRenderer
+    if (!targetRenderer) return
+
+    // 计算护盾数字显示位置
+    const panelCenterX = targetRenderer.x + LayoutConstants.panelWidth() / 2
+    const panelCenterY = targetRenderer.y + LayoutConstants.portraitHeight() / 2
+
+    // 显示护盾数字
+    effectManager.showShieldNumber(amount, panelCenterX, panelCenterY)
+  }
+
+  // 回合开始事件回调
+  private onTurnStart(event: { data?: { turnNumber?: number } }): void {
+    const turnNumber = event.data?.turnNumber
+    if (!turnNumber) return
+
+    // 显示回合数字特效（屏幕上方居中）
+    const size = this.renderer.getSize()
+    this.showTurnNumberEffect(turnNumber, size.width / 2, size.height * 0.15)
+  }
+
+  // 显示回合开始特效
+  private showTurnNumberEffect(turnNumber: number, x: number, y: number): void {
+    const style = new TextStyle({
+      fontSize: LayoutConstants.scaleValue(48),
+      fill: Colors.TEXT_GOLD,
+      fontWeight: 'bold'
+    })
+    const text = new Text(`第${turnNumber}回合`, style)
+    text.x = x
+    text.y = y
+    text.anchor.set(0.5)
+    text.alpha = 0
+    this.addChild(text)
+
+    // 淡入 → 缩放 → 淡出
+    tweenManager.create(text, { alpha: 1 }, 200, Easing.easeOutQuad)
+    tweenManager.create(text, { scaleX: 1.2, scaleY: 1.2 }, 200, Easing.easeOutBack)
+
+    setTimeout(() => {
+      tweenManager.create(text, { alpha: 0 }, 300, Easing.easeOutQuad, () => {
+        this.removeChild(text)
+      })
+    }, 800)
   }
 
   // 创建 UI
