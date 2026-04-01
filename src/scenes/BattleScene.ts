@@ -43,6 +43,9 @@ export class BattleScene extends Scene {
   private isFirstHandUpdate: boolean = true // 是否是首次更新手牌
   private pendingDrawAnimations: string[] = [] // 待动画的新牌ID
 
+  // 内功特效队列（用于延迟显示第一回合的内功特效）
+  private pendingPassiveHighlights: Array<{isPlayer: boolean, passiveId: string}> = []
+
   // 回调
   private onBattleEnd?: (playerWon: boolean) => void
 
@@ -52,6 +55,20 @@ export class BattleScene extends Scene {
 
   // 初始化战斗
   init(playerCharacterId: string): void {
+    // 重置状态（必须在注册事件监听器之前，否则会清空刚加入的队列）
+    this.isAIProcessing = false
+    this.selectedCard = null
+    this.isGameOver = false
+    this.isFirstHandUpdate = true
+    this.pendingDrawAnimations = []
+    this.pendingPassiveHighlights = []
+
+    // 添加特效管理器到场景
+    this.addChild(effectManager)
+
+    // 注册事件监听器（必须在 game.init 之前注册）
+    this.registerEventListeners()
+
     // 创建玩家角色
     const playerMartialArts = getCharacterMartialArts(playerCharacterId)
     this.playerConfig = createCharacter(characters[playerCharacterId], playerMartialArts)
@@ -68,13 +85,6 @@ export class BattleScene extends Scene {
 
     // 创建 AI
     this.ai = new AI(this.game)
-
-    // 重置状态
-    this.isAIProcessing = false
-    this.selectedCard = null
-    this.isGameOver = false
-    this.isFirstHandUpdate = true
-    this.pendingDrawAnimations = []
   }
 
   onEnter(): void {
@@ -90,14 +100,18 @@ export class BattleScene extends Scene {
     this.createUI()
     this.updateUI()
 
-    // 添加特效管理器到场景
-    this.addChild(effectManager)
-
     // 注册resize回调
     this.renderer.onResize(() => this.handleResize())
 
-    // 注册事件监听器
-    this.registerEventListeners()
+    // 把 effectManager 移到最顶层（确保特效显示在所有 UI 之上）
+    this.setChildIndex(effectManager, this.children.length - 1)
+
+    // 处理队列中的内功高亮（第一回合的内功在 init 中触发，但那时 renderer 还没创建）
+    this.pendingPassiveHighlights.forEach(({ isPlayer, passiveId }) => {
+      const renderer = isPlayer ? this.playerRenderer : this.enemyRenderer
+      renderer?.highlightPassive(passiveId)
+    })
+    this.pendingPassiveHighlights = []
 
     // 检查是否轮到 AI 行动
     this.checkAITurn()
@@ -116,6 +130,7 @@ export class BattleScene extends Scene {
     this.game = null
     this.ai = null
     this.isAIProcessing = false
+    this.pendingPassiveHighlights = []
   }
 
   // 移除事件监听器
@@ -124,6 +139,7 @@ export class BattleScene extends Scene {
     eventManager.off(GameEventType.CHARACTER_SHIELD, this.onCharacterShield)
     eventManager.off(GameEventType.TURN_START, this.onTurnStart)
     eventManager.off(GameEventType.CARD_DRAWN, this.onCardDrawn)
+    eventManager.off(GameEventType.PASSIVE_TRIGGERED, this.onPassiveTriggered)
   }
 
   // 处理窗口resize
@@ -159,6 +175,8 @@ export class BattleScene extends Scene {
     eventManager.on(GameEventType.TURN_START, this.onTurnStart.bind(this))
     // 抽牌事件
     eventManager.on(GameEventType.CARD_DRAWN, this.onCardDrawn.bind(this))
+    // 内功触发事件
+    eventManager.on(GameEventType.PASSIVE_TRIGGERED, this.onPassiveTriggered.bind(this))
   }
 
   // 伤害事件回调
@@ -232,6 +250,31 @@ export class BattleScene extends Scene {
     cards.forEach(card => {
       this.pendingDrawAnimations.push(card.instanceId)
     })
+  }
+
+  // 内功触发事件回调
+  private onPassiveTriggered(event: { data?: { character?: any; passiveId?: string; passiveName?: string; trigger?: any } }): void {
+    if (!this.game || !this.playerConfig || !this.enemyConfig) return
+
+    const character = event.data?.character
+    const passiveId = event.data?.passiveId
+    const passiveName = event.data?.passiveName
+    const trigger = event.data?.trigger
+
+    if (!character || !passiveId || !passiveName || !trigger) return
+
+    // 确定是哪个角色触发内功
+    const isPlayer = character === this.playerConfig
+    const targetRenderer = isPlayer ? this.playerRenderer : this.enemyRenderer
+
+    // 如果 renderer 还没创建，加入队列延迟处理
+    if (!targetRenderer) {
+      this.pendingPassiveHighlights.push({ isPlayer, passiveId })
+      return
+    }
+
+    // 调用 CharacterRenderer 的高亮方法
+    targetRenderer.highlightPassive(passiveId)
   }
 
   // 显示回合开始特效

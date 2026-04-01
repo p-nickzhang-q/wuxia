@@ -7,7 +7,7 @@ import { tweenManager, Easing } from './TweenManager'
 export class EffectManager extends Container {
   constructor() {
     super()
-    this.name = 'effectManager'
+    this.label = 'effectManager'
   }
 
   /**

@@ -1,29 +1,6 @@
-// 事件类型定义
-export enum GameEventType {
-  // 游戏事件
-  GAME_START = 'gameStart',
-  GAME_END = 'gameEnd',
-  TURN_START = 'turnStart',
-  TURN_END = 'turnEnd',
-
-  // 角色事件
-  CHARACTER_DAMAGED = 'characterDamaged',
-  CHARACTER_HEALED = 'characterHealed',
-  CHARACTER_SHIELD = 'characterShield',
-  CHARACTER_DEATH = 'characterDeath',
-
-  // 卡牌事件
-  CARD_DRAWN = 'cardDrawn',
-  CARD_PLAYED = 'cardPlayed',
-  CARD_DISCARDED = 'cardDiscarded',
-
-  // 技能事件
-  SKILL_USED = 'skillUsed',
-
-  // UI 事件
-  UI_UPDATE = 'uiUpdate',
-  LOG_MESSAGE = 'logMessage'
-}
+import { GameEventType } from '../game/types'
+// 重新导出 GameEventType 以便其他文件可以从这里导入
+export { GameEventType }
 
 // 事件数据接口
 export interface GameEvent {

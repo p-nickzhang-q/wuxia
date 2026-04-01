@@ -45,6 +45,7 @@ export enum GameEventType {
 
   // 技能事件
   SKILL_USED = 'skillUsed',
+  PASSIVE_TRIGGERED = 'passiveTriggered',
 
   // UI 事件
   UI_UPDATE = 'uiUpdate',

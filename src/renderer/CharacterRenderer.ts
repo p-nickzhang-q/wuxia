@@ -22,6 +22,7 @@ export class CharacterRenderer extends Container {
 
   // 内功相关
   private passiveContainer: Container
+  private passiveTexts: Map<string, Text> = new Map() // 存储内功文字引用，key 是 passive.id
   private currentPanelHeight: number
 
   constructor(character: CharacterState, isEnemy: boolean, renderer: Renderer) {
@@ -184,28 +185,48 @@ export class CharacterRenderer extends Container {
 
   // 更新内功显示
   private updatePassives(character: CharacterState): void {
-    this.passiveContainer.removeChildren()
-
     const passives = character.passives || []
     const panelWidth = LayoutConstants.panelWidth()
-
     const passiveLineHeight = LayoutConstants.scaleValue(22)
+
+    // 获取当前已有的内功ID
+    const existingIds = new Set(this.passiveTexts.keys())
+    const newIds = new Set(passives.map(p => p.id))
+
+    // 移除不再存在的内功文字
+    existingIds.forEach(id => {
+      if (!newIds.has(id)) {
+        const text = this.passiveTexts.get(id)
+        if (text) {
+          this.passiveContainer.removeChild(text)
+        }
+        this.passiveTexts.delete(id)
+      }
+    })
+
+    // 添加新的内功文字（保留已有的，避免覆盖特效状态）
     let yPos = 0
     for (const passive of passives) {
-      // 内功名称
-      const nameText = new Text({
-        text: `◈ ${passive.name}: ${passive.description}`,
-        style: {
-          fontSize: LayoutConstants.fontCharacterTitle(),
-          fill: Colors.MP_BAR,
-          wordWrap: true,
-          wordWrapWidth: panelWidth - 20
-        }
-      })
-      nameText.x = 0
-      nameText.y = yPos
-      this.passiveContainer.addChild(nameText)
-
+      // 如果已存在，只更新位置
+      if (this.passiveTexts.has(passive.id)) {
+        const text = this.passiveTexts.get(passive.id)!
+        text.y = yPos
+      } else {
+        // 创建新的内功文字
+        const nameText = new Text({
+          text: `◈ ${passive.name}: ${passive.description}`,
+          style: {
+            fontSize: LayoutConstants.fontCharacterTitle(),
+            fill: Colors.MP_BAR,
+            wordWrap: true,
+            wordWrapWidth: panelWidth - 20
+          }
+        })
+        nameText.x = 0
+        nameText.y = yPos
+        this.passiveContainer.addChild(nameText)
+        this.passiveTexts.set(passive.id, nameText)
+      }
       yPos += passiveLineHeight
     }
 
@@ -284,5 +305,87 @@ export class CharacterRenderer extends Container {
   // 私有辅助方法：重新更新角色状态以恢复HP条颜色
   private updateCharacterState(): void {
     // 这个方法将在 updateCharacterState 方法中实现
+  }
+
+  /**
+   * 高亮内功文字特效 - 平滑渐变动画
+   * @param passiveId 内功ID
+   */
+  highlightPassive(passiveId: string): void {
+    const text = this.passiveTexts.get(passiveId)
+    if (!text) return
+
+    // 如果正在动画中，跳过
+    if ((text as any)._animating) return
+    ;(text as any)._animating = true
+
+    const originalY = text.y
+    const originalScale = 1
+    const targetScale = 1.3
+    const jumpHeight = 10
+
+    // 颜色渐变：蓝色 -> 金色
+    const startColor = { r: 0x44, g: 0x88, b: 0xff } // 蓝色 MP_BAR
+    const targetColor = { r: 0xff, g: 0xd7, b: 0x00 } // 金色 TEXT_GOLD
+
+    const startTime = Date.now()
+    const phase1Duration = 200  // 放大+变色
+    const phase2Duration = 150  // 保持
+    const phase3Duration = 250  // 缩回+恢复
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime
+      const totalDuration = phase1Duration + phase2Duration + phase3Duration
+
+      if (elapsed < phase1Duration) {
+        // 阶段1：放大 + 上跳 + 变色
+        const progress = elapsed / phase1Duration
+        const eased = progress * (2 - progress) // easeOutQuad
+
+        // 缩放
+        const scale = originalScale + (targetScale - originalScale) * eased
+        text.scale.set(scale, scale)
+
+        // 位置
+        text.y = originalY - jumpHeight * eased
+
+        // 颜色渐变
+        const r = Math.round(startColor.r + (targetColor.r - startColor.r) * eased)
+        const g = Math.round(startColor.g + (targetColor.g - startColor.g) * eased)
+        const b = Math.round(startColor.b + (targetColor.b - startColor.b) * eased)
+        text.style.fill = (r << 16) | (g << 8) | b
+
+        requestAnimationFrame(animate)
+      } else if (elapsed < phase1Duration + phase2Duration) {
+        // 阶段2：保持状态（无操作）
+        requestAnimationFrame(animate)
+      } else if (elapsed < totalDuration) {
+        // 阶段3：缩回 + 落下 + 恢复颜色
+        const progress = (elapsed - phase1Duration - phase2Duration) / phase3Duration
+
+        // 缩放
+        const scale = targetScale + (originalScale - targetScale) * progress
+        text.scale.set(scale, scale)
+
+        // 位置
+        text.y = originalY - jumpHeight * (1 - progress)
+
+        // 颜色恢复
+        const r = Math.round(targetColor.r + (startColor.r - targetColor.r) * progress)
+        const g = Math.round(targetColor.g + (startColor.g - targetColor.g) * progress)
+        const b = Math.round(targetColor.b + (startColor.b - targetColor.b) * progress)
+        text.style.fill = (r << 16) | (g << 8) | b
+
+        requestAnimationFrame(animate)
+      } else {
+        // 动画结束，确保恢复原始状态
+        text.scale.set(originalScale, originalScale)
+        text.y = originalY
+        text.style.fill = Colors.MP_BAR
+        ;(text as any)._animating = false
+      }
+    }
+
+    requestAnimationFrame(animate)
   }
 }

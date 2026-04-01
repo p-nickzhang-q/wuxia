@@ -126,7 +126,16 @@ export function createCharacter(characterConfig: CharacterConfig, martialArtsLis
       this.passives.forEach(passive => {
         if (passive.trigger === TriggerTiming.TURN_START) {
           const msg = passive.effect(this)
-          if (msg) messages.push(typeof msg === 'string' ? msg : msg.message || '')
+          if (msg) {
+            messages.push(typeof msg === 'string' ? msg : msg.message || '')
+            // 发出内功触发事件
+            eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
+              character: this,
+              passiveId: passive.id,
+              passiveName: passive.name,
+              trigger: TriggerTiming.TURN_START
+            })
+          }
         }
       })
 
@@ -139,7 +148,16 @@ export function createCharacter(characterConfig: CharacterConfig, martialArtsLis
       this.passives.forEach(passive => {
         if (passive.trigger === TriggerTiming.TURN_END) {
           const msg = passive.effect(this)
-          if (msg) messages.push(typeof msg === 'string' ? msg : msg.message || '')
+          if (msg) {
+            messages.push(typeof msg === 'string' ? msg : msg.message || '')
+            // 发出内功触发事件
+            eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
+              character: this,
+              passiveId: passive.id,
+              passiveName: passive.name,
+              trigger: TriggerTiming.TURN_END
+            })
+          }
         }
       })
 
@@ -156,7 +174,17 @@ export function createCharacter(characterConfig: CharacterConfig, martialArtsLis
           const result = passive.effect(this, damage)
           if (result) {
             const effectResult = typeof result === 'string' ? { message: result } : result
-            if (effectResult.message) messages.push(effectResult.message)
+            if (effectResult.message) {
+              messages.push(effectResult.message)
+              // 发出内功触发事件
+              eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
+                character: this,
+                passiveId: passive.id,
+                passiveName: passive.name,
+                trigger: TriggerTiming.ON_TAKE_DAMAGE,
+                effectResult
+              })
+            }
             if (effectResult.dodged) {
               if (effectResult.reflectDamage && attacker) {
                 attacker.hp -= effectResult.reflectDamage

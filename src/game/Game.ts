@@ -111,6 +111,16 @@ export function createGame(): GameState {
           if (result) {
             const effectResult = typeof result === 'string' ? { message: result } : result
             if (effectResult.bonusDamage) totalDamage += effectResult.bonusDamage
+            if (effectResult.message) {
+              // 发出内功触发事件
+              eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
+                character: actor,
+                passiveId: passive.id,
+                passiveName: passive.name,
+                trigger: TriggerTiming.ON_PLAY_CARD,
+                effectResult
+              })
+            }
           }
         }
       })
@@ -122,7 +132,17 @@ export function createGame(): GameState {
         // 触发所有内功（造成伤害）
         actor.passives.forEach(passive => {
           if (passive.trigger === TriggerTiming.ON_DAMAGE) {
-            passive.effect(actor, result.damage)
+            const msg = passive.effect(actor, result.damage)
+            if (msg) {
+              this.addLog(typeof msg === 'string' ? msg : msg.message || '')
+              // 发出内功触发事件
+              eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
+                character: actor,
+                passiveId: passive.id,
+                passiveName: passive.name,
+                trigger: TriggerTiming.ON_DAMAGE
+              })
+            }
           }
         })
       }
@@ -176,7 +196,15 @@ export function createGame(): GameState {
         if (passive.trigger === TriggerTiming.ON_SKILL_USE) {
           const msg = passive.effect(actor, skillCopy)
           if (msg) {
-            this.addLog(typeof msg === 'string' ? msg : msg.message || '')
+            const msgText = typeof msg === 'string' ? msg : msg.message || ''
+            this.addLog(msgText)
+            // 发出内功触发事件
+            eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
+              character: actor,
+              passiveId: passive.id,
+              passiveName: passive.name,
+              trigger: TriggerTiming.ON_SKILL_USE
+            })
           }
         }
       })
@@ -236,6 +264,16 @@ export function createGame(): GameState {
           if (result) {
             const effectResult = typeof result === 'string' ? {} : result
             if (effectResult.bonusDamage) totalDamage += effectResult.bonusDamage
+            if (effectResult.message) {
+              // 发出内功触发事件
+              eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
+                character: actor,
+                passiveId: passive.id,
+                passiveName: passive.name,
+                trigger: TriggerTiming.ON_SKILL_USE,
+                effectResult
+              })
+            }
           }
         }
       })
@@ -247,6 +285,21 @@ export function createGame(): GameState {
             actualDamage = totalDamage
             // 发出受伤事件（无视护盾的情况）
             eventManager.emit(GameEventType.CHARACTER_DAMAGED, { character: opponent, damage: actualDamage })
+
+            // 触发所有内功（造成伤害）- ignoreShield 情况
+            actor.passives.forEach(passive => {
+              if (passive.trigger === TriggerTiming.ON_DAMAGE) {
+                const msg = passive.effect(actor, actualDamage)
+                if (msg) {
+                  eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
+                    character: actor,
+                    passiveId: passive.id,
+                    passiveName: passive.name,
+                    trigger: TriggerTiming.ON_DAMAGE
+                  })
+                }
+              }
+            })
           } else {
             const result = opponent.takeDamage(totalDamage, actor, this)
             actualDamage = result.damage
@@ -254,7 +307,16 @@ export function createGame(): GameState {
             // 触发所有内功（造成伤害）
             actor.passives.forEach(passive => {
               if (passive.trigger === TriggerTiming.ON_DAMAGE) {
-                passive.effect(actor, result.damage)
+                const msg = passive.effect(actor, result.damage)
+                if (msg) {
+                  // 发出内功触发事件
+                  eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
+                    character: actor,
+                    passiveId: passive.id,
+                    passiveName: passive.name,
+                    trigger: TriggerTiming.ON_DAMAGE
+                  })
+                }
               }
             })
           }
