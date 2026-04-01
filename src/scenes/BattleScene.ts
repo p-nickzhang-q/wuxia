@@ -796,19 +796,12 @@ export class BattleScene extends Scene {
     // 显示结果
     this.addLog(playerWon ? '你赢了！' : '你输了！')
 
-    // 创建重新开始按钮
-    const size = this.renderer.getSize()
-    const btnWidth = LayoutConstants.scaleValue(180)
-    const btnHeight = LayoutConstants.scaleValue(60)
-    const restartBtn = new Button('重新开始', btnWidth, btnHeight, this.renderer)
-    restartBtn.x = size.width / 2 - btnWidth / 2
-    restartBtn.y = size.height / 2
-    restartBtn.setOnClick(() => {
+    // 延迟后自动切换到结果场景
+    setTimeout(() => {
       if (this.onBattleEnd) {
         this.onBattleEnd(playerWon)
       }
-    })
-    this.addChild(restartBtn)
+    }, 1500)
   }
 
   // 添加日志
