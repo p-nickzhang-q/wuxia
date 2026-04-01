@@ -205,7 +205,7 @@ export class SkillButton extends Container {
 // 战斗日志组件 - 使用响应式尺寸
 export class BattleLog extends Container {
   private logContainer: Container
-  private logs: Array<{ text: Text; container: Container }> = []
+  private logs: Array<{ text: Text; container: Container; targetX: number; targetY: number; animating: boolean }> = []
   private renderer: Renderer
   private clipMask: Graphics
   private scrollBar: Graphics
@@ -216,6 +216,9 @@ export class BattleLog extends Container {
   private panelWidth: number
   private panelHeight: number
   private readonly padding: number
+
+  // 日志动画
+  private logAnimating: boolean = false
 
   constructor(renderer: Renderer) {
     super()
@@ -279,13 +282,20 @@ export class BattleLog extends Container {
 
     const container = this.renderer.createContainer(0, 0)
     container.addChild(text)
+    // 初始位置：右侧+透明
+    container.x = this.panelWidth
+    container.alpha = 0
     this.logContainer.addChild(container)
 
-    this.logs.push({ text, container })
+    // 计算目标位置
+    const targetY = this.calculateNewY()
+    this.logs.push({ text, container, targetX: 0, targetY, animating: true })
 
-    this.updatePositions()
+    // 用户未手动滚动，动画中会自动滚动到底
     this.userScrolled = false
-    this.scrollToBottom()
+
+    // 启动滑入动画
+    this.startLogAnimation()
   }
 
   syncLog(message: string): void {
@@ -302,25 +312,145 @@ export class BattleLog extends Container {
 
     const container = this.renderer.createContainer(0, 0)
     container.addChild(text)
+    // 初始位置：右侧+透明
+    container.x = this.panelWidth
+    container.alpha = 0
     this.logContainer.addChild(container)
 
-    this.logs.push({ text, container })
+    // 计算目标位置
+    const targetY = this.calculateNewY()
+    this.logs.push({ text, container, targetX: 0, targetY, animating: true })
 
-    this.updatePositions()
+    // 启动滑入动画（如果用户未手动滚动，动画中会自动滚动到底）
+    this.startLogAnimation()
+  }
 
-    if (!this.userScrolled) {
-      this.scrollToBottom()
+  // 计算新日志的目标Y位置
+  private calculateNewY(): number {
+    let y = 0
+    for (const log of this.logs) {
+      if (!log.animating) {
+        y += log.text.height + 5
+      }
+    }
+    return y
+  }
+
+  // 启动日志动画
+  private startLogAnimation(): void {
+    if (!this.logAnimating) {
+      this.logAnimating = true
+      this.animateLogs()
     }
   }
 
-  private updatePositions(): void {
+  // 日志滑入动画
+  private animateLogs(): void {
+    const animationSpeed = 0.15
+    let stillAnimating = false
+
+    // 更新每条正在动画的日志
+    for (let i = 0; i < this.logs.length; i++) {
+      const log = this.logs[i]
+      if (log.animating) {
+        // X 滑入
+        if (log.container.x !== log.targetX) {
+          const diff = log.targetX - log.container.x
+          log.container.x += diff * animationSpeed
+          if (Math.abs(diff) < 1) {
+            log.container.x = log.targetX
+          } else {
+            stillAnimating = true
+          }
+        }
+
+        // Alpha 淡入
+        if (log.container.alpha < 1) {
+          log.container.alpha += (1 - log.container.alpha) * animationSpeed
+          if (log.container.alpha > 0.95) {
+            log.container.alpha = 1
+          } else {
+            stillAnimating = true
+          }
+        }
+
+        // Y 位置跟随
+        if (log.container.y !== log.targetY) {
+          const diff = log.targetY - log.container.y
+          log.container.y += diff * animationSpeed
+          if (Math.abs(diff) < 1) {
+            log.container.y = log.targetY
+          } else {
+            stillAnimating = true
+          }
+        }
+
+        // 检查是否完成
+        if (log.container.x === log.targetX &&
+            log.container.alpha === 1 &&
+            log.container.y === log.targetY) {
+          log.animating = false
+        }
+      }
+    }
+
+    // 更新后续日志的目标位置（为新日志腾出空间）
+    this.updateTargetPositions()
+
+    // 动画过程中持续滚动到底部（如果用户没有手动滚动）
+    if (!this.userScrolled) {
+      this.scrollToBottomAnimated()
+    }
+
+    // 继续动画或结束
+    if (stillAnimating) {
+      requestAnimationFrame(() => this.animateLogs())
+    } else {
+      this.logAnimating = false
+      this.contentHeight = this.calculateContentHeight()
+      this.updateScrollBar()
+      // 动画结束后确保滚动到底部
+      if (!this.userScrolled) {
+        this.scrollToBottom()
+      }
+    }
+  }
+
+  // 平滑滚动到底部
+  private scrollToBottomAnimated(): void {
+    const titleHeight = LayoutConstants.scaleValue(28)
+    const viewHeight = this.panelHeight - titleHeight - 12
+    const maxScroll = Math.max(0, this.calculateContentHeight() - viewHeight)
+
+    // 平滑滚动
+    const scrollDiff = maxScroll - this.scrollY
+    if (scrollDiff > 0) {
+      this.scrollY += scrollDiff * 0.2
+      this.logContainer.y = titleHeight + 3 - this.scrollY
+      this.updateScrollBar()
+    }
+  }
+
+  // 更新所有日志的目标Y位置
+  private updateTargetPositions(): void {
     let y = 0
     for (const log of this.logs) {
-      log.container.y = y
+      log.targetY = y
+      // 如果不是正在动画的日志，直接设置位置
+      if (!log.animating) {
+        log.container.y = y
+      }
       y += log.text.height + 5
     }
-    this.contentHeight = y
-    this.updateScrollBar()
+  }
+
+  // 计算内容总高度
+  private calculateContentHeight(): number {
+    let y = 0
+    for (const log of this.logs) {
+      y += log.text.height + 5
+    }
+    return y
   }
 
   private updateScrollBar(): void {
