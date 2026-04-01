@@ -113,6 +113,11 @@ newCharacter: {
 
 ## 技术栈
 
-- TypeScript 5.x
-- PixiJS 8.x
-- Vite 5.x
+- **Engine**: PixiJS 8.x (Web 2D Rendering Library)
+- **Language**: TypeScript 5.x
+- **Build System**: Vite 5.x
+- **Rendering**: WebGL (preferred) / Canvas2D (fallback)
+
+## Engine Version Reference
+
+@docs/engine-reference/pixijs/VERSION.md

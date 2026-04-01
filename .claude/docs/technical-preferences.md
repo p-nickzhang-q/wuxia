@@ -1,48 +1,55 @@
 # Technical Preferences
 
-<!-- Populated by /setup-engine. Updated as the user makes decisions throughout development. -->
-<!-- All agents reference this file for project-specific standards and conventions. -->
+<!-- Engine configuration for PixiJS 8 + TypeScript project -->
 
 ## Engine & Language
 
-- **Engine**: [TO BE CONFIGURED — run /setup-engine]
-- **Language**: [TO BE CONFIGURED]
-- **Rendering**: [TO BE CONFIGURED]
-- **Physics**: [TO BE CONFIGURED]
+- **Engine**: PixiJS 8.x (Web 2D Rendering Library)
+- **Language**: TypeScript 5.x
+- **Build System**: Vite 5.x
+- **Rendering**: WebGL (preferred) / Canvas2D (fallback)
+- **Runtime**: Browser (Web)
 
 ## Naming Conventions
 
-- **Classes**: [TO BE CONFIGURED]
-- **Variables**: [TO BE CONFIGURED]
-- **Signals/Events**: [TO BE CONFIGURED]
-- **Files**: [TO BE CONFIGURED]
-- **Scenes/Prefabs**: [TO BE CONFIGURED]
-- **Constants**: [TO BE CONFIGURED]
+- **Classes/Interfaces**: PascalCase (e.g., `CardRenderer`, `CharacterState`)
+- **Functions/Methods**: camelCase (e.g., `handleClick`, `updatePosition`)
+- **Private Fields**: `_camelCase` (e.g., `_animating`) or `#camelCase` (private fields)
+- **Constants**: UPPER_SNAKE_CASE (e.g., `MAX_HP`) or PascalCase for config objects
+- **Files**: PascalCase for component classes, camelCase for utility functions
+- **Enums**: PascalCase for enum name, UPPER_SNAKE_CASE for members
+- **Events**: camelCase with past tense (e.g., `cardPlayed`, `damageDealt`)
 
 ## Performance Budgets
 
-- **Target Framerate**: [TO BE CONFIGURED]
-- **Frame Budget**: [TO BE CONFIGURED]
-- **Draw Calls**: [TO BE CONFIGURED]
-- **Memory Ceiling**: [TO BE CONFIGURED]
+- **Target Framerate**: 60 FPS
+- **Frame Budget**: 16.6ms
+- **Draw Calls**: Minimize via batching, use ParticleContainer for particles
+- **Texture Memory**: Use spritesheets, dispose unused textures
+- **Memory Ceiling**: Monitor via browser devtools, no hard limit set
 
 ## Testing
 
-- **Framework**: [TO BE CONFIGURED]
+- **Framework**: Vitest (Vite native)
 - **Minimum Coverage**: [TO BE CONFIGURED]
-- **Required Tests**: Balance formulas, gameplay systems, networking (if applicable)
+- **Required Tests**: Balance formulas, game state transitions, card/skill effects
 
 ## Forbidden Patterns
 
-<!-- Add patterns that should never appear in this project's codebase -->
-- [None configured yet — add as architectural decisions are made]
+- Avoid `any` type - use proper TypeScript typing
+- Avoid direct DOM manipulation - go through PixiJS
+- Avoid synchronous blocking operations in game loop
+- Avoid creating new objects in hot paths (pool when possible)
 
 ## Allowed Libraries / Addons
 
-<!-- Add approved third-party dependencies here -->
-- [None configured yet — add as dependencies are approved]
+- **pixi.js**: Core rendering engine (v8.x)
+- **vite**: Build tooling
+- **typescript**: Language
+- Additional libraries to be evaluated as needed
 
 ## Architecture Decisions Log
 
-<!-- Quick reference linking to full ADRs in docs/architecture/ -->
-- [No ADRs yet — use /architecture-decision to create one]
+- Factory function pattern for Game and Character (not classes)
+- Event-driven architecture via EventManager
+- Scene-based game flow with onEnter/onExit lifecycle
