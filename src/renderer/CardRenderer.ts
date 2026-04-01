@@ -13,8 +13,16 @@ export class CardRenderer extends Container {
   private costText: Text
   private isPlayable: boolean = true
   private isSelected: boolean = false
+  private isHovering: boolean = false
   private baseY: number = 0  // 存储原始Y位置
   private onCardClick?: (cardRenderer: CardRenderer) => void
+
+  // 悬停动画状态
+  private hoverAnimating: boolean = false
+  private animatedScale: number = 1
+  private animatedY: number = 0
+  private targetScale: number = 1
+  private targetY: number = 0
 
   constructor(card: Card, renderer: Renderer) {
     super()
@@ -69,7 +77,14 @@ export class CardRenderer extends Container {
 
     const colors = this.getCardColors()
     const bgColor = this.isPlayable ? colors.bg : 0x333333
-    const borderColor = this.isSelected ? Colors.TEXT_GOLD : (this.isPlayable ? colors.border : 0x555555)
+    let borderColor = this.isPlayable ? colors.border : 0x555555
+
+    // 选中时金色边框，悬停时高亮边框
+    if (this.isSelected) {
+      borderColor = Colors.TEXT_GOLD
+    } else if (this.isHovering && this.isPlayable) {
+      borderColor = 0xffffff  // 白色高亮
+    }
 
     this.background.clear()
     this.background.roundRect(0, 0, cardWidth, cardHeight, cardRadius)
@@ -103,21 +118,74 @@ export class CardRenderer extends Container {
 
   // 处理悬停
   private handleHover(isHover: boolean): void {
-    if (!this.isSelected) {
-      this.cursor = isHover && this.isPlayable ? 'pointer' : (this.isPlayable ? 'pointer' : 'not-allowed')
+    this.isHovering = isHover
+
+    // 计算目标状态
+    if (this.isSelected) {
+      // 选中状态不受悬停影响
+      this.targetScale = 1
+      this.targetY = this.baseY - 20
+    } else if (isHover && this.isPlayable) {
+      // 悬停且可用：放大+上移
+      this.targetScale = 1.1
+      this.targetY = this.baseY - 10
+      this.cursor = 'pointer'
+    } else {
+      // 正常状态
+      this.targetScale = 1
+      this.targetY = this.baseY
+      this.cursor = this.isPlayable ? 'pointer' : 'not-allowed'
+    }
+
+    // 启动动画
+    if (!this.hoverAnimating) {
+      this.hoverAnimating = true
+      this.animateHover()
+    }
+
+    // 更新边框颜色
+    this.drawBackground()
+  }
+
+  // 悬停动画
+  private animateHover(): void {
+    const animationSpeed = 0.15
+
+    // 计算新值
+    if (this.animatedScale !== this.targetScale) {
+      const diff = this.targetScale - this.animatedScale
+      this.animatedScale += diff * animationSpeed
+      if (Math.abs(diff) < 0.01) {
+        this.animatedScale = this.targetScale
+      }
+    }
+
+    if (this.animatedY !== this.targetY) {
+      const diff = this.targetY - this.animatedY
+      this.animatedY += diff * animationSpeed
+      if (Math.abs(diff) < 0.5) {
+        this.animatedY = this.targetY
+      }
+    }
+
+    // 应用变换
+    this.scale.set(this.animatedScale, this.animatedScale)
+    this.y = this.animatedY
+
+    // 继续动画或结束
+    if (this.animatedScale !== this.targetScale || this.animatedY !== this.targetY) {
+      requestAnimationFrame(() => this.animateHover())
+    } else {
+      this.hoverAnimating = false
     }
   }
 
-  // 更新Y位置（根据选中状态）
-  private updateYPosition(): void {
-    const offsetY = this.isSelected ? -20 : 0  // 选中时上移
-    this.y = this.baseY + offsetY
-  }
-
-  // 设置基础Y位置
+  // 更新卡牌数据
   setBaseY(y: number): void {
     this.baseY = y
-    this.updateYPosition()
+    this.animatedY = y
+    this.targetY = y
+    this.y = y
   }
 
   // 设置点击回调
@@ -135,8 +203,23 @@ export class CardRenderer extends Container {
   // 设置选中状态
   setSelected(selected: boolean): void {
     this.isSelected = selected
+
+    // 更新目标状态
+    if (selected) {
+      this.targetScale = 1
+      this.targetY = this.baseY - 20
+    } else {
+      this.targetScale = this.isHovering && this.isPlayable ? 1.1 : 1
+      this.targetY = this.isHovering && this.isPlayable ? this.baseY - 10 : this.baseY
+    }
+
+    // 启动动画
+    if (!this.hoverAnimating) {
+      this.hoverAnimating = true
+      this.animateHover()
+    }
+
     this.drawBackground()
-    this.updateYPosition()
   }
 
   // 获取卡牌数据

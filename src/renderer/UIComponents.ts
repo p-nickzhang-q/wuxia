@@ -476,6 +476,14 @@ export class AgilityAxis extends Container {
   private maxAgility: number = 50
   private readonly padding: number
 
+  // 动画状态
+  private animatedPlayerX: number = 0
+  private animatedEnemyX: number = 0
+  private targetPlayerX: number = 0
+  private targetEnemyX: number = 0
+  private animating: boolean = false
+  private currentActor: 'player' | 'enemy' | null = null
+
   constructor(renderer: Renderer) {
     super()
     this.renderer = renderer
@@ -524,6 +532,12 @@ export class AgilityAxis extends Container {
     // 当前行动箭头
     this.turnArrow = renderer.createGraphics()
     this.addChild(this.turnArrow)
+
+    // 初始化动画位置
+    this.animatedPlayerX = this.padding
+    this.animatedEnemyX = this.padding
+    this.targetPlayerX = this.padding
+    this.targetEnemyX = this.padding
 
     this.drawStaticElements()
   }
@@ -578,17 +592,72 @@ export class AgilityAxis extends Container {
     enemyAgility: number,
     currentActor: 'player' | 'enemy' | null
   ): void {
-    const markerSize = LayoutConstants.agilityMarkerSize()
-    const axisY = this.axisHeight * 0.55
     const axisLength = this.axisWidth - this.padding * 2
 
     // 更新角色名
     this.playerNameText.text = playerName
     this.enemyNameText.text = enemyName
 
-    // 计算位置（轻功值映射到轴位置）
-    const playerX = this.padding + Math.min(playerAgility / this.maxAgility, 1) * axisLength
-    const enemyX = this.padding + Math.min(enemyAgility / this.maxAgility, 1) * axisLength
+    // 计算目标位置
+    this.targetPlayerX = this.padding + Math.min(playerAgility / this.maxAgility, 1) * axisLength
+    this.targetEnemyX = this.padding + Math.min(enemyAgility / this.maxAgility, 1) * axisLength
+    this.currentActor = currentActor
+
+    // 更新轻功数值文本
+    this.playerAgilityText.text = `${playerAgility}`
+    this.enemyAgilityText.text = `${enemyAgility}`
+
+    // 如果位置有变化，启动动画
+    if (this.animatedPlayerX !== this.targetPlayerX || this.animatedEnemyX !== this.targetEnemyX) {
+      if (!this.animating) {
+        this.animating = true
+        this.animate()
+      }
+    } else {
+      // 位置相同，直接更新
+      this.updatePositions()
+    }
+  }
+
+  // 平滑动画
+  private animate(): void {
+    const animationSpeed = 0.12
+
+    // 计算新位置
+    if (this.animatedPlayerX !== this.targetPlayerX) {
+      const diff = this.targetPlayerX - this.animatedPlayerX
+      this.animatedPlayerX += diff * animationSpeed
+      if (Math.abs(diff) < 0.5) {
+        this.animatedPlayerX = this.targetPlayerX
+      }
+    }
+
+    if (this.animatedEnemyX !== this.targetEnemyX) {
+      const diff = this.targetEnemyX - this.animatedEnemyX
+      this.animatedEnemyX += diff * animationSpeed
+      if (Math.abs(diff) < 0.5) {
+        this.animatedEnemyX = this.targetEnemyX
+      }
+    }
+
+    // 更新显示位置
+    this.updatePositions()
+
+    // 继续动画或结束
+    if (this.animatedPlayerX !== this.targetPlayerX || this.animatedEnemyX !== this.targetEnemyX) {
+      requestAnimationFrame(() => this.animate())
+    } else {
+      this.animating = false
+    }
+  }
+
+  // 更新显示位置
+  private updatePositions(): void {
+    const markerSize = LayoutConstants.agilityMarkerSize()
+    const axisY = this.axisHeight * 0.55
+
+    const playerX = this.animatedPlayerX
+    const enemyX = this.animatedEnemyX
 
     // 更新标记位置
     this.playerMarker.x = playerX
@@ -601,17 +670,16 @@ export class AgilityAxis extends Container {
     this.enemyNameText.y = axisY - markerSize - 18
 
     // 更新轻功数值位置（标记下方）
-    this.playerAgilityText.text = `${playerAgility}`
     this.playerAgilityText.x = playerX
     this.playerAgilityText.y = axisY + markerSize + 8
-    this.enemyAgilityText.text = `${enemyAgility}`
     this.enemyAgilityText.x = enemyX
     this.enemyAgilityText.y = axisY + markerSize + 8
 
     // 更新当前行动箭头
     this.turnArrow.clear()
-    if (currentActor !== null) {
-      const turnX = playerAgility >= enemyAgility ? playerX : enemyX
+    this.turnArrow.removeChildren()
+    if (this.currentActor !== null) {
+      const turnX = this.targetPlayerX >= this.targetEnemyX ? playerX : enemyX
       this.turnArrow.x = turnX
       this.turnArrow.y = axisY - markerSize - 28
 

@@ -25,6 +25,15 @@ export class CharacterRenderer extends Container {
   private passiveTexts: Map<string, Text> = new Map() // 存储内功文字引用，key 是 passive.id
   private currentPanelHeight: number
 
+  // HP/MP 动画状态
+  private animatedHp: number = 0
+  private animatedMp: number = 0
+  private targetHp: number = 0
+  private targetMp: number = 0
+  private hpMpAnimating: boolean = false
+  private maxHp: number = 0
+  private maxMp: number = 0
+
   constructor(character: CharacterState, isEnemy: boolean, renderer: Renderer) {
     super()
 
@@ -96,7 +105,15 @@ export class CharacterRenderer extends Container {
     this.addChild(this.passiveContainer)
 
     // 初始绘制
-    this.update(character)
+    // 初始化动画值
+    this.animatedHp = character.hp
+    this.animatedMp = character.mp
+    this.targetHp = character.hp
+    this.targetMp = character.mp
+    this.maxHp = character.maxHp
+    this.maxMp = character.maxMp
+    this.drawHpMpBars(character)
+    this.updatePassives(character)
   }
 
   // 加载角色立绘
@@ -127,42 +144,24 @@ export class CharacterRenderer extends Container {
     this.background.stroke({ color: this.isEnemy ? Colors.TEXT_RED : Colors.TEXT_BLUE, width: 3 })
   }
 
-  // 更新角色状态
+  // 更新角色状态 - 启动平滑动画
   update(character: CharacterState): void {
+    // 设置目标值
+    this.targetHp = character.hp
+    this.targetMp = character.mp
+
+    // 如果值有变化，启动动画
+    if (this.animatedHp !== this.targetHp || this.animatedMp !== this.targetMp) {
+      if (!this.hpMpAnimating) {
+        this.hpMpAnimating = true
+        this.animateHpMp(character)
+      }
+    } else {
+      // 值相同，直接绘制
+      this.drawHpMpBars(character)
+    }
+
     const panelWidth = LayoutConstants.panelWidth()
-    const barWidth = LayoutConstants.barWidth()
-    const barHeight = LayoutConstants.barHeight()
-    const barX = (panelWidth - barWidth) / 2  // 条形图居中
-
-    // 更新 HP 条
-    const hpPercent = character.hp / character.maxHp
-    this.hpBar.clear()
-    this.hpBar.rect(barX, 0, barWidth, barHeight)
-    this.hpBar.fill(0x333333)
-    if (hpPercent > 0) {
-      this.hpBar.rect(barX, 0, barWidth * hpPercent, barHeight)
-      this.hpBar.fill(Colors.HP_BAR)
-    }
-    this.hpBar.stroke({ color: 0x555555, width: 1 })
-
-    this.hpText.text = `HP ${character.hp}/${character.maxHp}`
-    this.hpText.x = barX + 8
-    this.hpText.y = 2
-
-    // 更新 MP 条
-    const mpPercent = character.mp / character.maxMp
-    this.mpBar.clear()
-    this.mpBar.rect(barX, 0, barWidth, barHeight)
-    this.mpBar.fill(0x333333)
-    if (mpPercent > 0) {
-      this.mpBar.rect(barX, 0, barWidth * mpPercent, barHeight)
-      this.mpBar.fill(Colors.MP_BAR)
-    }
-    this.mpBar.stroke({ color: 0x555555, width: 1 })
-
-    this.mpText.text = `MP ${character.mp}/${character.maxMp}`
-    this.mpText.x = barX + 8
-    this.mpText.y = 2
 
     // 更新名称位置（居中）
     this.nameText.x = (panelWidth - this.nameText.width) / 2
@@ -181,6 +180,88 @@ export class CharacterRenderer extends Container {
 
     // 更新内功
     this.updatePassives(character)
+  }
+
+  // HP/MP 平滑动画
+  private animateHpMp(character: CharacterState): void {
+    const animationSpeed = 0.15 // 动画速度系数
+
+    // 计算新的动画值
+    if (this.animatedHp !== this.targetHp) {
+      const diff = this.targetHp - this.animatedHp
+      this.animatedHp += diff * animationSpeed
+      // 接近目标值时直接设置
+      if (Math.abs(diff) < 1) {
+        this.animatedHp = this.targetHp
+      }
+    }
+
+    if (this.animatedMp !== this.targetMp) {
+      const diff = this.targetMp - this.animatedMp
+      this.animatedMp += diff * animationSpeed
+      // 接近目标值时直接设置
+      if (Math.abs(diff) < 1) {
+        this.animatedMp = this.targetMp
+      }
+    }
+
+    // 使用动画值绘制
+    this.drawHpMpBarsWithValues(
+      Math.round(this.animatedHp),
+      Math.round(this.animatedMp),
+      character.maxHp,
+      character.maxMp
+    )
+
+    // 继续动画或结束
+    if (this.animatedHp !== this.targetHp || this.animatedMp !== this.targetMp) {
+      requestAnimationFrame(() => this.animateHpMp(character))
+    } else {
+      this.hpMpAnimating = false
+    }
+  }
+
+  // 绘制 HP/MP 条（使用角色状态）
+  private drawHpMpBars(character: CharacterState): void {
+    this.drawHpMpBarsWithValues(character.hp, character.mp, character.maxHp, character.maxMp)
+  }
+
+  // 绘制 HP/MP 条（使用指定值）
+  private drawHpMpBarsWithValues(hp: number, mp: number, maxHp: number, maxMp: number): void {
+    const panelWidth = LayoutConstants.panelWidth()
+    const barWidth = LayoutConstants.barWidth()
+    const barHeight = LayoutConstants.barHeight()
+    const barX = (panelWidth - barWidth) / 2  // 条形图居中
+
+    // 更新 HP 条
+    const hpPercent = hp / maxHp
+    this.hpBar.clear()
+    this.hpBar.rect(barX, 0, barWidth, barHeight)
+    this.hpBar.fill(0x333333)
+    if (hpPercent > 0) {
+      this.hpBar.rect(barX, 0, barWidth * hpPercent, barHeight)
+      this.hpBar.fill(Colors.HP_BAR)
+    }
+    this.hpBar.stroke({ color: 0x555555, width: 1 })
+
+    this.hpText.text = `HP ${hp}/${maxHp}`
+    this.hpText.x = barX + 8
+    this.hpText.y = 2
+
+    // 更新 MP 条
+    const mpPercent = mp / maxMp
+    this.mpBar.clear()
+    this.mpBar.rect(barX, 0, barWidth, barHeight)
+    this.mpBar.fill(0x333333)
+    if (mpPercent > 0) {
+      this.mpBar.rect(barX, 0, barWidth * mpPercent, barHeight)
+      this.mpBar.fill(Colors.MP_BAR)
+    }
+    this.mpBar.stroke({ color: 0x555555, width: 1 })
+
+    this.mpText.text = `MP ${mp}/${maxMp}`
+    this.mpText.x = barX + 8
+    this.mpText.y = 2
   }
 
   // 更新内功显示
@@ -286,25 +367,34 @@ export class CharacterRenderer extends Container {
         flash = !flash
         if (flash) {
           this.hpBar.clear()
-          this.hpBar.rect(0, 0, LayoutConstants.barWidth(), LayoutConstants.barHeight())
+          const panelWidth = LayoutConstants.panelWidth()
+          const barWidth = LayoutConstants.barWidth()
+          const barHeight = LayoutConstants.barHeight()
+          const barX = (panelWidth - barWidth) / 2
+          this.hpBar.rect(barX, 0, barWidth, barHeight)
           this.hpBar.fill(color)
         } else {
-          this.updateCharacterState()
+          this.drawHpMpBarsWithValues(
+            Math.round(this.animatedHp),
+            Math.round(this.animatedMp),
+            this.maxHp,
+            this.maxMp
+          )
         }
 
         count++
         if (count >= flashCount * 2) {
           clearInterval(flashInterval)
-          this.updateCharacterState()
+          this.drawHpMpBarsWithValues(
+            Math.round(this.animatedHp),
+            Math.round(this.animatedMp),
+            this.maxHp,
+            this.maxMp
+          )
           resolve()
         }
       }, interval)
     })
-  }
-
-  // 私有辅助方法：重新更新角色状态以恢复HP条颜色
-  private updateCharacterState(): void {
-    // 这个方法将在 updateCharacterState 方法中实现
   }
 
   /**

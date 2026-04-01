@@ -93,3 +93,35 @@ src/utils/EffectManager.ts
 src/utils/EventManager.ts
 ---
 
+## Session End: 20260401_141656
+### Commits
+6e6bb28 docs(agents): 添加游戏开发团队代理定义和协作规范
+2a71723 feat(battle): 添加内功触发特效和高亮动画
+### Uncommitted Changes
+.gitignore
+src/renderer/CharacterRenderer.ts
+---
+
+## Session End: 20260401_142215
+### Commits
+6e6bb28 docs(agents): 添加游戏开发团队代理定义和协作规范
+2a71723 feat(battle): 添加内功触发特效和高亮动画
+### Uncommitted Changes
+.gitignore
+production/session-logs/session-log.md
+src/renderer/CharacterRenderer.ts
+src/renderer/UIComponents.ts
+---
+
+## Session End: 20260401_142728
+### Commits
+6e6bb28 docs(agents): 添加游戏开发团队代理定义和协作规范
+2a71723 feat(battle): 添加内功触发特效和高亮动画
+### Uncommitted Changes
+.gitignore
+production/session-logs/session-log.md
+src/renderer/CardRenderer.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/UIComponents.ts
+---
+
