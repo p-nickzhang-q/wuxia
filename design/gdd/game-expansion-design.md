@@ -208,12 +208,57 @@ interface Disciple {
 ## 六、开发路线图
 
 ### Phase 1: 战斗扩展（当前优先）
-- [ ] 圆形战斗布局
-- [ ] 距离计算系统
-- [ ] 武功攻击范围属性
+- [x] 圆形战斗布局
+- [x] 距离计算系统
+- [x] 武功攻击范围属性
 - [ ] 目标选择 UI
-- [ ] 多人战斗支持（3v3）
-- [ ] 合击技系统
+- [x] 多人战斗支持（自定义人数 >=2）
+- [ ] 合击技系统（暂不开发）
+
+#### Phase 1 实现进度（2026-04-02）
+
+**已完成**:
+1. **类型定义扩展** (`types.ts`)
+   - 添加 `BattleMode` ('team' | 'freeforall')
+   - 添加 `BattlePosition` 接口（seatIndex, team）
+   - 武功招式添加 `range` 攻击范围属性（1-3）
+   - GameState 扩展支持多人战斗
+
+2. **距离系统** (`DistanceSystem.ts` - 新文件)
+   - 圆形距离计算：`min(abs(seatA - seatB), totalSeats - diff)`
+   - 敌我判断：支持阵营对战和混战模式
+   - 目标选择：获取范围内的敌人
+   - 座位分配：友方在一起 / 混战交替
+   - 屏幕坐标计算：`getSeatPosition()`
+
+3. **Game.ts 重构**
+   - `init()` 保持向后兼容 1v1
+   - `initTeamBattle()` 支持多人战斗
+   - 使用 `playerTeam[]` / `enemyTeam[]` 数组
+   - 集成距离系统目标选择
+   - 新增方法：`getAllCharacters()`, `getAliveCharacters()`, `getTargetsInRange()`
+
+4. **AI.ts 重构**
+   - 多目标决策：优先攻击血量低、距离近的目标
+   - 支持武功攻击范围判断
+   - 自动选择最佳目标
+
+5. **BattleScene.ts 重构**
+   - 1v1 模式：传统左右布局
+   - 多人模式：圆形布局
+   - 支持任意人数（>=2）
+   - 多角色面板管理
+   - 多人回合流程
+
+6. **武功数据** (`skills.ts`)
+   - 所有武功招式添加 `range` 属性
+   - 近战武功 range=1，中程 range=2，远程 range=3
+
+**待完成**:
+- 目标选择UI：玩家主动选择攻击目标
+
+**构建状态**: ✅ 通过
+**测试状态**: ✅ 20/20 通过
 
 ### Phase 2: 养成系统
 - [ ] 弟子数据结构

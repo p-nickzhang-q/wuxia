@@ -10,7 +10,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 4,
     agilityCost: 3,
     effects: [{ type: 'damage', value: 10 }],
-    description: '造成10点伤害'
+    description: '造成10点伤害',
+    range: 1
   },
   sixMeridianSword: {
     id: 'sixMeridianSword',
@@ -19,7 +20,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 5,
     agilityCost: 3,
     effects: [{ type: 'damage', value: 12, ignoreShield: true }],
-    description: '造成12点伤害，无视护盾'
+    description: '造成12点伤害，无视护盾',
+    range: 3
   },
   tianShanZheMei: {
     id: 'tianShanZheMei',
@@ -28,7 +30,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 3,
     agilityCost: 2,
     effects: [{ type: 'damage', value: 7 }, { type: 'followUp' }],
-    description: '造成7点伤害，可追击一次'
+    description: '造成7点伤害，可追击一次',
+    range: 1
   },
   tianShanLiuYang: {
     id: 'tianShanLiuYang',
@@ -37,7 +40,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 4,
     agilityCost: 3,
     effects: [{ type: 'damage', value: 8 }],
-    description: '造成8点伤害'
+    description: '造成8点伤害',
+    range: 1
   },
   kongMing: {
     id: 'kongMing',
@@ -46,7 +50,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 2,
     agilityCost: 2,
     effects: [{ type: 'damage', value: 5 }, { type: 'shield', value: 3 }],
-    description: '造成5点伤害，获得3点护盾'
+    description: '造成5点伤害，获得3点护盾',
+    range: 1
   },
   luoYing: {
     id: 'luoYing',
@@ -55,7 +60,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 3,
     agilityCost: 3,
     effects: [{ type: 'damage', value: 6 }, { type: 'damage', value: 6 }],
-    description: '造成6点伤害×2'
+    description: '造成6点伤害×2',
+    range: 1
   },
   lanHua: {
     id: 'lanHua',
@@ -64,7 +70,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 2,
     agilityCost: 2,
     effects: [{ type: 'damage', value: 4 }, { type: 'debuffAgility', value: 3, duration: 1 }],
-    description: '造成4点伤害，对方下回合轻功-3'
+    description: '造成4点伤害，对方下回合轻功-3',
+    range: 1
   },
   haMa: {
     id: 'haMa',
@@ -73,7 +80,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 5,
     agilityCost: 4,
     effects: [{ type: 'damage', value: 12 }],
-    description: '造成12点伤害（需蓄力）'
+    description: '造成12点伤害（需蓄力）',
+    range: 1
   },
   tanZhi: {
     id: 'tanZhi',
@@ -82,7 +90,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 2,
     agilityCost: 2,
     effects: [{ type: 'damage', value: 5, ignoreShield: true }],
-    description: '造成5点伤害，无视护盾'
+    description: '造成5点伤害，无视护盾',
+    range: 2
   },
   anRan: {
     id: 'anRan',
@@ -91,7 +100,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 5,
     agilityCost: 4,
     effects: [{ type: 'damage', value: 11 }],
-    description: '造成11点伤害（体力低于50%时伤害+50%）'
+    description: '造成11点伤害（体力低于50%时伤害+50%）',
+    range: 1
   },
   sevenInjury: {
     id: 'sevenInjury',
@@ -100,7 +110,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 3,
     agilityCost: 3,
     effects: [{ type: 'damage', value: 8 }, { type: 'selfDamage', value: 2 }],
-    description: '造成8点伤害，自身失去2点体力'
+    description: '造成8点伤害，自身失去2点体力',
+    range: 1
   },
   taiChiSkill: {
     id: 'taiChiSkill',
@@ -109,7 +120,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 2,
     agilityCost: 2,
     effects: [{ type: 'damage', value: 5 }, { type: 'shield', value: 4 }],
-    description: '造成5点伤害，获得4点护盾'
+    description: '造成5点伤害，获得4点护盾',
+    range: 1
   },
   huoYan: {
     id: 'huoYan',
@@ -118,7 +130,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 4,
     agilityCost: 3,
     effects: [{ type: 'damage', value: 9, ignoreShield: true }],
-    description: '造成9点伤害，无视护盾'
+    description: '造成9点伤害，无视护盾',
+    range: 2
   },
   shenZhao: {
     id: 'shenZhao',
@@ -127,7 +140,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 3,
     agilityCost: 2,
     effects: [{ type: 'damage', value: 7 }],
-    description: '造成7点伤害，恢复3点体力'
+    description: '造成7点伤害，恢复3点体力',
+    range: 1
   },
   taiXuan: {
     id: 'taiXuan',
@@ -136,7 +150,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 5,
     agilityCost: 4,
     effects: [{ type: 'damage', value: 12 }],
-    description: '造成12点伤害'
+    description: '造成12点伤害',
+    range: 1
   },
   longXiang: {
     id: 'longXiang',
@@ -145,7 +160,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 5,
     agilityCost: 4,
     effects: [{ type: 'damage', value: 12 }],
-    description: '造成12点伤害'
+    description: '造成12点伤害',
+    range: 1
   },
   oneYang: {
     id: 'oneYang',
@@ -154,7 +170,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 3,
     agilityCost: 2,
     effects: [{ type: 'damage', value: 8, ignoreShield: true }],
-    description: '造成8点伤害，无视护盾'
+    description: '造成8点伤害，无视护盾',
+    range: 2
   },
   lingSheQuan: {
     id: 'lingSheQuan',
@@ -163,7 +180,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 3,
     agilityCost: 2,
     effects: [{ type: 'damage', value: 6 }, { type: 'debuffAgility', value: 2, duration: 1 }],
-    description: '造成6点伤害，对方下回合轻功-2'
+    description: '造成6点伤害，对方下回合轻功-2',
+    range: 1
   },
 
   // ========== 短兵类武功招式 ==========
@@ -174,7 +192,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 4,
     agilityCost: 3,
     effects: [{ type: 'damage', value: 9, ignoreShield: true }],
-    description: '造成9点伤害，无视护盾'
+    description: '造成9点伤害，无视护盾',
+    range: 2
   },
   yuNu: {
     id: 'yuNu',
@@ -183,7 +202,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 3,
     agilityCost: 2,
     effects: [{ type: 'damage', value: 7 }],
-    description: '造成7点伤害'
+    description: '造成7点伤害',
+    range: 1
   },
   shuangJian: {
     id: 'shuangJian',
@@ -192,7 +212,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 6,
     agilityCost: 4,
     effects: [{ type: 'damage', value: 14 }],
-    description: '造成14点伤害（需2张短兵牌）'
+    description: '造成14点伤害（需2张短兵牌）',
+    range: 1
   },
   taiJiJian: {
     id: 'taiJiJian',
@@ -201,7 +222,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 3,
     agilityCost: 2,
     effects: [{ type: 'damage', value: 6 }, { type: 'shield', value: 3 }],
-    description: '造成6点伤害，获得3点护盾'
+    description: '造成6点伤害，获得3点护盾',
+    range: 1
   },
   goldenSnake: {
     id: 'goldenSnake',
@@ -210,7 +232,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 3,
     agilityCost: 3,
     effects: [{ type: 'damage', value: 7 }, { type: 'debuffAgility', value: 3, duration: 1 }],
-    description: '造成7点伤害，对方下回合轻功-3'
+    description: '造成7点伤害，对方下回合轻功-3',
+    range: 1
   },
   goldenSnakeZhui: {
     id: 'goldenSnakeZhui',
@@ -219,7 +242,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 4,
     agilityCost: 3,
     effects: [{ type: 'damage', value: 8, ignoreShield: true }],
-    description: '造成8点伤害，无视护盾'
+    description: '造成8点伤害，无视护盾',
+    range: 2
   },
   kuiHua: {
     id: 'kuiHua',
@@ -228,7 +252,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 3,
     agilityCost: 2,
     effects: [{ type: 'damage', value: 7 }, { type: 'extraAction' }],
-    description: '造成7点伤害，可再行动一次'
+    description: '造成7点伤害，可再行动一次',
+    range: 1
   },
   lianChengJian: {
     id: 'lianChengJian',
@@ -237,7 +262,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 3,
     agilityCost: 3,
     effects: [{ type: 'damage', value: 8 }],
-    description: '造成8点伤害'
+    description: '造成8点伤害',
+    range: 1
   },
   xiuHuaZhen: {
     id: 'xiuHuaZhen',
@@ -246,7 +272,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 2,
     agilityCost: 1,
     effects: [{ type: 'damage', value: 4 }, { type: 'extraAction' }],
-    description: '造成4点伤害，可再行动一次'
+    description: '造成4点伤害，可再行动一次',
+    range: 2
   },
 
   // ========== 长兵类武功招式 ==========
@@ -257,7 +284,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 4,
     agilityCost: 4,
     effects: [{ type: 'damage', value: 7 }, { type: 'disableCardType', cardType: CardType.LEG, duration: 1 }],
-    description: '造成7点伤害，对方下回合无法使用腿法'
+    description: '造成7点伤害，对方下回合无法使用腿法',
+    range: 2
   },
   xuanTie: {
     id: 'xuanTie',
@@ -266,7 +294,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 4,
     agilityCost: 3,
     effects: [{ type: 'damage', value: 9, ignoreShield: true }],
-    description: '造成9点伤害，无视护盾'
+    description: '造成9点伤害，无视护盾',
+    range: 2
   },
 
   // ========== 特殊武功招式（任意类型手牌）==========
@@ -277,7 +306,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 3,
     agilityCost: 2,
     effects: [{ type: 'dot', value: 3, duration: 3 }],
-    description: '对方每回合失去3点体力，持续3回合'
+    description: '对方每回合失去3点体力，持续3回合',
+    range: 2
   },
   northernMingSkill: {
     id: 'northernMingSkill',
@@ -286,7 +316,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 0,
     agilityCost: 3,
     effects: [{ type: 'drainMp', value: 6 }],
-    description: '吸取对方6点内力'
+    description: '吸取对方6点内力',
+    range: 1
   },
   starAbsorbing: {
     id: 'starAbsorbing',
@@ -295,7 +326,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 0,
     agilityCost: 3,
     effects: [{ type: 'drainMp', value: 5 }],
-    description: '吸取对方5点内力'
+    description: '吸取对方5点内力',
+    range: 1
   },
   qiankunMove: {
     id: 'qiankunMove',
@@ -304,7 +336,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 4,
     agilityCost: 3,
     effects: [{ type: 'damage', value: 8 }, { type: 'shield', value: 5 }],
-    description: '造成8点伤害，获得5点护盾'
+    description: '造成8点伤害，获得5点护盾',
+    range: 2
   },
   littleFormless: {
     id: 'littleFormless',
@@ -313,7 +346,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 2,
     agilityCost: 2,
     effects: [{ type: 'mimic' }],
-    description: '模仿对方上次使用的武功招式'
+    description: '模仿对方上次使用的武功招式',
+    range: 2
   },
   biHai: {
     id: 'biHai',
@@ -322,7 +356,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 4,
     agilityCost: 3,
     effects: [{ type: 'debuffAgility', value: 5, duration: 1 }],
-    description: '对方下回合轻功-5，无法使用武功招式'
+    description: '对方下回合轻功-5，无法使用武功招式',
+    range: 3
   },
   shiZiHou: {
     id: 'shiZiHou',
@@ -331,7 +366,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 4,
     agilityCost: 3,
     effects: [{ type: 'debuffAgility', value: 3, duration: 1 }],
-    description: '对方下回合无法使用武功招式，轻功-3'
+    description: '对方下回合无法使用武功招式，轻功-3',
+    range: 3
   },
   douZhuan: {
     id: 'douZhuan',
@@ -340,7 +376,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     mpCost: 3,
     agilityCost: 2,
     effects: [{ type: 'damage', value: 8 }],
-    description: '反弹对方上次造成的伤害'
+    description: '反弹对方上次造成的伤害',
+    range: 2
   }
 }
 

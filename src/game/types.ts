@@ -24,6 +24,15 @@ export enum GamePhase {
   GAME_OVER = 'gameOver'
 }
 
+// ==================== 战斗模式 ====================
+export type BattleMode = 'team' | 'freeforall'  // 阵营对战 / 混战
+
+// ==================== 战斗位置 ====================
+export interface BattlePosition {
+  seatIndex: number      // 座位编号（0-N，圆形排列）
+  team: 'player' | 'enemy' | null  // 混战时为null
+}
+
 // ==================== 事件类型 ====================
 export enum GameEventType {
   // 游戏事件
@@ -84,6 +93,7 @@ export interface MartialArtSkill {
   agilityCost: number
   effects: SkillEffect[]
   description: string
+  range: number  // 攻击范围 1-3，默认1
   mpCostReduction?: number
 }
 
@@ -143,6 +153,9 @@ export interface CharacterState {
   agilityBonus: number
   shield: number
 
+  // 战斗位置
+  battlePosition: BattlePosition | null
+
   skills: MartialArtSkill[]
   passives: PassiveSkill[]
   martialArtsNames: string[]
@@ -176,6 +189,7 @@ export interface CharacterState {
   canUseSkill(skill: MartialArtSkill, card: Card, currentAgility: number): boolean
   getSkillCards(skill: MartialArtSkill, currentAgility: number): Card[]
   getAvailableSkills(currentAgility: number): MartialArtSkill[]
+  getDistanceTo(target: CharacterState, totalSeats: number): number
 }
 
 // ==================== 角色配置 ====================
@@ -200,8 +214,18 @@ export interface BattleLogEntry {
 
 // ==================== 游戏状态接口 ====================
 export interface GameState {
+  // 1v1 模式（向后兼容）
   player: CharacterState | null
   enemy: CharacterState | null
+
+  // 多人战斗模式
+  battleMode: BattleMode
+  playerTeam: CharacterState[]
+  enemyTeam: CharacterState[]
+  totalSeats: number
+  selectedTarget: CharacterState | null
+
+  // 通用状态
   currentTurn: number
   currentActor: CharacterState | null
   phase: GamePhase
@@ -211,18 +235,31 @@ export interface GameState {
   extraAction: boolean
   followUp: boolean
 
+  // 1v1 初始化（向后兼容）
   init(player: CharacterState, enemy: CharacterState): void
+
+  // 多人战斗初始化
+  initTeamBattle(playerTeam: CharacterState[], enemyTeam: CharacterState[], mode: BattleMode): void
+
+  // 通用方法
   startNewTurn(): void
   decideTurnOrder(): void
   switchActor(): void
   shouldSwitchActor(): boolean
-  useBasicCard(cardInstanceId: string): { success: boolean; message?: string; gameOver?: boolean }
-  useSkill(skillId: string, cardInstanceId: string): { success: boolean; message?: string; gameOver?: boolean; extraAction?: boolean; followUp?: boolean }
-  processEffect(effect: SkillEffect, actor: CharacterState, opponent: CharacterState, skill: MartialArtSkill): { actualDamage: number; extraAction?: boolean; followUp?: boolean }
+  useBasicCard(cardInstanceId: string, targetId?: string): { success: boolean; message?: string; gameOver?: boolean }
+  useSkill(skillId: string, cardInstanceId: string, targetId?: string): { success: boolean; message?: string; gameOver?: boolean; extraAction?: boolean; followUp?: boolean }
+  processEffect(effect: SkillEffect, actor: CharacterState, target: CharacterState, skill: MartialArtSkill): { actualDamage: number; extraAction?: boolean; followUp?: boolean }
   checkTurnEnd(): void
+  checkGameEnd(): boolean
   endTurn(): void
   endGame(): void
   addLog(message: string): void
+
+  // 多人战斗方法
+  getAllCharacters(): CharacterState[]
+  getAliveCharacters(team?: 'player' | 'enemy'): CharacterState[]
+  getTargetsInRange(actor: CharacterState, range: number): CharacterState[]
+  selectTarget(target: CharacterState | null): void
 }
 
 // ==================== 基础卡牌模板 ====================

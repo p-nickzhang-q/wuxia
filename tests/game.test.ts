@@ -45,7 +45,8 @@ const testSkill: MartialArtSkill = {
   mpCost: 3,
   agilityCost: 2,
   effects: [{ type: 'damage', value: 8 }],
-  description: '造成8点伤害'
+  description: '造成8点伤害',
+  range: 1
 }
 
 const testPassive: PassiveSkill = {

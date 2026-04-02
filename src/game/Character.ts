@@ -42,6 +42,8 @@ export function createCharacter(characterConfig: CharacterConfig, martialArtsLis
     debuffs: [],
     dots: [],
 
+    battlePosition: null,
+
     initDeck() {
       this.deck = []
       this.hand = []
@@ -300,6 +302,12 @@ export function createCharacter(characterConfig: CharacterConfig, martialArtsLis
         })
         return hasCard && this.mp >= skill.mpCost && currentAgility >= skill.agilityCost
       })
+    },
+
+    getDistanceTo(target: CharacterState, totalSeats: number): number {
+      if (!this.battlePosition || !target.battlePosition) return 0
+      const diff = Math.abs(this.battlePosition.seatIndex - target.battlePosition.seatIndex)
+      return Math.min(diff, totalSeats - diff)
     }
   }
 

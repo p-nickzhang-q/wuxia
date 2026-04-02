@@ -7,23 +7,26 @@ import { createGame } from '../game/Game'
 import { createCharacter } from '../game/Character'
 import { AI } from '../game/AI'
 import { characters, getCharacterMartialArts } from '../data/skills'
-import { CharacterState, GamePhase, MartialArtSkill, GameEventType } from '../game/types'
+import { CharacterState, GamePhase, MartialArtSkill, GameEventType, BattleMode } from '../game/types'
 import { LayoutConstants } from '../renderer/LayoutConstants'
 import { effectManager } from '../utils/EffectManager'
 import { eventManager } from '../utils/EventManager'
 import { tweenManager, Easing } from '../utils/TweenManager'
 import { Text, TextStyle } from 'pixi.js'
+import { getSeatPosition } from '../game/DistanceSystem'
 
 // 战斗场景
 export class BattleScene extends Scene {
-  private playerConfig: CharacterState | null = null
-  private enemyConfig: CharacterState | null = null
+  // 多人战斗配置
+  private playerConfigs: CharacterState[] = []
+  private enemyConfigs: CharacterState[] = []
+
   private game: ReturnType<typeof createGame> | null = null
   private ai: AI | null = null
 
-  // 渲染组件
-  private playerRenderer: CharacterRenderer | null = null
-  private enemyRenderer: CharacterRenderer | null = null
+  // 渲染组件 - 多人支持
+  private characterRenderers: Map<string, CharacterRenderer> = new Map()
+
   private cardRenderers: CardRenderer[] = []
   private skillButtons: SkillButton[] = []
   private battleLog: BattleLog | null = null
@@ -44,7 +47,7 @@ export class BattleScene extends Scene {
   private pendingDrawAnimations: string[] = [] // 待动画的新牌ID
 
   // 内功特效队列（用于延迟显示第一回合的内功特效）
-  private pendingPassiveHighlights: Array<{isPlayer: boolean, passiveId: string}> = []
+  private pendingPassiveHighlights: Array<{characterId: string, passiveId: string}> = []
 
   // 回调
   private onBattleEnd?: (playerWon: boolean) => void
@@ -53,11 +56,17 @@ export class BattleScene extends Scene {
     super(renderer)
   }
 
-  // 初始化战斗
+  // 初始化战斗（1v1向后兼容）
   init(playerCharacterId: string): void {
-    // 重置状态（必须在注册事件监听器之前，否则会清空刚加入的队列）
+    this.initTeamBattle([playerCharacterId], [this.getRandomEnemy(playerCharacterId)], 'team')
+  }
+
+  // 多人战斗初始化
+  initTeamBattle(playerIds: string[], enemyIds: string[], mode: BattleMode): void {
+    // 重置状态（必须在注册事件监听器之前）
     this.isAIProcessing = false
     this.selectedCard = null
+    this.selectedSkill = null
     this.isGameOver = false
     this.isFirstHandUpdate = true
     this.pendingDrawAnimations = []
@@ -69,22 +78,30 @@ export class BattleScene extends Scene {
     // 注册事件监听器（必须在 game.init 之前注册）
     this.registerEventListeners()
 
-    // 创建玩家角色
-    const playerMartialArts = getCharacterMartialArts(playerCharacterId)
-    this.playerConfig = createCharacter(characters[playerCharacterId], playerMartialArts)
+    // 创建玩家队伍
+    this.playerConfigs = playerIds.map(id => {
+      const martialArts = getCharacterMartialArts(id)
+      return createCharacter(characters[id], martialArts)
+    })
 
-    // 随机选择敌人
-    const characterKeys = Object.keys(characters).filter(k => k !== playerCharacterId)
-    const randomKey = characterKeys[Math.floor(Math.random() * characterKeys.length)]
-    const enemyMartialArts = getCharacterMartialArts(randomKey)
-    this.enemyConfig = createCharacter(characters[randomKey], enemyMartialArts)
+    // 创建敌人队伍
+    this.enemyConfigs = enemyIds.map(id => {
+      const martialArts = getCharacterMartialArts(id)
+      return createCharacter(characters[id], martialArts)
+    })
 
     // 创建游戏
     this.game = createGame()
-    this.game.init(this.playerConfig, this.enemyConfig)
+    this.game.initTeamBattle(this.playerConfigs, this.enemyConfigs, mode)
 
-    // 创建 AI
+    // 创建 AI（后续需要重构支持多目标）
     this.ai = new AI(this.game)
+  }
+
+  // 随机选择敌人
+  private getRandomEnemy(excludeId: string): string {
+    const characterKeys = Object.keys(characters).filter(k => k !== excludeId)
+    return characterKeys[Math.floor(Math.random() * characterKeys.length)]
   }
 
   onEnter(): void {
@@ -107,8 +124,8 @@ export class BattleScene extends Scene {
     this.setChildIndex(effectManager, this.children.length - 1)
 
     // 处理队列中的内功高亮（第一回合的内功在 init 中触发，但那时 renderer 还没创建）
-    this.pendingPassiveHighlights.forEach(({ isPlayer, passiveId }) => {
-      const renderer = isPlayer ? this.playerRenderer : this.enemyRenderer
+    this.pendingPassiveHighlights.forEach(({ characterId, passiveId }) => {
+      const renderer = this.characterRenderers.get(characterId)
       renderer?.highlightPassive(passiveId)
     })
     this.pendingPassiveHighlights = []
@@ -125,8 +142,9 @@ export class BattleScene extends Scene {
     // 移除特效管理器
     this.removeChild(effectManager)
     this.clear()
-    this.playerConfig = null
-    this.enemyConfig = null
+    this.playerConfigs = []
+    this.enemyConfigs = []
+    this.characterRenderers.clear()
     this.game = null
     this.ai = null
     this.isAIProcessing = false
@@ -159,7 +177,10 @@ export class BattleScene extends Scene {
   private checkAITurn(): void {
     if (!this.game) return
     if (this.isAIProcessing) return
-    if (this.game.currentActor !== this.game.enemy) return
+
+    const currentActor = this.game.currentActor
+    // 判断当前行动者是否属于敌方队伍（需要AI控制）
+    if (!currentActor || this.isPlayerTeam(currentActor)) return
     if (this.game.phase !== GamePhase.SELECTING) return
 
     this.handleAITurn()
@@ -181,17 +202,15 @@ export class BattleScene extends Scene {
 
   // 伤害事件回调
   private onCharacterDamaged(event: { data?: { character?: any; damage?: number } }): void {
-    if (!this.game || !this.playerConfig || !this.enemyConfig) return
+    if (!this.game) return
 
     const character = event.data?.character
     const damage = event.data?.damage
 
     if (!character || !damage) return
 
-    // 确定是哪个角色受伤
-    const targetRenderer = character === this.playerConfig
-      ? this.playerRenderer
-      : this.enemyRenderer
+    // 从 Map 中获取对应的渲染器
+    const targetRenderer = this.characterRenderers.get(character.id)
     if (!targetRenderer) return
 
     // 计算伤害数字显示位置
@@ -205,17 +224,15 @@ export class BattleScene extends Scene {
 
   // 护盾事件回调
   private onCharacterShield(event: { data?: { character?: any; amount?: number } }): void {
-    if (!this.game || !this.playerConfig || !this.enemyConfig) return
+    if (!this.game) return
 
     const character = event.data?.character
     const amount = event.data?.amount
 
     if (!character || !amount || amount <= 0) return
 
-    // 确定是哪个角色获得护盾
-    const targetRenderer = character === this.playerConfig
-      ? this.playerRenderer
-      : this.enemyRenderer
+    // 从 Map 中获取对应的渲染器
+    const targetRenderer = this.characterRenderers.get(character.id)
     if (!targetRenderer) return
 
     // 计算护盾数字显示位置
@@ -238,13 +255,14 @@ export class BattleScene extends Scene {
 
   // 抽牌事件回调
   private onCardDrawn(event: { data?: { character?: any; cards?: any[] } }): void {
-    if (!this.playerConfig) return
+    if (this.playerConfigs.length === 0) return
 
     const character = event.data?.character
     const cards = event.data?.cards
 
-    // 只处理玩家抽牌
-    if (character !== this.playerConfig || !cards) return
+    // 只处理玩家队伍的抽牌动画
+    const isPlayerTeam = this.playerConfigs.some(p => p === character)
+    if (!isPlayerTeam || !cards) return
 
     // 记录需要动画的新牌ID
     cards.forEach(card => {
@@ -254,7 +272,7 @@ export class BattleScene extends Scene {
 
   // 内功触发事件回调
   private onPassiveTriggered(event: { data?: { character?: any; passiveId?: string; passiveName?: string; trigger?: any } }): void {
-    if (!this.game || !this.playerConfig || !this.enemyConfig) return
+    if (!this.game) return
 
     const character = event.data?.character
     const passiveId = event.data?.passiveId
@@ -263,13 +281,12 @@ export class BattleScene extends Scene {
 
     if (!character || !passiveId || !passiveName || !trigger) return
 
-    // 确定是哪个角色触发内功
-    const isPlayer = character === this.playerConfig
-    const targetRenderer = isPlayer ? this.playerRenderer : this.enemyRenderer
+    // 从 Map 中获取对应的渲染器
+    const targetRenderer = this.characterRenderers.get(character.id)
 
     // 如果 renderer 还没创建，加入队列延迟处理
     if (!targetRenderer) {
-      this.pendingPassiveHighlights.push({ isPlayer, passiveId })
+      this.pendingPassiveHighlights.push({ characterId: character.id, passiveId })
       return
     }
 
@@ -326,29 +343,18 @@ export class BattleScene extends Scene {
     this.battleLog.y = size.height * 0.02 + LayoutConstants.statusHeight() + 10
     this.addChild(this.battleLog)
 
-    // 轻功轴 - 战斗日志下方
+    // 轻功轴 - 战斗日志下方（多人模式下简化显示）
     const axisWidth = LayoutConstants.agilityAxisWidth()
     this.agilityAxis = new AgilityAxis(this.renderer)
     this.agilityAxis.x = size.width / 2 - axisWidth / 2
     this.agilityAxis.y = size.height * 0.02 + LayoutConstants.statusHeight() + LayoutConstants.logHeight() + 20
     this.addChild(this.agilityAxis)
 
-    // 玩家面板 - 左下角
-    this.playerRenderer = new CharacterRenderer(this.playerConfig!, false, this.renderer)
-    const playerPanelSize = this.playerRenderer.getSize()
-    const panelMarginH = size.width * 0.03  // 水平边距 3%
-    this.playerRenderer.x = panelMarginH
-    this.playerRenderer.y = size.height - playerPanelSize.height - bottomAreaHeight - 20
-    this.addChild(this.playerRenderer)
-
-    // 敌人面板 - 右下角（对称）
-    this.enemyRenderer = new CharacterRenderer(this.enemyConfig!, true, this.renderer)
-    const enemyPanelSize = this.enemyRenderer.getSize()
-    this.enemyRenderer.x = size.width - enemyPanelSize.width - panelMarginH
-    this.enemyRenderer.y = size.height - enemyPanelSize.height - bottomAreaHeight - 20
-    this.addChild(this.enemyRenderer)
+    // 创建角色面板 - 使用圆形布局
+    this.createCharacterPanels(bottomAreaHeight)
 
     // 结束回合按钮 - 右下角
+    const panelMarginH = size.width * 0.03
     const endTurnBtnWidth = LayoutConstants.scaleValue(130)
     this.endTurnButton = new Button('结束回合', endTurnBtnWidth, buttonHeight, this.renderer)
     this.endTurnButton.x = size.width - endTurnBtnWidth - panelMarginH
@@ -372,6 +378,89 @@ export class BattleScene extends Scene {
     this.addChild(this.cancelButton)
   }
 
+  // 创建角色面板（圆形布局）
+  private createCharacterPanels(bottomAreaHeight: number): void {
+    if (!this.game) return
+
+    const allChars = this.game.getAllCharacters()
+    const totalSeats = this.game.totalSeats
+
+    // 1v1 模式使用传统左右布局
+    if (totalSeats === 2) {
+      this.createTraditionalLayout(bottomAreaHeight)
+      return
+    }
+
+    // 多人模式使用圆形布局
+    const size = this.renderer.getSize()
+
+    // 圆形布局参数 - 避开顶部状态栏/日志和底部操作区
+    const topReserved = LayoutConstants.statusHeight() + LayoutConstants.logHeight() + LayoutConstants.agilityAxisHeight() + 40
+    const availableHeight = size.height - topReserved - bottomAreaHeight
+    const centerX = size.width / 2
+    const centerY = topReserved + availableHeight / 2
+
+    // 根据可用空间计算半径
+    const maxRadiusX = (size.width - LayoutConstants.panelWidth()) / 2 - 20
+    const maxRadiusY = (availableHeight - LayoutConstants.portraitHeight()) / 2 - 20
+    const radius = Math.min(maxRadiusX, maxRadiusY, Math.min(size.width, size.height) * 0.25)
+
+    // 为每个角色创建面板
+    allChars.forEach(char => {
+      const isEnemy = char.battlePosition?.team === 'enemy'
+      const renderer = new CharacterRenderer(char, isEnemy, this.renderer)
+
+      // 计算圆形位置
+      const pos = getSeatPosition(
+        char.battlePosition!.seatIndex,
+        totalSeats,
+        centerX,
+        centerY,
+        radius
+      )
+
+      renderer.x = pos.x - LayoutConstants.panelWidth() / 2
+      renderer.y = pos.y - LayoutConstants.portraitHeight() / 2
+
+      this.addChild(renderer)
+      this.characterRenderers.set(char.id, renderer)
+    })
+  }
+
+  // 传统 1v1 左右布局
+  private createTraditionalLayout(bottomAreaHeight: number): void {
+    if (!this.game) return
+
+    const size = this.renderer.getSize()
+    const allChars = this.game.getAllCharacters()
+
+    // 玩家在左边，敌人在右边
+    const player = this.playerConfigs[0]
+    const enemy = this.enemyConfigs[0]
+
+    const panelMarginH = size.width * 0.03
+
+    allChars.forEach(char => {
+      const isEnemy = char.battlePosition?.team === 'enemy'
+      const renderer = new CharacterRenderer(char, isEnemy, this.renderer)
+
+      const panelSize = renderer.getSize()
+
+      if (char === player) {
+        // 玩家在左边
+        renderer.x = panelMarginH
+        renderer.y = size.height - panelSize.height - bottomAreaHeight - 20
+      } else if (char === enemy) {
+        // 敌人在右边
+        renderer.x = size.width - panelSize.width - panelMarginH
+        renderer.y = size.height - panelSize.height - bottomAreaHeight - 20
+      }
+
+      this.addChild(renderer)
+      this.characterRenderers.set(char.id, renderer)
+    })
+  }
+
   // 更新 UI
   private updateUI(): void {
     if (!this.game) return
@@ -380,26 +469,21 @@ export class BattleScene extends Scene {
     this.statusBar?.setTurn(this.game.currentTurn)
     this.statusBar?.setPhase(this.getPhaseText())
 
-    // 更新角色面板
-    this.playerRenderer?.update(this.playerConfig!)
-    this.enemyRenderer?.update(this.enemyConfig!)
+    // 更新所有角色面板
+    this.characterRenderers.forEach((renderer, charId) => {
+      const char = this.game!.getAllCharacters().find(c => c.id === charId)
+      if (char) {
+        renderer.update(char)
+      }
+    })
 
-    // 更新轻功轴
-    if (this.agilityAxis && this.playerConfig && this.enemyConfig && this.game) {
-      this.agilityAxis.update(
-        this.playerConfig.name,
-        this.playerConfig.agility,
-        this.enemyConfig.name,
-        this.enemyConfig.agility,
-        this.game.currentActor === this.game.player ? 'player' :
-          this.game.currentActor === this.game.enemy ? 'enemy' : null
-      )
-    }
+    // 更新轻功轴（多人模式下简化显示）
+    this.updateAgilityAxis()
 
     // 同步战斗日志到UI
     this.syncBattleLog()
 
-    // 更新手牌
+    // 更新手牌（只显示当前行动玩家队伍的手牌）
     this.updateHandCards()
 
     // 更新技能按钮
@@ -414,9 +498,40 @@ export class BattleScene extends Scene {
     }
   }
 
+  // 更新轻功轴（多人模式简化）
+  private updateAgilityAxis(): void {
+    if (!this.agilityAxis || !this.game) return
+
+    // 对于多人模式，简化轻功轴显示
+    // 只显示当前行动者和下一个行动者的轻功对比
+    const currentActor = this.game.currentActor
+    if (!currentActor) return
+
+    // 找出下一个可能的行动者
+    const aliveChars = this.game.getAliveCharacters()
+      .filter(c => c.isAlive() && c.id !== currentActor.id)
+      .sort((a, b) => b.getCurrentAgility() - a.getCurrentAgility())
+
+    const nextActor = aliveChars[0]
+
+    this.agilityAxis.update(
+      currentActor.name,
+      currentActor.agility,
+      nextActor?.name || '',
+      nextActor?.agility || 0,
+      this.isPlayerTeam(currentActor) ? 'player' : 'enemy'
+    )
+  }
+
+  // 判断角色是否属于玩家队伍
+  private isPlayerTeam(char: CharacterState): boolean {
+    return this.playerConfigs.some(p => p.id === char.id)
+  }
+
   // 更新确认/取消按钮状态
   private updateActionButtons(): void {
-    const isPlayerTurn = this.game?.currentActor === this.game?.player &&
+    const currentActor = this.game?.currentActor
+    const isPlayerTurn = currentActor && this.isPlayerTeam(currentActor) &&
                          this.game?.phase !== GamePhase.GAME_OVER
 
     // 确认按钮：只有选中手牌时才可用
@@ -453,12 +568,16 @@ export class BattleScene extends Scene {
     this.cardRenderers.forEach(card => this.removeChild(card))
     this.cardRenderers = []
 
-    if (!this.game || !this.playerConfig) return
+    if (!this.game) return
+
+    // 只显示当前行动角色的手牌（如果是玩家队伍）
+    const currentActor = this.game.currentActor
+    if (!currentActor || !this.isPlayerTeam(currentActor)) return
 
     const size = this.renderer.getSize()
     const cardDims = getCardDimensions()
-    const hand = this.playerConfig.hand
-    const availableCards = this.playerConfig.getAvailableCards(this.playerConfig.agility)
+    const hand = currentActor.hand
+    const availableCards = currentActor.getAvailableCards(currentActor.agility)
     const availableIds = availableCards.map(c => c.instanceId)
 
     // 手牌在底部中央
@@ -486,7 +605,7 @@ export class BattleScene extends Scene {
         cardRenderer.alpha = 0
 
         // 延迟动画，让每张牌依次飞入
-        const delay = index * 100 // 每张牌延迟100ms
+        const delay = index * 100 // 张牌延迟100ms
         setTimeout(() => {
           tweenManager.create(cardRenderer, { x: cardX, y: cardY, alpha: 1 }, 300, Easing.easeOutQuad)
         }, delay)
@@ -499,7 +618,7 @@ export class BattleScene extends Scene {
 
       // 设置是否可用
       const isAvailable = availableIds.includes(card.instanceId) &&
-                         this.game!.currentActor === this.game!.player &&
+                         this.isPlayerTeam(currentActor) &&
                          this.game!.phase !== GamePhase.GAME_OVER
       cardRenderer.setPlayable(isAvailable)
 
@@ -527,9 +646,13 @@ export class BattleScene extends Scene {
     this.skillButtons.forEach(btn => this.removeChild(btn))
     this.skillButtons = []
 
-    if (!this.game || !this.playerConfig) return
+    if (!this.game) return
 
-    const skills = this.playerConfig.skills
+    // 只显示当前行动角色的技能（如果是玩家队伍）
+    const currentActor = this.game.currentActor
+    if (!currentActor || !this.isPlayerTeam(currentActor)) return
+
+    const skills = currentActor.skills
     const size = this.renderer.getSize()
     const cardDims = getCardDimensions()
     const skillBtnWidth = LayoutConstants.skillBtnWidth()
@@ -554,11 +677,11 @@ export class BattleScene extends Scene {
       btn.y = y
 
       // 判断技能是否可用
-      const isPlayerTurn = this.game!.currentActor === this.game!.player &&
+      const isPlayerTurn = this.isPlayerTeam(currentActor) &&
                           this.game!.phase !== GamePhase.GAME_OVER
-      const hasEnoughMp = this.playerConfig!.mp >= skill.mpCost
-      const hasEnoughAgility = this.playerConfig!.agility >= skill.agilityCost
-      const hasMatchingCard = this.playerConfig!.hand.some(card =>
+      const hasEnoughMp = currentActor.mp >= skill.mpCost
+      const hasEnoughAgility = currentActor.agility >= skill.agilityCost
+      const hasMatchingCard = currentActor.hand.some(card =>
         skill.requiredCardType === 'any' || card.type === skill.requiredCardType
       )
       const isAvailable = isPlayerTurn && hasEnoughMp && hasEnoughAgility && hasMatchingCard
@@ -580,7 +703,10 @@ export class BattleScene extends Scene {
 
   // 处理卡牌点击
   private handleCardClick(cardRenderer: CardRenderer): void {
-    if (!this.game || this.game.currentActor !== this.game.player) return
+    if (!this.game) return
+
+    const currentActor = this.game.currentActor
+    if (!currentActor || !this.isPlayerTeam(currentActor)) return
 
     // 如果已经选中这张卡，取消选中
     if (this.selectedCard === cardRenderer) {
@@ -601,9 +727,12 @@ export class BattleScene extends Scene {
 
   // 处理技能点击
   private handleSkillClick(skillId: string): void {
-    if (!this.game || this.game.currentActor !== this.game.player) return
+    if (!this.game) return
 
-    const skill = this.playerConfig?.skills.find(s => s.id === skillId)
+    const currentActor = this.game.currentActor
+    if (!currentActor || !this.isPlayerTeam(currentActor)) return
+
+    const skill = currentActor.skills.find(s => s.id === skillId)
     if (!skill) return
 
     // 如果已经选中这个技能，取消选中
@@ -687,10 +816,13 @@ export class BattleScene extends Scene {
 
   // 处理结束回合
   private handleEndTurn(): void {
-    if (!this.game || this.game.currentActor !== this.game.player) return
+    if (!this.game) return
+
+    const currentActor = this.game.currentActor
+    if (!currentActor || !this.isPlayerTeam(currentActor)) return
 
     // 清空当前行动者的轻功
-    this.playerConfig!.agility = 0
+    currentActor.agility = 0
 
     // 检查是否需要切换行动方
     if (this.game.shouldSwitchActor()) {
@@ -698,8 +830,10 @@ export class BattleScene extends Scene {
       this.addLog(`轮到${this.game.currentActor!.name}行动`)
     }
 
-    // 如果双方都没有轻功了，结束回合
-    if (this.playerConfig!.agility <= 0 && this.enemyConfig!.agility <= 0) {
+    // 如果所有角色的轻功都耗尽，结束回合
+    const allChars = this.game.getAllCharacters()
+    const allAgilityDepleted = allChars.every(c => !c.isAlive() || c.agility <= 0)
+    if (allAgilityDepleted) {
       this.game.endTurn()
     }
 
@@ -720,11 +854,11 @@ export class BattleScene extends Scene {
   private runAI(): void {
     if (!this.ai || !this.game) return
 
-    const enemy = this.game.enemy!
-    const player = this.game.player!
+    const currentActor = this.game.currentActor!
+    const target = this.game.player || this.game.playerTeam[0]
 
     // 检查是否可以继续行动
-    if (enemy.agility <= 0 || !enemy.isAlive() || !player.isAlive()) {
+    if (currentActor.agility <= 0 || !currentActor.isAlive() || !target?.isAlive()) {
       this.finishAITurn()
       return
     }
@@ -733,7 +867,7 @@ export class BattleScene extends Scene {
     const action = this.ai.decideAction()
 
     if (!action) {
-      this.game.addLog(`${enemy.name}没有可用的招式`)
+      this.game.addLog(`${currentActor.name}没有可用的招式`)
       this.finishAITurn()
       return
     }
@@ -791,7 +925,8 @@ export class BattleScene extends Scene {
     if (this.isGameOver) return  // 防止重复调用
     this.isGameOver = true
 
-    const playerWon = this.playerConfig?.isAlive() ?? false
+    // 判断胜负：玩家队伍是否还有存活角色
+    const playerWon = this.playerConfigs.some(p => p.isAlive())
 
     // 显示结果
     this.addLog(playerWon ? '你赢了！' : '你输了！')
@@ -819,10 +954,13 @@ export class BattleScene extends Scene {
     if (this.game.phase === GamePhase.SETUP) return '准备中'
     if (this.game.phase === GamePhase.GAME_OVER) return '战斗结束'
 
-    if (this.game.currentActor === this.game.player) {
-      return '你的回合'
+    const currentActor = this.game.currentActor
+    if (currentActor && this.isPlayerTeam(currentActor)) {
+      return `${currentActor.name}的回合`
+    } else if (currentActor) {
+      return `${currentActor.name}行动中`
     } else {
-      return '敌方回合'
+      return ''
     }
   }
 

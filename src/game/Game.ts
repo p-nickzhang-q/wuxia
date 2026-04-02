@@ -1,11 +1,22 @@
-import { CharacterState, GameState, GamePhase, MartialArtSkill, SkillEffect, TriggerTiming, GameEventType } from './types'
+import { CharacterState, GameState, GamePhase, MartialArtSkill, SkillEffect, TriggerTiming, GameEventType, BattleMode } from './types'
 import { eventManager } from '../utils/EventManager'
+import { getTargetsInRange, assignSeats } from './DistanceSystem'
 
 // 创建游戏状态
 export function createGame(): GameState {
   const state: GameState = {
+    // 1v1 模式（向后兼容）
     player: null,
     enemy: null,
+
+    // 多人战斗模式
+    battleMode: 'team',
+    playerTeam: [],
+    enemyTeam: [],
+    totalSeats: 0,
+    selectedTarget: null,
+
+    // 通用状态
     currentTurn: 0,
     currentActor: null,
     phase: GamePhase.SETUP,
@@ -15,14 +26,26 @@ export function createGame(): GameState {
     extraAction: false,
     followUp: false,
 
+    // ==================== 初始化方法 ====================
+
+    // 1v1 初始化（向后兼容）
     init(player: CharacterState, enemy: CharacterState) {
       this.player = player
       this.enemy = enemy
+      this.playerTeam = [player]
+      this.enemyTeam = [enemy]
+      this.battleMode = 'team'
+      this.totalSeats = 2
       this.currentTurn = 0
       this.phase = GamePhase.SETUP
       this.battleLog = []
       this.lastUsedSkill = null
       this.selectedCard = null
+      this.selectedTarget = null
+
+      // 分配座位
+      player.battlePosition = { seatIndex: 1, team: 'player' }
+      enemy.battlePosition = { seatIndex: 0, team: 'enemy' }
 
       player.initDeck()
       enemy.initDeck()
@@ -34,25 +57,108 @@ export function createGame(): GameState {
       this.startNewTurn()
     },
 
+    // 多人战斗初始化
+    initTeamBattle(playerTeam: CharacterState[], enemyTeam: CharacterState[], mode: BattleMode) {
+      this.playerTeam = playerTeam
+      this.enemyTeam = enemyTeam
+      this.battleMode = mode
+      this.totalSeats = playerTeam.length + enemyTeam.length
+      this.currentTurn = 0
+      this.phase = GamePhase.SETUP
+      this.battleLog = []
+      this.lastUsedSkill = null
+      this.selectedCard = null
+      this.selectedTarget = null
+
+      // 向后兼容
+      this.player = playerTeam[0] || null
+      this.enemy = enemyTeam[0] || null
+
+      // 分配座位
+      assignSeats(playerTeam, enemyTeam, mode)
+
+      // 初始化所有角色的牌组
+      playerTeam.forEach(char => {
+        char.initDeck()
+        char.drawCards(5)
+      })
+      enemyTeam.forEach(char => {
+        char.initDeck()
+        char.drawCards(5)
+      })
+
+      this.addLog('多人战斗开始！')
+      this.startNewTurn()
+    },
+
+    // ==================== 多人战斗方法 ====================
+
+    getAllCharacters(): CharacterState[] {
+      return [...this.playerTeam, ...this.enemyTeam]
+    },
+
+    getAliveCharacters(team?: 'player' | 'enemy'): CharacterState[] {
+      const allChars = this.getAllCharacters()
+      if (!team) {
+        return allChars.filter(c => c.isAlive())
+      }
+      if (team === 'player') {
+        return this.playerTeam.filter(c => c.isAlive())
+      }
+      return this.enemyTeam.filter(c => c.isAlive())
+    },
+
+    getTargetsInRange(actor: CharacterState, range: number): CharacterState[] {
+      return getTargetsInRange(
+        actor,
+        range,
+        this.getAllCharacters(),
+        this.totalSeats,
+        this.battleMode
+      )
+    },
+
+    selectTarget(target: CharacterState | null): void {
+      this.selectedTarget = target
+    },
+
+    // ==================== 回合管理 ====================
+
     startNewTurn() {
       this.currentTurn++
       this.addLog(`\n--- 第${this.currentTurn}回合 ---`)
 
-      this.player!.resetForNewTurn()
-      this.enemy!.resetForNewTurn()
+      const allChars = this.getAllCharacters()
 
-      const playerMessages = this.player!.onTurnStart(this)
-      const enemyMessages = this.enemy!.onTurnStart(this)
+      // 重置所有角色
+      allChars.forEach(char => {
+        if (char.isAlive()) {
+          char.resetForNewTurn()
+        }
+      })
 
-      playerMessages.forEach(msg => this.addLog(msg))
-      enemyMessages.forEach(msg => this.addLog(msg))
+      // 触发回合开始内功
+      allChars.forEach(char => {
+        if (char.isAlive()) {
+          const messages = char.onTurnStart(this)
+          messages.forEach(msg => this.addLog(msg))
+        }
+      })
 
-      const playerDrawn = this.player!.drawCards(2)
-      const enemyDrawn = this.enemy!.drawCards(2)
-      this.addLog(`${this.player!.name}抽了${playerDrawn.length}张牌`)
-      this.addLog(`${this.enemy!.name}抽了${enemyDrawn.length}张牌`)
+      // 所有存活角色抽牌
+      allChars.forEach(char => {
+        if (char.isAlive()) {
+          const drawn = char.drawCards(2)
+          if (drawn.length > 0) {
+            this.addLog(`${char.name}抽了${drawn.length}张牌`)
+          }
+        }
+      })
 
-      if (!this.player!.isAlive() || !this.enemy!.isAlive()) {
+      // 检查游戏是否结束
+      const alivePlayers = this.getAliveCharacters('player')
+      const aliveEnemies = this.getAliveCharacters('enemy')
+      if (alivePlayers.length === 0 || aliveEnemies.length === 0) {
         this.endGame()
         return
       }
@@ -64,29 +170,73 @@ export function createGame(): GameState {
     },
 
     decideTurnOrder() {
-      if (this.player!.getCurrentAgility() >= this.enemy!.getCurrentAgility()) {
-        this.currentActor = this.player
-        this.addLog(`${this.player!.name}轻功较高，先行动`)
-      } else {
-        this.currentActor = this.enemy
-        this.addLog(`${this.enemy!.name}轻功较高，先行动`)
+      // 获取所有存活角色并按轻功排序
+      const aliveChars = this.getAliveCharacters()
+        .filter(c => c.isAlive())
+        .sort((a, b) => b.getCurrentAgility() - a.getCurrentAgility())
+
+      if (aliveChars.length === 0) {
+        this.endGame()
+        return
       }
 
+      this.currentActor = aliveChars[0]
+      this.addLog(`${this.currentActor!.name}轻功最高，先行动`)
       this.phase = GamePhase.SELECTING
     },
 
     switchActor() {
-      this.currentActor = this.currentActor === this.player ? this.enemy : this.player
+      const aliveChars = this.getAliveCharacters()
+        .filter(c => c.isAlive())
+        .sort((a, b) => b.getCurrentAgility() - a.getCurrentAgility())
+
+      const currentIndex = aliveChars.findIndex(c => c.id === this.currentActor?.id)
+      const nextIndex = (currentIndex + 1) % aliveChars.length
+      this.currentActor = aliveChars[nextIndex]
     },
 
-    shouldSwitchActor() {
-      const opponent = this.currentActor === this.player ? this.enemy : this.player
-      return this.currentActor!.agility <= opponent!.agility
+    shouldSwitchActor(): boolean {
+      if (!this.currentActor) return false
+
+      const aliveChars = this.getAliveCharacters()
+        .filter(c => c.isAlive() && c.id !== this.currentActor?.id)
+
+      // 如果只有一个存活角色，不切换
+      if (aliveChars.length === 0) return false
+
+      // 找出轻功最高的对手
+      const currentTeam = this.currentActor.battlePosition?.team
+      const opponents = aliveChars.filter(c => {
+        if (this.battleMode === 'freeforall') return true
+        return c.battlePosition?.team !== currentTeam
+      })
+
+      if (opponents.length === 0) return false
+
+      const highestOpponentAgility = Math.max(...opponents.map(c => c.agility))
+      return this.currentActor.agility <= highestOpponentAgility
     },
 
-    useBasicCard(cardInstanceId: string) {
+    // ==================== 卡牌使用 ====================
+
+    useBasicCard(cardInstanceId: string, targetId?: string) {
       const actor = this.currentActor!
-      const opponent = actor === this.player ? this.enemy! : this.player!
+
+      // 确定目标
+      let target: CharacterState
+      if (targetId) {
+        const foundTarget = this.getAllCharacters().find(c => c.id === targetId)
+        if (!foundTarget) {
+          return { success: false, message: '未找到目标' }
+        }
+        target = foundTarget
+      } else if (this.selectedTarget) {
+        target = this.selectedTarget
+      } else {
+        // 向后兼容：默认攻击敌人
+        target = actor === this.player ? this.enemy! : this.player!
+      }
+
       const card = actor.hand.find(c => c.instanceId === cardInstanceId)
 
       if (!card) {
@@ -112,7 +262,6 @@ export function createGame(): GameState {
             const effectResult = typeof result === 'string' ? { message: result } : result
             if (effectResult.bonusDamage) totalDamage += effectResult.bonusDamage
             if (effectResult.message) {
-              // 发出内功触发事件
               eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
                 character: actor,
                 passiveId: passive.id,
@@ -126,7 +275,7 @@ export function createGame(): GameState {
       })
 
       if (totalDamage > 0) {
-        const result = opponent.takeDamage(totalDamage, actor, this)
+        const result = target.takeDamage(totalDamage, actor, this)
         actualDamage = result.damage
 
         // 触发所有内功（造成伤害）
@@ -135,7 +284,6 @@ export function createGame(): GameState {
             const msg = passive.effect(actor, result.damage)
             if (msg) {
               this.addLog(typeof msg === 'string' ? msg : msg.message || '')
-              // 发出内功触发事件
               eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
                 character: actor,
                 passiveId: passive.id,
@@ -150,12 +298,11 @@ export function createGame(): GameState {
       // 统一日志格式
       let logMsg = `${actor.name}使用【${card.name}】`
       if (actualDamage > 0) {
-        logMsg += `，对${opponent.name}造成${actualDamage}点伤害`
+        logMsg += `，对${target.name}造成${actualDamage}点伤害`
       }
       if (totalShield > 0) {
         actor.shield += totalShield
         logMsg += `，获得${totalShield}点护盾`
-        // 发出护盾变化事件
         eventManager.emit(GameEventType.CHARACTER_SHIELD, { character: actor, amount: totalShield })
       }
       if (card.selfDamage) {
@@ -164,19 +311,35 @@ export function createGame(): GameState {
       }
       this.addLog(logMsg)
 
-      if (!opponent.isAlive()) {
-        this.endGame()
+      // 检查游戏结束
+      if (this.checkGameEnd()) {
         return { success: true, gameOver: true }
       }
 
       this.checkTurnEnd()
-
       return { success: true }
     },
 
-    useSkill(skillId: string, cardInstanceId: string) {
+    // ==================== 武功招式 ====================
+
+    useSkill(skillId: string, cardInstanceId: string, targetId?: string) {
       const actor = this.currentActor!
-      const opponent = actor === this.player ? this.enemy! : this.player!
+
+      // 确定目标
+      let target: CharacterState
+      if (targetId) {
+        const foundTarget = this.getAllCharacters().find(c => c.id === targetId)
+        if (!foundTarget) {
+          return { success: false, message: '未找到目标' }
+        }
+        target = foundTarget
+      } else if (this.selectedTarget) {
+        target = this.selectedTarget
+      } else {
+        // 向后兼容：默认攻击敌人
+        target = actor === this.player ? this.enemy! : this.player!
+      }
+
       const card = actor.hand.find(c => c.instanceId === cardInstanceId)
 
       // 查找指定的武功招式
@@ -198,7 +361,6 @@ export function createGame(): GameState {
           if (msg) {
             const msgText = typeof msg === 'string' ? msg : msg.message || ''
             this.addLog(msgText)
-            // 发出内功触发事件
             eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
               character: actor,
               passiveId: passive.id,
@@ -220,7 +382,7 @@ export function createGame(): GameState {
       let actualDamage = 0
 
       for (const effect of skillCopy.effects) {
-        const result = this.processEffect(effect, actor, opponent, skillCopy)
+        const result = this.processEffect(effect, actor, target, skillCopy)
         if (result.actualDamage) actualDamage += result.actualDamage
         if (result.extraAction) extraAction = true
         if (result.followUp) followUp = true
@@ -229,12 +391,12 @@ export function createGame(): GameState {
       // 统一日志格式
       let logMsg = `${actor.name}使用武功【${skillCopy.name}】`
       if (actualDamage > 0) {
-        logMsg += `，对${opponent.name}造成${actualDamage}点伤害`
+        logMsg += `，对${target.name}造成${actualDamage}点伤害`
       }
       this.addLog(logMsg)
 
-      if (!opponent.isAlive()) {
-        this.endGame()
+      // 检查游戏结束
+      if (this.checkGameEnd()) {
         return { success: true, gameOver: true }
       }
 
@@ -253,7 +415,9 @@ export function createGame(): GameState {
       return { success: true }
     },
 
-    processEffect(effect: SkillEffect, actor: CharacterState, opponent: CharacterState, skill: MartialArtSkill) {
+    // ==================== 效果处理 ====================
+
+    processEffect(effect: SkillEffect, actor: CharacterState, target: CharacterState, skill: MartialArtSkill) {
       let totalDamage = effect.value || 0
       let actualDamage = 0
 
@@ -265,7 +429,6 @@ export function createGame(): GameState {
             const effectResult = typeof result === 'string' ? {} : result
             if (effectResult.bonusDamage) totalDamage += effectResult.bonusDamage
             if (effectResult.message) {
-              // 发出内功触发事件
               eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
                 character: actor,
                 passiveId: passive.id,
@@ -281,12 +444,10 @@ export function createGame(): GameState {
       switch (effect.type) {
         case 'damage':
           if (effect.ignoreShield) {
-            opponent.hp -= totalDamage
+            target.hp -= totalDamage
             actualDamage = totalDamage
-            // 发出受伤事件（无视护盾的情况）
-            eventManager.emit(GameEventType.CHARACTER_DAMAGED, { character: opponent, damage: actualDamage })
+            eventManager.emit(GameEventType.CHARACTER_DAMAGED, { character: target, damage: actualDamage })
 
-            // 触发所有内功（造成伤害）- ignoreShield 情况
             actor.passives.forEach(passive => {
               if (passive.trigger === TriggerTiming.ON_DAMAGE) {
                 const msg = passive.effect(actor, actualDamage)
@@ -301,15 +462,13 @@ export function createGame(): GameState {
               }
             })
           } else {
-            const result = opponent.takeDamage(totalDamage, actor, this)
+            const result = target.takeDamage(totalDamage, actor, this)
             actualDamage = result.damage
 
-            // 触发所有内功（造成伤害）
             actor.passives.forEach(passive => {
               if (passive.trigger === TriggerTiming.ON_DAMAGE) {
                 const msg = passive.effect(actor, result.damage)
                 if (msg) {
-                  // 发出内功触发事件
                   eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
                     character: actor,
                     passiveId: passive.id,
@@ -324,9 +483,7 @@ export function createGame(): GameState {
 
         case 'shield':
           actor.shield += effect.value!
-          const shieldChange = effect.value!
-          // 发出护盾变化事件
-          eventManager.emit(GameEventType.CHARACTER_SHIELD, { character: actor, amount: shieldChange })
+          eventManager.emit(GameEventType.CHARACTER_SHIELD, { character: actor, amount: effect.value! })
           break
 
         case 'selfDamage':
@@ -334,33 +491,33 @@ export function createGame(): GameState {
           break
 
         case 'drainMp':
-          const drainMp = Math.min(effect.value!, opponent.mp)
-          opponent.mp -= drainMp
+          const drainMp = Math.min(effect.value!, target.mp)
+          target.mp -= drainMp
           actor.recoverMp(drainMp)
           break
 
         case 'removeMp':
-          const removeMp = Math.min(effect.value!, opponent.mp)
-          opponent.mp -= removeMp
-          opponent.takeDamage(removeMp, actor, this)
+          const removeMp = Math.min(effect.value!, target.mp)
+          target.mp -= removeMp
+          target.takeDamage(removeMp, actor, this)
           break
 
         case 'drainHp':
-          const drainHp = Math.min(effect.value!, opponent.hp)
-          opponent.hp -= drainHp
+          const drainHp = Math.min(effect.value!, target.hp)
+          target.hp -= drainHp
           actor.heal(drainHp)
           break
 
         case 'dot':
-          opponent.addDot(effect.value!, effect.duration!)
+          target.addDot(effect.value!, effect.duration!)
           break
 
         case 'debuffAgility':
-          opponent.addDebuff('agility', effect.value!, effect.duration!)
+          target.addDebuff('agility', effect.value!, effect.duration!)
           break
 
         case 'disableCardType':
-          opponent.addDebuff('disableCardType', effect.cardType!, effect.duration!)
+          target.addDebuff('disableCardType', effect.cardType!, effect.duration!)
           break
 
         case 'extraAction':
@@ -372,7 +529,7 @@ export function createGame(): GameState {
         case 'mimic':
           if (this.lastUsedSkill && this.lastUsedSkill.id !== 'littleFormless') {
             for (const e of this.lastUsedSkill.effects) {
-              const r = this.processEffect(e, actor, opponent, this.lastUsedSkill)
+              const r = this.processEffect(e, actor, target, this.lastUsedSkill)
               if (r.actualDamage) actualDamage += r.actualDamage
             }
           }
@@ -381,6 +538,8 @@ export function createGame(): GameState {
 
       return { actualDamage }
     },
+
+    // ==================== 回合结束检查 ====================
 
     checkTurnEnd() {
       if (this.shouldSwitchActor()) {
@@ -392,8 +551,6 @@ export function createGame(): GameState {
         }
 
         this.addLog(`轮到${this.currentActor!.name}行动`)
-
-        // 无论是玩家还是敌人，都设置为 SELECTING
         this.phase = GamePhase.SELECTING
       } else {
         if (this.currentActor!.agility <= 0) {
@@ -403,29 +560,46 @@ export function createGame(): GameState {
     },
 
     endTurn() {
-      const playerMessages = this.player!.onTurnEnd()
-      const enemyMessages = this.enemy!.onTurnEnd()
+      const allChars = this.getAllCharacters()
 
-      playerMessages.forEach(msg => this.addLog(msg))
-      enemyMessages.forEach(msg => this.addLog(msg))
+      // 触发回合结束内功
+      allChars.forEach(char => {
+        if (char.isAlive()) {
+          const messages = char.onTurnEnd()
+          messages.forEach(msg => this.addLog(msg))
+        }
+      })
 
-      if (!this.player!.isAlive() || !this.enemy!.isAlive()) {
-        this.endGame()
+      // 检查游戏结束
+      if (this.checkGameEnd()) {
         return
       }
 
       this.startNewTurn()
     },
 
+    // 检查游戏是否结束
+    checkGameEnd(): boolean {
+      const alivePlayers = this.getAliveCharacters('player')
+      const aliveEnemies = this.getAliveCharacters('enemy')
+
+      if (alivePlayers.length === 0 || aliveEnemies.length === 0) {
+        this.endGame()
+        return true
+      }
+      return false
+    },
+
     endGame() {
       this.phase = GamePhase.GAME_OVER
-      const playerWon = this.player!.isAlive()
+      const alivePlayers = this.getAliveCharacters('player')
+      const playerWon = alivePlayers.length > 0
+
       if (playerWon) {
         this.addLog('\n你赢了！')
       } else {
         this.addLog('\n你输了！')
       }
-      // 发出游戏结束事件
       eventManager.emit(GameEventType.GAME_END, { playerWon })
     },
 
