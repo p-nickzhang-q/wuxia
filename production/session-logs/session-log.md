@@ -342,3 +342,25 @@ ad9827d feat(audio): 添加音频管理系统和音效合成功能
 src/data/skills.ts
 ---
 
+## Session End: 20260402_135812
+### Commits
+c3fe959 feat(skills): 添加新武功招式并调整现有技能数值
+5903ccb feat(character): 更新角色选择界面增加角色立绘和详情布局
+ad9827d feat(audio): 添加音频管理系统和音效合成功能
+4d11961 docs(project): 更新项目文档包括冲刺计划和里程碑
+19640b5 feat(test): 添加 Vitest 测试框架配置
+---
+
+## Session End: 20260402_141630
+### Commits
+c3fe959 feat(skills): 添加新武功招式并调整现有技能数值
+5903ccb feat(character): 更新角色选择界面增加角色立绘和详情布局
+ad9827d feat(audio): 添加音频管理系统和音效合成功能
+4d11961 docs(project): 更新项目文档包括冲刺计划和里程碑
+19640b5 feat(test): 添加 Vitest 测试框架配置
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/main.ts
+src/scenes/CharacterSelectScene.ts
+---
+

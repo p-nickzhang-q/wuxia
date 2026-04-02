@@ -21,6 +21,7 @@ export class CharacterSelectScene extends Scene {
   private startButton: Button | null = null
   private onCharacterSelected?: (characterId: string) => void
   private onGameStart?: (characterId: string) => void
+  private onViewSkills?: () => void
 
   // 滚动相关
   private scrollContainer: Container | null = null
@@ -206,6 +207,17 @@ export class CharacterSelectScene extends Scene {
     subtitle.anchor.set(0.5, 0)
     subtitle.x = size.width / 2
     this.addChild(subtitle)
+
+    // 查看武功按钮 - 右上角
+    const btnWidth = LayoutConstants.scaleValue(120)
+    const btnHeight = LayoutConstants.scaleValue(35)
+    const viewSkillsBtn = new Button('查看武功', btnWidth, btnHeight, this.renderer)
+    viewSkillsBtn.x = size.width - btnWidth - LayoutConstants.scaleValue(20)
+    viewSkillsBtn.y = titleY + LayoutConstants.scaleValue(10)
+    viewSkillsBtn.setOnClick(() => {
+      if (this.onViewSkills) this.onViewSkills()
+    })
+    this.addChild(viewSkillsBtn)
   }
 
   // 创建可滚动的角色网格
@@ -723,6 +735,10 @@ export class CharacterSelectScene extends Scene {
 
   setOnGameStart(callback: (characterId: string) => void): void {
     this.onGameStart = callback
+  }
+
+  setOnViewSkills(callback: () => void): void {
+    this.onViewSkills = callback
   }
 
   // 获取选中的角色

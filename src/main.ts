@@ -2,6 +2,7 @@ import { Renderer } from './renderer/Renderer'
 import { CharacterSelectScene } from './scenes/CharacterSelectScene'
 import { BattleScene } from './scenes/BattleScene'
 import { ResultScene } from './scenes/ResultScene'
+import { SkillListScene } from './scenes/SkillListScene'
 import { Scene } from './scenes/Scene'
 import { tweenManager } from './utils/TweenManager'
 import { audioManager } from './utils/AudioManager'
@@ -13,6 +14,7 @@ class Game {
   private characterSelectScene: CharacterSelectScene | null = null
   private battleScene: BattleScene | null = null
   private resultScene: ResultScene | null = null
+  private skillListScene: SkillListScene | null = null
   private selectedCharacterId: string | null = null
 
   constructor() {
@@ -27,6 +29,7 @@ class Game {
     this.characterSelectScene = new CharacterSelectScene(this.renderer)
     this.battleScene = new BattleScene(this.renderer)
     this.resultScene = new ResultScene(this.renderer)
+    this.skillListScene = new SkillListScene(this.renderer)
 
     // 设置回调
     this.characterSelectScene.setOnGameStart((characterId) => {
@@ -34,6 +37,14 @@ class Game {
       // 用户交互后初始化音频
       this.initAudio()
       this.startBattle()
+    })
+
+    this.characterSelectScene.setOnViewSkills(() => {
+      this.showSkillList()
+    })
+
+    this.skillListScene.setOnBack(() => {
+      this.showCharacterSelect()
     })
 
     this.battleScene.setOnBattleEnd((playerWon) => {
@@ -101,6 +112,20 @@ class Game {
 
     this.resultScene!.setResult(playerWon)
     this.currentScene = this.resultScene
+    if (this.currentScene) {
+      this.renderer.getStage().addChild(this.currentScene)
+      this.currentScene.onEnter()
+    }
+  }
+
+  // 显示武功列表
+  private showSkillList(): void {
+    if (this.currentScene) {
+      this.currentScene.onExit()
+      this.renderer.getStage().removeChild(this.currentScene)
+    }
+
+    this.currentScene = this.skillListScene
     if (this.currentScene) {
       this.renderer.getStage().addChild(this.currentScene)
       this.currentScene.onEnter()
