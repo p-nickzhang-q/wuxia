@@ -4,6 +4,7 @@ import { BattleScene } from './scenes/BattleScene'
 import { ResultScene } from './scenes/ResultScene'
 import { Scene } from './scenes/Scene'
 import { tweenManager } from './utils/TweenManager'
+import { audioManager } from './utils/AudioManager'
 
 // 游戏主类
 class Game {
@@ -30,6 +31,8 @@ class Game {
     // 设置回调
     this.characterSelectScene.setOnGameStart((characterId) => {
       this.selectedCharacterId = characterId
+      // 用户交互后初始化音频
+      this.initAudio()
       this.startBattle()
     })
 
@@ -81,6 +84,12 @@ class Game {
       this.renderer.getStage().addChild(this.currentScene)
       this.currentScene.onEnter()
     }
+  }
+
+  // 初始化音频
+  private async initAudio(): Promise<void> {
+    await audioManager.init()
+    audioManager.resume()
   }
 
   // 显示结果

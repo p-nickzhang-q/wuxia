@@ -1,6 +1,7 @@
 import { Container, Graphics, Text } from 'pixi.js'
 import { Colors, TextStyles, Renderer } from './Renderer'
 import { LayoutConstants } from './LayoutConstants'
+import { audioManager } from '../utils/AudioManager'
 
 // 按钮类 - 使用响应式尺寸
 export class Button extends Container {
@@ -51,6 +52,7 @@ export class Button extends Container {
 
   private handleClick(): void {
     if (!this.isDisabled && this.onClick) {
+      audioManager.playSfx('button_click')
       this.onClick()
     }
   }

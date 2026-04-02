@@ -419,11 +419,14 @@ export function createGame(): GameState {
 
     endGame() {
       this.phase = GamePhase.GAME_OVER
-      if (this.player!.isAlive()) {
+      const playerWon = this.player!.isAlive()
+      if (playerWon) {
         this.addLog('\n你赢了！')
       } else {
         this.addLog('\n你输了！')
       }
+      // 发出游戏结束事件
+      eventManager.emit(GameEventType.GAME_END, { playerWon })
     },
 
     addLog(message: string) {
