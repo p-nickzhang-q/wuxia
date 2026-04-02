@@ -25,3 +25,4 @@ Thumbs.db
 
 *.Zone.Identifier
 *:Zone.Identifier*
+/coverage
