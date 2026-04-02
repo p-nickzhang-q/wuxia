@@ -156,6 +156,15 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     effects: [{ type: 'damage', value: 8, ignoreShield: true }],
     description: '造成8点伤害，无视护盾'
   },
+  lingSheQuan: {
+    id: 'lingSheQuan',
+    name: '灵蛇拳',
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 3,
+    agilityCost: 2,
+    effects: [{ type: 'damage', value: 6 }, { type: 'debuffAgility', value: 2, duration: 1 }],
+    description: '造成6点伤害，对方下回合轻功-2'
+  },
 
   // ========== 短兵类武功招式 ==========
   nineSwords: {
@@ -220,6 +229,24 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     agilityCost: 2,
     effects: [{ type: 'damage', value: 7 }, { type: 'extraAction' }],
     description: '造成7点伤害，可再行动一次'
+  },
+  lianChengJian: {
+    id: 'lianChengJian',
+    name: '连城剑法',
+    requiredCardType: CardType.SHORT_WEAPON,
+    mpCost: 3,
+    agilityCost: 3,
+    effects: [{ type: 'damage', value: 8 }],
+    description: '造成8点伤害'
+  },
+  xiuHuaZhen: {
+    id: 'xiuHuaZhen',
+    name: '绣花针法',
+    requiredCardType: CardType.SHORT_WEAPON,
+    mpCost: 2,
+    agilityCost: 1,
+    effects: [{ type: 'damage', value: 4 }, { type: 'extraAction' }],
+    description: '造成4点伤害，可再行动一次'
   },
 
   // ========== 长兵类武功招式 ==========
@@ -324,10 +351,10 @@ export const passiveSkills: Record<string, PassiveSkill> = {
     name: '金钟罩',
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
-      character.shield += 5
-      return `${character.name}的金钟罩发动，获得5点护盾`
+      character.shield += 6
+      return `${character.name}的金钟罩发动，获得6点护盾`
     },
-    description: '每回合开始获得5点护盾'
+    description: '每回合开始获得6点护盾'
   },
   muscleChange: {
     id: 'muscleChange',
@@ -504,10 +531,10 @@ export const passiveSkills: Record<string, PassiveSkill> = {
     name: '蛤蟆功',
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
-      character.shield += 3
-      return `${character.name}的蛤蟆功发动，获得3点护盾`
+      character.shield += 4
+      return `${character.name}的蛤蟆功发动，获得4点护盾`
     },
-    description: '每回合开始获得3点护盾'
+    description: '每回合开始获得4点护盾'
   },
   chunYang: {
     id: 'chunYang',
@@ -518,6 +545,19 @@ export const passiveSkills: Record<string, PassiveSkill> = {
       return `${character.name}的纯阳无极功发动，恢复3点内力`
     },
     description: '每回合恢复3点内力，武功招式伤害+20%'
+  },
+  ziXia: {
+    id: 'ziXia',
+    name: '紫霞神功',
+    trigger: TriggerTiming.ON_SKILL_USE,
+    effect: (character: CharacterState, _skill: MartialArtSkill, damage?: number): PassiveEffectResult | null => {
+      if (damage) {
+        const bonus = Math.floor(damage * 0.15)
+        return { bonusDamage: bonus, message: `${character.name}的紫霞神功发动，伤害+15%` }
+      }
+      return null
+    },
+    description: '武功招式伤害+15%'
   }
 }
 
@@ -612,6 +652,13 @@ export const martialArts: Record<string, MartialArt> = {
     skills: [martialArtSkills.haMa],
     passive: passiveSkills.haMaPassive,
     description: '蛤蟆功'
+  },
+  lingSheArt: {
+    id: 'lingSheArt',
+    name: '灵蛇拳',
+    skills: [martialArtSkills.lingSheQuan],
+    passive: null,
+    description: '灵蛇拳'
   },
   // 黄药师武功
   tanZhiArt: {
@@ -824,6 +871,13 @@ export const martialArts: Record<string, MartialArt> = {
     passive: passiveSkills.shenZhaoPassive,
     description: '神照经'
   },
+  lianChengJianArt: {
+    id: 'lianChengJianArt',
+    name: '连城剑法',
+    skills: [martialArtSkills.lianChengJian],
+    passive: null,
+    description: '连城剑法'
+  },
   // 石破天武功
   taiXuanArt: {
     id: 'taiXuanArt',
@@ -831,6 +885,22 @@ export const martialArts: Record<string, MartialArt> = {
     skills: [martialArtSkills.taiXuan],
     passive: passiveSkills.taiXuanPassive,
     description: '太玄经'
+  },
+  // 风清扬内功
+  ziXiaArt: {
+    id: 'ziXiaArt',
+    name: '紫霞神功',
+    skills: [],
+    passive: passiveSkills.ziXia,
+    description: '紫霞神功'
+  },
+  // 东方不败武功
+  xiuHuaZhenArt: {
+    id: 'xiuHuaZhenArt',
+    name: '绣花针法',
+    skills: [martialArtSkills.xiuHuaZhen],
+    passive: null,
+    description: '绣花针法'
   }
 }
 
@@ -955,7 +1025,7 @@ export const characters: Record<string, CharacterConfig> = {
     hp: 62,
     mp: 24,
     agility: 9,
-    martialArts: ['haMaArt'],
+    martialArts: ['haMaArt', 'lingSheArt'],
     deck: [
       'fist', 'fist', 'fist', 'fist', 'fist',
       'palm', 'palm', 'palm', 'palm', 'palm',
@@ -1158,7 +1228,7 @@ export const characters: Record<string, CharacterConfig> = {
     hp: 48,
     mp: 22,
     agility: 16,
-    martialArts: ['kuiHuaArt'],
+    martialArts: ['kuiHuaArt', 'xiuHuaZhenArt'],
     deck: [
       'stab', 'stab', 'stab', 'stab', 'stab', 'stab', 'stab', 'stab',
       'slash', 'slash', 'slash', 'slash', 'slash', 'slash',
@@ -1175,7 +1245,7 @@ export const characters: Record<string, CharacterConfig> = {
     hp: 55,
     mp: 24,
     agility: 11,
-    martialArts: ['nineSwordsArt'],
+    martialArts: ['nineSwordsArt', 'ziXiaArt'],
     deck: [
       'stab', 'stab', 'stab', 'stab', 'stab', 'stab', 'stab', 'stab',
       'slash', 'slash', 'slash', 'slash', 'slash', 'slash',
@@ -1250,7 +1320,7 @@ export const characters: Record<string, CharacterConfig> = {
     hp: 62,
     mp: 20,
     agility: 9,
-    martialArts: ['shenZhaoArt'],
+    martialArts: ['shenZhaoArt', 'lianChengJianArt'],
     deck: [
       'fist', 'fist', 'fist', 'fist', 'fist',
       'palm', 'palm', 'palm', 'palm', 'palm',
