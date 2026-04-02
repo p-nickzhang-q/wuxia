@@ -178,8 +178,8 @@ export class Renderer {
 
     this.app = new Application()
 
-    // 强制使用 Canvas2D 渲染器
-    const preferences: ('webgl' | 'webgpu' | 'canvas')[] = ['canvas', 'webgl']
+    // 优先使用 WebGL 渲染器以获得更好的图片质量
+    const preferences: ('webgl' | 'webgpu' | 'canvas')[] = ['webgl', 'canvas']
     let initialized = false
 
     for (const pref of preferences) {

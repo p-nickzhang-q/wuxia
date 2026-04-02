@@ -1,4 +1,4 @@
-import { Container, Graphics, Text } from 'pixi.js'
+import { Container, Graphics, Text, Sprite, Assets } from 'pixi.js'
 import { Scene } from './Scene'
 import { Renderer, Colors, TextStyles } from '../renderer/Renderer'
 import { Button } from '../renderer/UIComponents'
@@ -249,6 +249,9 @@ export class CharacterSelectScene extends Scene {
   private fillCharacterGrid(): void {
     if (!this.scrollContent) return
 
+    // 清空之前的角色列表
+    this.characterItems = []
+
     const size = this.renderer.getSize()
     const allCharacters = Object.entries(characters)
 
@@ -423,10 +426,14 @@ export class CharacterSelectScene extends Scene {
     const config = characters[id]
     const martialArtsList = getCharacterMartialArts(id)
 
-    // 响应式面板尺寸
-    const panelWidth = Math.min(size.width * 0.75, LayoutConstants.scaleValue(800))
+    // 响应式面板尺寸 - 缩小弹窗
+    const panelWidth = Math.min(size.width * 0.75, LayoutConstants.scaleValue(700))
     const lineHeight = LayoutConstants.scaleValue(28)
     const baseHeight = LayoutConstants.scaleValue(50)
+
+    // 立绘区域 - 放右侧，约占一半宽度
+    const portraitWidth = Math.floor(panelWidth * 0.45)
+    const portraitHeight = LayoutConstants.scaleValue(350)
 
     let totalLines = 0
     martialArtsList.forEach(art => {
@@ -434,10 +441,12 @@ export class CharacterSelectScene extends Scene {
       if (art.passive) totalLines++
     })
 
-    // 面板高度包含开始战斗按钮
+    // 面板高度
+    const minContentHeight = baseHeight + totalLines * lineHeight + LayoutConstants.scaleValue(30)
     const buttonHeight = LayoutConstants.scaleValue(50)
     const buttonPadding = LayoutConstants.scaleValue(20)
-    const panelHeight = baseHeight + totalLines * lineHeight + LayoutConstants.scaleValue(30) + buttonHeight + buttonPadding
+    const contentHeight = Math.max(minContentHeight, portraitHeight + LayoutConstants.scaleValue(20))
+    const panelHeight = contentHeight + buttonHeight + buttonPadding
 
     // 存储面板高度
     this.detailPanelHeight = panelHeight
@@ -453,20 +462,6 @@ export class CharacterSelectScene extends Scene {
     this.detailPanel.addChild(bg)
 
     const padding = LayoutConstants.scaleValue(20)
-
-    // 标题
-    const title = new Text({
-      text: `${config.name} - 武功详情`,
-      style: {
-        fontFamily: 'Arial, sans-serif',
-        fontSize: LayoutConstants.fontCharacterName(),
-        fill: Colors.TEXT_GOLD,
-        fontWeight: 'bold'
-      }
-    })
-    title.x = padding
-    title.y = LayoutConstants.scaleValue(12)
-    this.detailPanel.addChild(title)
 
     // 关闭按钮 - 右上角
     const closeBtn = this.renderer.createGraphics()
@@ -493,8 +488,74 @@ export class CharacterSelectScene extends Scene {
     this.detailPanel.addChild(closeBtn)
     this.detailPanel.addChild(closeX)
 
+    // 左侧：角色信息区域
+    const infoWidth = panelWidth - portraitWidth - padding * 3
+
+    // 角色名称（左侧顶部）
+    const name = new Text({
+      text: config.name,
+      style: {
+        fontFamily: 'Arial, sans-serif',
+        fontSize: LayoutConstants.fontCharacterName(),
+        fill: Colors.TEXT_GOLD,
+        fontWeight: 'bold'
+      }
+    })
+    name.x = padding
+    name.y = padding
+    this.detailPanel.addChild(name)
+
+    // 角色称号
+    const title = new Text({
+      text: config.title,
+      style: {
+        fontFamily: 'Arial, sans-serif',
+        fontSize: LayoutConstants.fontCharacterTitle(),
+        fill: Colors.TEXT_SECONDARY
+      }
+    })
+    title.x = padding
+    title.y = padding + LayoutConstants.fontCharacterName() + 6
+    this.detailPanel.addChild(title)
+
+    // 分隔线
+    const divider = this.renderer.createGraphics()
+    divider.moveTo(padding, title.y + LayoutConstants.fontCharacterTitle() + 10)
+    divider.lineTo(infoWidth + padding, title.y + LayoutConstants.fontCharacterTitle() + 10)
+    divider.stroke({ color: Colors.TEXT_SECONDARY, alpha: 0.3, width: 1 })
+    this.detailPanel.addChild(divider)
+
+    // 角色属性
+    const statsY = title.y + LayoutConstants.fontCharacterTitle() + 20
+    const statsText = `体力: ${config.hp}  内力: ${config.mp}  轻功: ${config.agility}`
+    const stats = new Text({
+      text: statsText,
+      style: {
+        fontFamily: 'Arial, sans-serif',
+        fontSize: LayoutConstants.fontStats(),
+        fill: Colors.TEXT_GOLD
+      }
+    })
+    stats.x = padding
+    stats.y = statsY
+    this.detailPanel.addChild(stats)
+
+    // 武功详情标题
+    const detailTitle = new Text({
+      text: '武功详情',
+      style: {
+        fontFamily: 'Arial, sans-serif',
+        fontSize: LayoutConstants.fontCharacterName(),
+        fill: Colors.TEXT_GOLD,
+        fontWeight: 'bold'
+      }
+    })
+    detailTitle.x = padding
+    detailTitle.y = statsY + LayoutConstants.fontStats() + 15
+    this.detailPanel.addChild(detailTitle)
+
     // 武功列表
-    let yPos = baseHeight
+    let yPos = statsY + LayoutConstants.fontStats() + 50
     for (const art of martialArtsList) {
       const artText = new Text({
         text: `【${art.name}】`,
@@ -513,10 +574,12 @@ export class CharacterSelectScene extends Scene {
         style: {
           fontFamily: 'Arial, sans-serif',
           fontSize: LayoutConstants.fontCardType(),
-          fill: Colors.TEXT_SECONDARY
+          fill: Colors.TEXT_SECONDARY,
+          wordWrap: true,
+          wordWrapWidth: infoWidth - LayoutConstants.scaleValue(130)
         }
       })
-      descText.x = padding + LayoutConstants.scaleValue(150)
+      descText.x = padding + LayoutConstants.scaleValue(130)
       descText.y = yPos
       this.detailPanel.addChild(descText)
 
@@ -532,7 +595,7 @@ export class CharacterSelectScene extends Scene {
             fill: Colors.MP_BAR
           }
         })
-        passiveIcon.x = padding + LayoutConstants.scaleValue(20)
+        passiveIcon.x = padding + LayoutConstants.scaleValue(15)
         passiveIcon.y = yPos
         this.detailPanel.addChild(passiveIcon)
 
@@ -544,7 +607,7 @@ export class CharacterSelectScene extends Scene {
             fill: Colors.MP_BAR
           }
         })
-        passiveName.x = padding + LayoutConstants.scaleValue(45)
+        passiveName.x = padding + LayoutConstants.scaleValue(35)
         passiveName.y = yPos
         this.detailPanel.addChild(passiveName)
 
@@ -553,10 +616,12 @@ export class CharacterSelectScene extends Scene {
           style: {
             fontFamily: 'Arial, sans-serif',
             fontSize: LayoutConstants.fontCardType(),
-            fill: Colors.TEXT_SECONDARY
+            fill: Colors.TEXT_SECONDARY,
+            wordWrap: true,
+            wordWrapWidth: infoWidth - LayoutConstants.scaleValue(130)
           }
         })
-        passiveDesc.x = padding + LayoutConstants.scaleValue(150)
+        passiveDesc.x = padding + LayoutConstants.scaleValue(130)
         passiveDesc.y = yPos
         this.detailPanel.addChild(passiveDesc)
 
@@ -564,7 +629,21 @@ export class CharacterSelectScene extends Scene {
       }
     }
 
-    // 开始战斗按钮 - 放在详情面板底部
+    // 右侧：角色立绘区域
+    const portraitX = panelWidth - portraitWidth - padding
+    const portraitY = padding
+
+    // 立绘背景框
+    const portraitBg = this.renderer.createGraphics()
+    portraitBg.roundRect(portraitX, portraitY, portraitWidth, portraitHeight, 8)
+    portraitBg.fill({ color: 0x2a2a4e, alpha: 0.3 })
+    portraitBg.stroke({ color: Colors.TEXT_GOLD, width: 2 })
+    this.detailPanel.addChild(portraitBg)
+
+    // 加载角色立绘
+    this.loadPortrait(config.name, portraitX, portraitY, portraitWidth, portraitHeight)
+
+    // 开始战斗按钮
     const btnWidth = LayoutConstants.scaleValue(180)
     const btnHeight = LayoutConstants.scaleValue(50)
     this.startButton = new Button('开始战斗', btnWidth, btnHeight, this.renderer)
@@ -578,6 +657,63 @@ export class CharacterSelectScene extends Scene {
     this.detailPanel.addChild(this.startButton)
 
     this.addChild(this.detailPanel)
+  }
+
+  // 加载角色立绘
+  private async loadPortrait(name: string, x: number, y: number, maxWidth: number, maxHeight: number): Promise<void> {
+    try {
+      const texture = await Assets.load(`/assets/characters/${name}.png`)
+      if (!this.detailPanel) return
+
+      const portrait = new Sprite(texture)
+
+      // 根据图片比例计算实际显示尺寸
+      const originalWidth = texture.width
+      const originalHeight = texture.height
+      const aspectRatio = originalWidth / originalHeight
+
+      let displayWidth: number
+      let displayHeight: number
+
+      // 保持比例，适应最大尺寸
+      if (aspectRatio > maxWidth / maxHeight) {
+        displayWidth = maxWidth
+        displayHeight = maxWidth / aspectRatio
+      } else {
+        displayHeight = maxHeight
+        displayWidth = maxHeight * aspectRatio
+      }
+
+      portrait.width = displayWidth
+      portrait.height = displayHeight
+
+      // 居中显示
+      portrait.x = x + (maxWidth - displayWidth) / 2
+      portrait.y = y + (maxHeight - displayHeight) / 2
+
+      // 插入到背景之后
+      const bgIndex = this.detailPanel.children.findIndex(c => c instanceof Graphics)
+      if (bgIndex >= 0) {
+        this.detailPanel.addChildAt(portrait, bgIndex + 1)
+      } else {
+        this.detailPanel.addChild(portrait)
+      }
+    } catch (error) {
+      // 立绘加载失败时显示占位文字
+      const placeholder = new Text({
+        text: name,
+        style: {
+          fontFamily: 'Arial, sans-serif',
+          fontSize: LayoutConstants.fontTitle(),
+          fill: Colors.TEXT_SECONDARY,
+          fontWeight: 'bold'
+        }
+      })
+      placeholder.anchor.set(0.5)
+      placeholder.x = x + maxWidth / 2
+      placeholder.y = y + maxHeight / 2
+      this.detailPanel?.addChild(placeholder)
+    }
   }
 
   // 设置回调
