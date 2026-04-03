@@ -6,6 +6,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   dragonPalm: {
     id: 'dragonPalm',
     name: '降龙十八掌',
+    shortName: '降龙',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 4,
     agilityCost: 3,
@@ -16,6 +17,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   sixMeridianSword: {
     id: 'sixMeridianSword',
     name: '六脉神剑',
+    shortName: '六脉',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 5,
     agilityCost: 3,
@@ -26,6 +28,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   tianShanZheMei: {
     id: 'tianShanZheMei',
     name: '天山折梅手',
+    shortName: '折梅',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 3,
     agilityCost: 2,
@@ -36,6 +39,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   tianShanLiuYang: {
     id: 'tianShanLiuYang',
     name: '天山六阳掌',
+    shortName: '六阳',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 4,
     agilityCost: 3,
@@ -46,6 +50,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   kongMing: {
     id: 'kongMing',
     name: '空明拳',
+    shortName: '空明',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 2,
     agilityCost: 2,
@@ -56,6 +61,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   luoYing: {
     id: 'luoYing',
     name: '落英神剑掌',
+    shortName: '落英',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 3,
     agilityCost: 3,
@@ -66,6 +72,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   lanHua: {
     id: 'lanHua',
     name: '兰花拂穴手',
+    shortName: '兰花',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 2,
     agilityCost: 2,
@@ -76,6 +83,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   haMa: {
     id: 'haMa',
     name: '蛤蟆功',
+    shortName: '蛤蟆',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 5,
     agilityCost: 4,
@@ -86,6 +94,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   tanZhi: {
     id: 'tanZhi',
     name: '弹指神通',
+    shortName: '弹指',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 2,
     agilityCost: 2,
@@ -96,6 +105,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   anRan: {
     id: 'anRan',
     name: '黯然销魂掌',
+    shortName: '黯然',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 5,
     agilityCost: 4,
@@ -106,6 +116,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   sevenInjury: {
     id: 'sevenInjury',
     name: '七伤拳',
+    shortName: '七伤',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 3,
     agilityCost: 3,
@@ -116,6 +127,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   taiChiSkill: {
     id: 'taiChiSkill',
     name: '太极拳',
+    shortName: '太极',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 2,
     agilityCost: 2,
@@ -126,6 +138,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   huoYan: {
     id: 'huoYan',
     name: '火焰刀',
+    shortName: '火焰',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 4,
     agilityCost: 3,
@@ -136,6 +149,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   shenZhao: {
     id: 'shenZhao',
     name: '神照经掌',
+    shortName: '神照',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 3,
     agilityCost: 2,
@@ -146,6 +160,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   taiXuan: {
     id: 'taiXuan',
     name: '太玄经',
+    shortName: '太玄',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 5,
     agilityCost: 4,
@@ -156,6 +171,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   longXiang: {
     id: 'longXiang',
     name: '龙象般若功',
+    shortName: '龙象',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 5,
     agilityCost: 4,
@@ -166,6 +182,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   oneYang: {
     id: 'oneYang',
     name: '一阳指',
+    shortName: '一阳',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 3,
     agilityCost: 2,
@@ -176,6 +193,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   lingSheQuan: {
     id: 'lingSheQuan',
     name: '灵蛇拳',
+    shortName: '灵蛇',
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 3,
     agilityCost: 2,
@@ -188,6 +206,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   nineSwords: {
     id: 'nineSwords',
     name: '独孤九剑',
+    shortName: '九剑',
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 4,
     agilityCost: 3,
@@ -198,6 +217,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   yuNu: {
     id: 'yuNu',
     name: '玉女剑法',
+    shortName: '玉女',
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 3,
     agilityCost: 2,
@@ -208,6 +228,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   shuangJian: {
     id: 'shuangJian',
     name: '双剑合璧',
+    shortName: '双剑',
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 6,
     agilityCost: 4,
@@ -218,6 +239,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   taiJiJian: {
     id: 'taiJiJian',
     name: '太极剑',
+    shortName: '太极剑',
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 3,
     agilityCost: 2,
@@ -228,6 +250,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   goldenSnake: {
     id: 'goldenSnake',
     name: '金蛇剑法',
+    shortName: '金蛇',
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 3,
     agilityCost: 3,
@@ -238,6 +261,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   goldenSnakeZhui: {
     id: 'goldenSnakeZhui',
     name: '金蛇锥',
+    shortName: '蛇锥',
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 4,
     agilityCost: 3,
@@ -248,6 +272,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   kuiHua: {
     id: 'kuiHua',
     name: '葵花宝典',
+    shortName: '葵花',
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 3,
     agilityCost: 2,
@@ -258,6 +283,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   lianChengJian: {
     id: 'lianChengJian',
     name: '连城剑法',
+    shortName: '连城',
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 3,
     agilityCost: 3,
@@ -268,6 +294,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   xiuHuaZhen: {
     id: 'xiuHuaZhen',
     name: '绣花针法',
+    shortName: '绣花',
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 2,
     agilityCost: 1,
@@ -280,6 +307,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   dogBeating: {
     id: 'dogBeating',
     name: '打狗棒法',
+    shortName: '打狗',
     requiredCardType: CardType.LONG_WEAPON,
     mpCost: 4,
     agilityCost: 4,
@@ -290,6 +318,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   xuanTie: {
     id: 'xuanTie',
     name: '玄铁剑法',
+    shortName: '玄铁',
     requiredCardType: CardType.LONG_WEAPON,
     mpCost: 4,
     agilityCost: 3,
@@ -302,6 +331,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   lifeDeath: {
     id: 'lifeDeath',
     name: '生死符',
+    shortName: '生死',
     requiredCardType: 'any',
     mpCost: 3,
     agilityCost: 2,
@@ -312,6 +342,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   northernMingSkill: {
     id: 'northernMingSkill',
     name: '北冥神功',
+    shortName: '北冥',
     requiredCardType: 'any',
     mpCost: 0,
     agilityCost: 3,
@@ -322,6 +353,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   starAbsorbing: {
     id: 'starAbsorbing',
     name: '吸星大法',
+    shortName: '吸星',
     requiredCardType: 'any',
     mpCost: 0,
     agilityCost: 3,
@@ -332,6 +364,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   qiankunMove: {
     id: 'qiankunMove',
     name: '乾坤大挪移',
+    shortName: '乾坤',
     requiredCardType: 'any',
     mpCost: 4,
     agilityCost: 3,
@@ -342,6 +375,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   littleFormless: {
     id: 'littleFormless',
     name: '小无相功',
+    shortName: '无相',
     requiredCardType: 'any',
     mpCost: 2,
     agilityCost: 2,
@@ -352,6 +386,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   biHai: {
     id: 'biHai',
     name: '碧海潮生曲',
+    shortName: '碧海',
     requiredCardType: 'any',
     mpCost: 4,
     agilityCost: 3,
@@ -362,6 +397,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   shiZiHou: {
     id: 'shiZiHou',
     name: '狮子吼',
+    shortName: '狮子',
     requiredCardType: 'any',
     mpCost: 4,
     agilityCost: 3,
@@ -372,6 +408,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   douZhuan: {
     id: 'douZhuan',
     name: '斗转星移',
+    shortName: '斗转',
     requiredCardType: 'any',
     mpCost: 3,
     agilityCost: 2,
@@ -386,6 +423,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   goldenBell: {
     id: 'goldenBell',
     name: '金钟罩',
+    shortName: '金钟',
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       character.shield += 6
@@ -396,6 +434,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   muscleChange: {
     id: 'muscleChange',
     name: '易筋经',
+    shortName: '易筋',
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       character.mp = Math.min(character.maxMp, character.mp + 3)
@@ -406,6 +445,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   nineYang: {
     id: 'nineYang',
     name: '九阳神功',
+    shortName: '九阳',
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       character.hp = Math.min(character.maxHp, character.hp + 4)
@@ -416,6 +456,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   lingbo: {
     id: 'lingbo',
     name: '凌波微步',
+    shortName: '凌波',
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       character.agilityBonus = (character.agilityBonus || 0) + 2
@@ -429,6 +470,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   northernMingPassive: {
     id: 'northernMingPassive',
     name: '北冥神功',
+    shortName: '北冥',
     trigger: TriggerTiming.ON_DAMAGE,
     effect: (character: CharacterState, damage: number): string | null => {
       const recover = Math.floor(damage * 0.5)
@@ -440,6 +482,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   starAbsorbingPassive: {
     id: 'starAbsorbingPassive',
     name: '吸星大法',
+    shortName: '吸星',
     trigger: TriggerTiming.ON_DAMAGE,
     effect: (character: CharacterState, damage: number): string | null => {
       const recover = Math.floor(damage * 0.5)
@@ -451,6 +494,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   taiChiHeart: {
     id: 'taiChiHeart',
     name: '太极心法',
+    shortName: '太极',
     trigger: TriggerTiming.ON_TAKE_DAMAGE,
     effect: (character: CharacterState, damage: number): PassiveEffectResult => {
       const reduction = Math.floor(damage * 0.25)
@@ -461,6 +505,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   qiankun: {
     id: 'qiankun',
     name: '乾坤大挪移',
+    shortName: '乾坤',
     trigger: TriggerTiming.ON_TAKE_DAMAGE,
     effect: (character: CharacterState, damage: number): PassiveEffectResult | null => {
       if (Math.random() < 0.2) {
@@ -474,6 +519,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   nineYin: {
     id: 'nineYin',
     name: '九阴真经',
+    shortName: '九阴',
     trigger: TriggerTiming.ON_SKILL_USE,
     effect: (character: CharacterState, skill: MartialArtSkill): string | null => {
       if (skill.mpCost > 0) {
@@ -487,6 +533,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   congenital: {
     id: 'congenital',
     name: '先天功',
+    shortName: '先天',
     trigger: TriggerTiming.ON_SKILL_USE,
     effect: (character: CharacterState, _skill: MartialArtSkill, damage?: number): PassiveEffectResult | null => {
       if (damage) {
@@ -500,6 +547,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   dragonElephant: {
     id: 'dragonElephant',
     name: '龙象般若功',
+    shortName: '龙象',
     trigger: TriggerTiming.ON_PLAY_CARD,
     effect: (character: CharacterState, card: { isBasicCard: boolean }, damage?: number): PassiveEffectResult | null => {
       if (card.isBasicCard && damage) {
@@ -512,6 +560,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   kuiHuaPassive: {
     id: 'kuiHuaPassive',
     name: '葵花宝典',
+    shortName: '葵花',
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       character.agilityBonus = (character.agilityBonus || 0) + 2
@@ -522,6 +571,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   yuNuXin: {
     id: 'yuNuXin',
     name: '玉女心经',
+    shortName: '玉女',
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       character.hp = Math.min(character.maxHp, character.hp + 2)
@@ -532,6 +582,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   shenZhaoPassive: {
     id: 'shenZhaoPassive',
     name: '神照经',
+    shortName: '神照',
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       const heal = character.hp < character.maxHp * 0.2 ? 6 : 3
@@ -543,6 +594,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   taiXuanPassive: {
     id: 'taiXuanPassive',
     name: '太玄经',
+    shortName: '太玄',
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       character.hp = Math.min(character.maxHp, character.hp + 4)
@@ -553,6 +605,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   douZhuanPassive: {
     id: 'douZhuanPassive',
     name: '斗转星移',
+    shortName: '斗转',
     trigger: TriggerTiming.ON_TAKE_DAMAGE,
     effect: (character: CharacterState, damage: number): PassiveEffectResult | null => {
       if (Math.random() < 0.25) {
@@ -566,6 +619,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   haMaPassive: {
     id: 'haMaPassive',
     name: '蛤蟆功',
+    shortName: '蛤蟆',
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       character.shield += 4
@@ -576,6 +630,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   chunYang: {
     id: 'chunYang',
     name: '纯阳无极功',
+    shortName: '纯阳',
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       character.mp = Math.min(character.maxMp, character.mp + 3)
@@ -586,6 +641,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   ziXia: {
     id: 'ziXia',
     name: '紫霞神功',
+    shortName: '紫霞',
     trigger: TriggerTiming.ON_SKILL_USE,
     effect: (character: CharacterState, _skill: MartialArtSkill, damage?: number): PassiveEffectResult | null => {
       if (damage) {

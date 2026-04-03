@@ -1,11 +1,12 @@
 import { Renderer } from './renderer/Renderer'
-import { CharacterSelectScene } from './scenes/CharacterSelectScene'
+import { CharacterSelectScene, BattleConfig } from './scenes/CharacterSelectScene'
 import { BattleScene } from './scenes/BattleScene'
 import { ResultScene } from './scenes/ResultScene'
 import { SkillListScene } from './scenes/SkillListScene'
 import { Scene } from './scenes/Scene'
 import { tweenManager } from './utils/TweenManager'
 import { audioManager } from './utils/AudioManager'
+import { characters } from './data/skills'
 
 // 游戏主类
 class Game {
@@ -15,7 +16,7 @@ class Game {
   private battleScene: BattleScene | null = null
   private resultScene: ResultScene | null = null
   private skillListScene: SkillListScene | null = null
-  private selectedCharacterId: string | null = null
+  private battleConfig: BattleConfig | null = null
 
   constructor() {
     this.renderer = new Renderer()
@@ -32,8 +33,8 @@ class Game {
     this.skillListScene = new SkillListScene(this.renderer)
 
     // 设置回调
-    this.characterSelectScene.setOnGameStart((characterId) => {
-      this.selectedCharacterId = characterId
+    this.characterSelectScene.setOnGameStart((config: BattleConfig) => {
+      this.battleConfig = config
       // 用户交互后初始化音频
       this.initAudio()
       this.startBattle()
@@ -82,14 +83,44 @@ class Game {
 
   // 开始战斗
   private startBattle(): void {
-    if (!this.selectedCharacterId) return
+    if (!this.battleConfig) return
 
     if (this.currentScene) {
       this.currentScene.onExit()
       this.renderer.getStage().removeChild(this.currentScene)
     }
 
-    this.battleScene!.init(this.selectedCharacterId)
+    const config = this.battleConfig
+    const playerId = config.playerId
+
+    if (config.mode === '1v1') {
+      // 1v1 模式
+      this.battleScene!.init(playerId)
+    } else {
+      // 多人模式 - 玩家控制一个角色，其他队友和敌人随机分配
+      const allCharacterIds = Object.keys(characters)
+      const usedIds = [playerId]
+
+      // 随机选择队友 (teamSize - 1 个)
+      const teammateIds: string[] = []
+      const availableForTeammates = allCharacterIds.filter(id => !usedIds.includes(id))
+      const shuffledTeammates = availableForTeammates.sort(() => Math.random() - 0.5)
+      for (let i = 0; i < config.teamSize - 1 && i < shuffledTeammates.length; i++) {
+        teammateIds.push(shuffledTeammates[i])
+        usedIds.push(shuffledTeammates[i])
+      }
+
+      // 随机选择敌人
+      const availableForEnemies = allCharacterIds.filter(id => !usedIds.includes(id))
+      const shuffledEnemies = availableForEnemies.sort(() => Math.random() - 0.5)
+      const enemyIds = shuffledEnemies.slice(0, config.enemySize)
+
+      // 完整的玩家队伍（玩家控制的角色在前，队友在后）
+      const playerTeam = [playerId, ...teammateIds]
+
+      this.battleScene!.initTeamBattle(playerTeam, enemyIds, config.mode, playerId)
+    }
+
     this.currentScene = this.battleScene
     if (this.currentScene) {
       this.renderer.getStage().addChild(this.currentScene)

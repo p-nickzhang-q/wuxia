@@ -41,12 +41,21 @@ export class BattleScene extends Scene {
   private isAIProcessing: boolean = false
   private isGameOver: boolean = false  // 防止重复处理游戏结束
 
+  // 目标选择状态
+  private targetableIds: string[] = []           // 可选目标ID列表
+  private selectedTargetId: string | null = null // 已选中目标ID
+  private pendingSkillId: string | null = null   // 待执行的武功ID
+  private pendingCardId: string | null = null    // 待执行的卡牌ID
+
   // 抽牌动画相关
   private isFirstHandUpdate: boolean = true // 是否是首次更新手牌
   private pendingDrawAnimations: string[] = [] // 待动画的新牌ID
 
   // 内功特效队列（用于延迟显示第一回合的内功特效）
   private pendingPassiveHighlights: Array<{characterId: string, passiveId: string}> = []
+
+  // 玩家控制的角色ID
+  private playerControlledId: string | null = null
 
   // 回调
   private onBattleEnd?: (playerWon: boolean) => void
@@ -57,11 +66,11 @@ export class BattleScene extends Scene {
 
   // 初始化战斗（1v1向后兼容）
   init(playerCharacterId: string): void {
-    this.initTeamBattle([playerCharacterId], [this.getRandomEnemy(playerCharacterId)], 'team')
+    this.initTeamBattle([playerCharacterId], [this.getRandomEnemy(playerCharacterId)], 'team', playerCharacterId)
   }
 
   // 多人战斗初始化
-  initTeamBattle(playerIds: string[], enemyIds: string[], mode: BattleMode): void {
+  initTeamBattle(playerIds: string[], enemyIds: string[], mode: BattleMode, playerControlledId?: string): void {
     // 重置状态（必须在注册事件监听器之前）
     this.isAIProcessing = false
     this.selectedCard = null
@@ -70,6 +79,7 @@ export class BattleScene extends Scene {
     this.isFirstHandUpdate = true
     this.pendingDrawAnimations = []
     this.pendingPassiveHighlights = []
+    this.playerControlledId = playerControlledId || playerIds[0]  // 默认第一个是玩家控制
 
     // 添加特效管理器到场景
     this.addChild(effectManager)
@@ -177,9 +187,12 @@ export class BattleScene extends Scene {
     if (!this.game) return
     if (this.isAIProcessing) return
 
+    // 如果玩家有待确认的动作，不触发AI
+    if (this.pendingCardId) return
+
     const currentActor = this.game.currentActor
-    // 判断当前行动者是否属于敌方队伍（需要AI控制）
-    if (!currentActor || this.isPlayerTeam(currentActor)) return
+    // 判断当前行动者是否由玩家控制（AI控制所有非玩家角色，包括队友）
+    if (!currentActor || this.isPlayerControlled(currentActor)) return
     if (this.game.phase !== GamePhase.SELECTING) return
 
     this.handleAITurn()
@@ -246,6 +259,9 @@ export class BattleScene extends Scene {
   private onTurnStart(event: { data?: { turnNumber?: number } }): void {
     const turnNumber = event.data?.turnNumber
     if (!turnNumber) return
+
+    // 清除之前的选择状态
+    this.clearSelection()
 
     // 显示回合数字特效（屏幕上方居中）
     const size = this.renderer.getSize()
@@ -419,6 +435,7 @@ export class BattleScene extends Scene {
       const renderer = new CharacterRenderer(char, false, this.renderer, true)  // 小面板
       renderer.x = leftX
       renderer.y = leftStartY + index * (panelHeight + panelSpacing)
+      this.setupCharacterRendererClick(renderer, char.id)
       this.addChild(renderer)
       this.characterRenderers.set(char.id, renderer)
     })
@@ -431,8 +448,20 @@ export class BattleScene extends Scene {
       const renderer = new CharacterRenderer(char, true, this.renderer, true)  // 小面板
       renderer.x = rightX
       renderer.y = rightStartY + index * (panelHeight + panelSpacing)
+      this.setupCharacterRendererClick(renderer, char.id)
       this.addChild(renderer)
       this.characterRenderers.set(char.id, renderer)
+    })
+  }
+
+  // 设置角色面板点击事件
+  private setupCharacterRendererClick(renderer: CharacterRenderer, charId: string): void {
+    renderer.eventMode = 'static'
+    renderer.cursor = 'pointer'
+    renderer.on('pointerdown', () => {
+      if (this.game?.phase === GamePhase.SELECTING_TARGET) {
+        this.handleTargetClick(charId)
+      }
     })
   }
 
@@ -478,6 +507,7 @@ export class BattleScene extends Scene {
         renderer.y = baseY
       }
 
+      this.setupCharacterRendererClick(renderer, char.id)
       this.addChild(renderer)
       this.characterRenderers.set(char.id, renderer)
     })
@@ -543,6 +573,12 @@ export class BattleScene extends Scene {
   }
 
   // 判断角色是否属于玩家队伍
+  // 判断角色是否由玩家控制
+  private isPlayerControlled(char: CharacterState): boolean {
+    return this.playerControlledId === char.id
+  }
+
+  // 判断角色是否属于玩家队伍（用于显示布局）
   private isPlayerTeam(char: CharacterState): boolean {
     return this.playerConfigs.some(p => p.id === char.id)
   }
@@ -550,7 +586,7 @@ export class BattleScene extends Scene {
   // 更新确认/取消按钮状态
   private updateActionButtons(): void {
     const currentActor = this.game?.currentActor
-    const isPlayerTurn = currentActor && this.isPlayerTeam(currentActor) &&
+    const isPlayerTurn = currentActor && this.isPlayerControlled(currentActor) &&
                          this.game?.phase !== GamePhase.GAME_OVER
 
     // 确认按钮：只有选中手牌时才可用
@@ -589,9 +625,9 @@ export class BattleScene extends Scene {
 
     if (!this.game) return
 
-    // 只显示当前行动角色的手牌（如果是玩家队伍）
+    // 只显示当前行动角色的手牌（如果是玩家控制的角色）
     const currentActor = this.game.currentActor
-    if (!currentActor || !this.isPlayerTeam(currentActor)) return
+    if (!currentActor || !this.isPlayerControlled(currentActor)) return
 
     const size = this.renderer.getSize()
     const cardDims = getCardDimensions()
@@ -641,7 +677,7 @@ export class BattleScene extends Scene {
 
       // 设置是否可用
       const isAvailable = availableIds.includes(card.instanceId) &&
-                         this.isPlayerTeam(currentActor) &&
+                         this.isPlayerControlled(currentActor) &&
                          this.game!.phase !== GamePhase.GAME_OVER
       cardRenderer.setPlayable(isAvailable)
 
@@ -671,9 +707,9 @@ export class BattleScene extends Scene {
 
     if (!this.game) return
 
-    // 只显示当前行动角色的技能（如果是玩家队伍）
+    // 只显示当前行动角色的技能（如果是玩家控制的角色）
     const currentActor = this.game.currentActor
-    if (!currentActor || !this.isPlayerTeam(currentActor)) return
+    if (!currentActor || !this.isPlayerControlled(currentActor)) return
 
     const skills = currentActor.skills
     const size = this.renderer.getSize()
@@ -704,7 +740,7 @@ export class BattleScene extends Scene {
       btn.y = y
 
       // 判断技能是否可用
-      const isPlayerTurn = this.isPlayerTeam(currentActor) &&
+      const isPlayerTurn = this.isPlayerControlled(currentActor) &&
                           this.game!.phase !== GamePhase.GAME_OVER
       const hasEnoughMp = currentActor.mp >= skill.mpCost
       const hasEnoughAgility = currentActor.agility >= skill.agilityCost
@@ -733,12 +769,23 @@ export class BattleScene extends Scene {
     if (!this.game) return
 
     const currentActor = this.game.currentActor
-    if (!currentActor || !this.isPlayerTeam(currentActor)) return
+    if (!currentActor || !this.isPlayerControlled(currentActor)) return
+
+    // 如果在目标选择阶段，点击卡牌取消目标选择
+    if (this.game.phase === GamePhase.SELECTING_TARGET) {
+      this.clearTargetSelection()
+    }
 
     // 如果已经选中这张卡，取消选中
     if (this.selectedCard === cardRenderer) {
       cardRenderer.setSelected(false)
       this.selectedCard = null
+      // 清除目标选择状态
+      this.targetableIds = []
+      this.selectedTargetId = null
+      this.pendingSkillId = null
+      this.pendingCardId = null
+      this.updateTargetHighlights()
     } else {
       // 取消之前的选择
       if (this.selectedCard) {
@@ -747,6 +794,19 @@ export class BattleScene extends Scene {
       // 选中新卡牌
       cardRenderer.setSelected(true)
       this.selectedCard = cardRenderer
+
+      // 选中后直接进入目标选择模式
+      const card = cardRenderer.getCard()
+      if (this.selectedSkill) {
+        // 使用武功招式 - 进入目标选择
+        const typeMatch = this.selectedSkill.requiredCardType === 'any' || card.type === this.selectedSkill.requiredCardType
+        if (typeMatch) {
+          this.enterTargetSelection(this.selectedSkill.id, card.instanceId)
+        }
+      } else {
+        // 使用基础招式 - 进入目标选择
+        this.enterTargetSelection(null, card.instanceId)
+      }
     }
 
     this.updateActionButtons()
@@ -757,10 +817,15 @@ export class BattleScene extends Scene {
     if (!this.game) return
 
     const currentActor = this.game.currentActor
-    if (!currentActor || !this.isPlayerTeam(currentActor)) return
+    if (!currentActor || !this.isPlayerControlled(currentActor)) return
 
     const skill = currentActor.skills.find(s => s.id === skillId)
     if (!skill) return
+
+    // 如果在目标选择阶段，点击技能取消目标选择
+    if (this.game.phase === GamePhase.SELECTING_TARGET) {
+      this.clearTargetSelection()
+    }
 
     // 如果已经选中这个技能，取消选中
     if (this.selectedSkill && this.selectedSkill.id === skillId) {
@@ -768,6 +833,15 @@ export class BattleScene extends Scene {
     } else {
       // 选中新技能
       this.selectedSkill = skill
+
+      // 如果已有选中的手牌，直接进入目标选择
+      if (this.selectedCard) {
+        const card = this.selectedCard.getCard()
+        const typeMatch = skill.requiredCardType === 'any' || card.type === skill.requiredCardType
+        if (typeMatch) {
+          this.enterTargetSelection(skill.id, card.instanceId)
+        }
+      }
     }
 
     this.updateSkillButtons()
@@ -776,28 +850,142 @@ export class BattleScene extends Scene {
 
   // 处理确认
   private handleConfirm(): void {
-    if (!this.game || !this.selectedCard) return
+    if (!this.game) return
+
+    // 如果在目标选择阶段，确认目标
+    if (this.game.phase === GamePhase.SELECTING_TARGET) {
+      this.confirmTarget()
+      return
+    }
+
+    // 如果已有待执行的动作（1v1模式，选中手牌后设置了pendingCardId）
+    if (this.pendingCardId && this.selectedTargetId) {
+      this.executeAction(this.pendingSkillId, this.pendingCardId, this.selectedTargetId)
+      return
+    }
+
+    // 兼容旧流程：如果没有 pendingCardId，进入目标选择
+    if (!this.selectedCard) return
 
     const card = this.selectedCard.getCard()
 
     if (this.selectedSkill) {
-      // 使用武功招式
+      // 使用武功招式 - 进入目标选择
       const typeMatch = this.selectedSkill.requiredCardType === 'any' || card.type === this.selectedSkill.requiredCardType
       if (typeMatch) {
-        this.useSkill(this.selectedSkill.id, card.instanceId)
+        this.enterTargetSelection(this.selectedSkill.id, card.instanceId)
       }
     } else {
       // 使用基础招式
-      this.useBasicCard(card.instanceId)
+      this.enterTargetSelection(null, card.instanceId)
+    }
+  }
+
+  // 进入目标选择模式
+  private enterTargetSelection(skillId: string | null, cardInstanceId: string): void {
+    if (!this.game) return
+
+    const currentActor = this.game.currentActor
+    if (!currentActor) return
+
+    // 获取攻击范围
+    let range = 1  // 基础招式默认范围
+    if (skillId) {
+      const skill = currentActor.skills.find(s => s.id === skillId)
+      range = skill?.range || 1
     }
 
-    // 清空选择
+    // 获取范围内目标
+    const targets = this.game.getTargetsInRange(currentActor, range)
+
+    if (targets.length === 0) {
+      // 没有可用目标，取消操作
+      this.clearSelection()
+      return
+    }
+
+    if (targets.length === 1) {
+      // 只有一个目标，保存状态等待确认（1v1模式）
+      this.targetableIds = targets.map(t => t.id)
+      this.selectedTargetId = targets[0].id
+      this.pendingSkillId = skillId
+      this.pendingCardId = cardInstanceId
+      // 不切换到目标选择阶段，等待用户点击确认
+      this.updateTargetHighlights()
+      return
+    }
+
+    // 多个目标，进入目标选择模式
+    this.targetableIds = targets.map(t => t.id)
+    this.selectedTargetId = null
+    this.pendingSkillId = skillId
+    this.pendingCardId = cardInstanceId
+    this.game.phase = GamePhase.SELECTING_TARGET
+
+    // 更新UI显示高亮
+    this.updateTargetHighlights()
+    this.statusBar?.setPhase('选择目标')
+  }
+
+  // 处理目标点击
+  private handleTargetClick(targetId: string): void {
+    if (this.game?.phase !== GamePhase.SELECTING_TARGET) return
+    if (!this.targetableIds.includes(targetId)) return
+
+    // 选中目标（等待确认）
+    this.selectedTargetId = targetId
+    this.updateTargetHighlights()
+  }
+
+  // 确认目标选择
+  private confirmTarget(): void {
+    if (!this.selectedTargetId) return
+
+    this.executeAction(this.pendingSkillId, this.pendingCardId, this.selectedTargetId)
+  }
+
+  // 执行动作
+  private executeAction(skillId: string | null, cardInstanceId: string | null, targetId: string): void {
+    if (skillId && cardInstanceId) {
+      this.useSkill(skillId, cardInstanceId, targetId)
+    } else if (cardInstanceId) {
+      this.useBasicCard(cardInstanceId, targetId)
+    }
+
+    this.clearTargetSelection()
+  }
+
+  // 更新目标高亮显示
+  private updateTargetHighlights(): void {
+    this.characterRenderers.forEach((renderer, charId) => {
+      const isTargetable = this.targetableIds.includes(charId)
+      const isTargeted = this.selectedTargetId === charId
+      renderer.setTargetable(isTargetable)
+      renderer.setTargeted(isTargeted)
+    })
+  }
+
+  // 清除目标选择状态
+  private clearTargetSelection(): void {
+    this.targetableIds = []
+    this.selectedTargetId = null
+    this.pendingSkillId = null
+    this.pendingCardId = null
+    this.updateTargetHighlights()
     this.clearSelection()
+    if (this.game) {
+      this.game.phase = GamePhase.SELECTING
+    }
   }
 
   // 处理取消
   private handleCancel(): void {
-    this.clearSelection()
+    if (this.game?.phase === GamePhase.SELECTING_TARGET) {
+      // 取消目标选择
+      this.clearTargetSelection()
+    } else {
+      this.clearSelection()
+    }
   }
 
   // 清空选择状态
@@ -807,15 +995,21 @@ export class BattleScene extends Scene {
       this.selectedCard = null
     }
     this.selectedSkill = null
+    // 清除待执行状态
+    this.targetableIds = []
+    this.selectedTargetId = null
+    this.pendingSkillId = null
+    this.pendingCardId = null
+    this.updateTargetHighlights()
     this.updateSkillButtons()
     this.updateActionButtons()
   }
 
   // 使用基础招式
-  private useBasicCard(cardInstanceId: string): void {
+  private useBasicCard(cardInstanceId: string, targetId?: string): void {
     if (!this.game) return
 
-    const result = this.game.useBasicCard(cardInstanceId)
+    const result = this.game.useBasicCard(cardInstanceId, targetId)
 
     if (result.success) {
       this.updateUI()
@@ -827,10 +1021,10 @@ export class BattleScene extends Scene {
   }
 
   // 使用武功招式
-  private useSkill(skillId: string, cardInstanceId: string): void {
+  private useSkill(skillId: string, cardInstanceId: string, targetId?: string): void {
     if (!this.game) return
 
-    const result = this.game.useSkill(skillId, cardInstanceId)
+    const result = this.game.useSkill(skillId, cardInstanceId, targetId)
 
     if (result.success) {
       this.updateUI()
@@ -846,7 +1040,7 @@ export class BattleScene extends Scene {
     if (!this.game) return
 
     const currentActor = this.game.currentActor
-    if (!currentActor || !this.isPlayerTeam(currentActor)) return
+    if (!currentActor || !this.isPlayerControlled(currentActor)) return
 
     // 清空当前行动者的轻功
     currentActor.agility = 0
@@ -882,10 +1076,16 @@ export class BattleScene extends Scene {
     if (!this.ai || !this.game) return
 
     const currentActor = this.game.currentActor!
-    const target = this.game.player || this.game.playerTeam[0]
 
     // 检查是否可以继续行动
-    if (currentActor.agility <= 0 || !currentActor.isAlive() || !target?.isAlive()) {
+    if (currentActor.agility <= 0 || !currentActor.isAlive()) {
+      this.finishAITurn()
+      return
+    }
+
+    // 获取存活的敌人（玩家队伍）
+    const alivePlayerTeam = this.playerConfigs.filter(c => c.isAlive())
+    if (alivePlayerTeam.length === 0) {
       this.finishAITurn()
       return
     }
@@ -901,9 +1101,9 @@ export class BattleScene extends Scene {
 
     // 执行行动
     if (action.type === 'skill' && action.skillId) {
-      this.game.useSkill(action.skillId, action.cardId)
+      this.game.useSkill(action.skillId, action.cardId, action.targetId)
     } else {
-      this.game.useBasicCard(action.cardId)
+      this.game.useBasicCard(action.cardId, action.targetId)
     }
 
     // 更新 UI
@@ -934,6 +1134,8 @@ export class BattleScene extends Scene {
         this.game.switchActor()
         this.game.addLog(`轮到${this.game.currentActor!.name}行动`)
         this.game.phase = GamePhase.SELECTING
+        // 清除之前的选择状态
+        this.clearSelection()
       } else {
         this.game.endTurn()
       }
@@ -982,7 +1184,7 @@ export class BattleScene extends Scene {
     if (this.game.phase === GamePhase.GAME_OVER) return '战斗结束'
 
     const currentActor = this.game.currentActor
-    if (currentActor && this.isPlayerTeam(currentActor)) {
+    if (currentActor && this.isPlayerControlled(currentActor)) {
       return `${currentActor.name}的回合`
     } else if (currentActor) {
       return `${currentActor.name}行动中`

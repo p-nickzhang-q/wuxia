@@ -76,6 +76,17 @@ export class Button extends Container {
     this.drawBackground(this.btnWidth, this.btnHeight)
   }
 
+  setEnabled(enabled: boolean): void {
+    this.setDisabled(!enabled)
+  }
+
+  setHighlighted(highlighted: boolean): void {
+    this.background.clear()
+    this.background.roundRect(0, 0, this.btnWidth, this.btnHeight, 10)
+    this.background.fill(highlighted ? Colors.BUTTON_HOVER : Colors.BUTTON_NORMAL)
+    this.background.stroke({ color: highlighted ? Colors.TEXT_GOLD : Colors.TEXT_SECONDARY, width: highlighted ? 3 : 2 })
+  }
+
   setText(text: string): void {
     this.labelText.text = text
   }

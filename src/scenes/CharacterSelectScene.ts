@@ -6,6 +6,14 @@ import { characters, getCharacterMartialArts } from '../data/skills'
 import { CharacterConfig } from '../game/types'
 import { LayoutConstants } from '../renderer/LayoutConstants'
 
+// 战斗配置
+export interface BattleConfig {
+  mode: '1v1' | 'team' | 'freeforall'
+  playerId: string       // 玩家控制的角色
+  teamSize: number       // 己方总人数（含玩家）
+  enemySize: number      // 敌方人数
+}
+
 // 角色选择项
 interface CharacterSelectItem {
   config: CharacterConfig
@@ -20,8 +28,21 @@ export class CharacterSelectScene extends Scene {
   private detailPanel: Container | null = null
   private startButton: Button | null = null
   private onCharacterSelected?: (characterId: string) => void
-  private onGameStart?: (characterId: string) => void
+  private onGameStart?: (config: BattleConfig) => void
   private onViewSkills?: () => void
+
+  // 战斗模式状态
+  private battleMode: '1v1' | 'team' | 'freeforall' = '1v1'
+  private teamSize: number = 1
+  private enemySize: number = 1
+  private readonly MAX_TOTAL = 6  // 总人数上限
+
+  // 模式相关UI组件
+  private modeButtons: Map<string, Button> = new Map()
+  private teamSizeText: Text | null = null
+  private enemySizeText: Text | null = null
+  private totalSizeText: Text | null = null
+  private sizeControlContainer: Container | null = null
 
   // 滚动相关
   private scrollContainer: Container | null = null
@@ -100,7 +121,7 @@ export class CharacterSelectScene extends Scene {
     if (!this.scrollContent) return
 
     const size = this.renderer.getSize()
-    const titleHeight = size.height * 0.02 + LayoutConstants.scaleValue(80)
+    const titleHeight = size.height * 0.02 + LayoutConstants.scaleValue(150)  // 模式选择区域增加高度
     const scrollAreaY = titleHeight
 
     // 检查是否在详情面板区域
@@ -151,7 +172,7 @@ export class CharacterSelectScene extends Scene {
 
     this.scrollbar.visible = true
     const size = this.renderer.getSize()
-    const titleHeight = size.height * 0.02 + LayoutConstants.scaleValue(80)
+    const titleHeight = size.height * 0.02 + LayoutConstants.scaleValue(150)  // 模式选择区域增加高度
     const scrollAreaY = titleHeight
     const scrollAreaHeight = size.height - scrollAreaY
 
@@ -173,6 +194,7 @@ export class CharacterSelectScene extends Scene {
   private handleResize(): void {
     this.clear()
     this.createUI()
+
     // 恢复选中状态
     if (this.selectedCharacterId) {
       const item = this.characterItems.find(i => i.config.id === this.selectedCharacterId)
@@ -180,6 +202,11 @@ export class CharacterSelectScene extends Scene {
         this.highlightCard(item.bg, true)
         this.showCharacterDetail(this.selectedCharacterId)
       }
+    }
+
+    // 重建人数调节 UI
+    if (this.battleMode !== '1v1') {
+      this.createSizeControls()
     }
   }
 
@@ -192,7 +219,7 @@ export class CharacterSelectScene extends Scene {
     // 无需每帧更新
   }
 
-  // 创建标题
+  // 创建标题和模式选择
   private createTitle(): void {
     const size = this.renderer.getSize()
     const titleY = size.height * 0.02
@@ -201,12 +228,6 @@ export class CharacterSelectScene extends Scene {
     title.anchor.set(0.5, 0)
     title.x = size.width / 2
     this.addChild(title)
-
-    // 副标题
-    const subtitle = this.renderer.createText('选择你的角色', TextStyles.SUBTITLE, 0, titleY + LayoutConstants.scaleValue(50))
-    subtitle.anchor.set(0.5, 0)
-    subtitle.x = size.width / 2
-    this.addChild(subtitle)
 
     // 查看武功按钮 - 右上角
     const btnWidth = LayoutConstants.scaleValue(120)
@@ -218,14 +239,125 @@ export class CharacterSelectScene extends Scene {
       if (this.onViewSkills) this.onViewSkills()
     })
     this.addChild(viewSkillsBtn)
+
+    // 模式选择区域 - 标题下方
+    const modeY = titleY + LayoutConstants.scaleValue(55)
+
+    // 模式选择标签
+    const modeLabel = this.renderer.createText('模式选择:', TextStyles.SUBTITLE, size.width / 2 - LayoutConstants.scaleValue(280), modeY)
+    this.addChild(modeLabel)
+
+    // 模式按钮
+    const modes: ('1v1' | 'team' | 'freeforall')[] = ['1v1', 'team', 'freeforall']
+    const modeLabels = ['1v1对战', '队伍对战', '混战模式']
+    const modeBtnWidth = LayoutConstants.scaleValue(100)
+    const modeBtnHeight = LayoutConstants.scaleValue(30)
+
+    modes.forEach((mode, index) => {
+      const btn = new Button(modeLabels[index], modeBtnWidth, modeBtnHeight, this.renderer)
+      btn.x = size.width / 2 - LayoutConstants.scaleValue(180) + index * (modeBtnWidth + LayoutConstants.scaleValue(10))
+      btn.y = modeY
+      btn.setOnClick(() => this.switchMode(mode))
+      this.addChild(btn)
+      this.modeButtons.set(mode, btn)
+    })
+
+    // 更新模式按钮高亮
+    this.updateModeButtons()
+
+    // 人数调节容器
+    this.sizeControlContainer = this.renderer.createContainer(size.width / 2 - LayoutConstants.scaleValue(280), modeY + LayoutConstants.scaleValue(40))
+    this.addChild(this.sizeControlContainer)
+
+    // 创建人数调节 UI
+    this.createSizeControls()
+
+    // 副标题（选择角色提示）
+    const subtitle = this.renderer.createText('选择你的角色', TextStyles.SUBTITLE, 0, modeY + LayoutConstants.scaleValue(80))
+    subtitle.anchor.set(0.5, 0)
+    subtitle.x = size.width / 2
+    this.addChild(subtitle)
+  }
+
+  // 创建人数调节 UI
+  private createSizeControls(): void {
+    if (!this.sizeControlContainer) return
+
+    // 清空容器
+    this.sizeControlContainer.removeChildren()
+
+    const btnSize = LayoutConstants.scaleValue(30)
+    const textSize = LayoutConstants.scaleValue(16)
+
+    // 我方人数
+    const teamLabel = new Text({
+      text: '我方人数:',
+      style: { fontSize: textSize, fill: Colors.TEXT_PRIMARY }
+    })
+    this.sizeControlContainer.addChild(teamLabel)
+
+    const teamMinusBtn = new Button('-', btnSize, btnSize, this.renderer)
+    teamMinusBtn.x = LayoutConstants.scaleValue(80)
+    teamMinusBtn.setOnClick(() => this.adjustTeamSize(-1))
+    this.sizeControlContainer.addChild(teamMinusBtn)
+
+    this.teamSizeText = new Text({
+      text: `${this.teamSize}`,
+      style: { fontSize: textSize, fill: Colors.TEXT_GOLD, fontWeight: 'bold' }
+    })
+    this.teamSizeText.x = LayoutConstants.scaleValue(115)
+    this.sizeControlContainer.addChild(this.teamSizeText)
+
+    const teamPlusBtn = new Button('+', btnSize, btnSize, this.renderer)
+    teamPlusBtn.x = LayoutConstants.scaleValue(135)
+    teamPlusBtn.setOnClick(() => this.adjustTeamSize(1))
+    this.sizeControlContainer.addChild(teamPlusBtn)
+
+    // 敌方人数
+    const enemyLabel = new Text({
+      text: '敌方人数:',
+      style: { fontSize: textSize, fill: Colors.TEXT_PRIMARY }
+    })
+    enemyLabel.x = LayoutConstants.scaleValue(180)
+    this.sizeControlContainer.addChild(enemyLabel)
+
+    const enemyMinusBtn = new Button('-', btnSize, btnSize, this.renderer)
+    enemyMinusBtn.x = LayoutConstants.scaleValue(260)
+    enemyMinusBtn.setOnClick(() => this.adjustEnemySize(-1))
+    this.sizeControlContainer.addChild(enemyMinusBtn)
+
+    this.enemySizeText = new Text({
+      text: `${this.enemySize}`,
+      style: { fontSize: textSize, fill: Colors.TEXT_GOLD, fontWeight: 'bold' }
+    })
+    this.enemySizeText.x = LayoutConstants.scaleValue(295)
+    this.sizeControlContainer.addChild(this.enemySizeText)
+
+    const enemyPlusBtn = new Button('+', btnSize, btnSize, this.renderer)
+    enemyPlusBtn.x = LayoutConstants.scaleValue(315)
+    this.sizeControlContainer.addChild(enemyPlusBtn)
+    enemyPlusBtn.setOnClick(() => this.adjustEnemySize(1))
+
+    // 总人数提示
+    this.totalSizeText = new Text({
+      text: `总人数: ${this.teamSize + this.enemySize}人 (最大${this.MAX_TOTAL}人)`,
+      style: { fontSize: textSize, fill: Colors.TEXT_SECONDARY }
+    })
+    this.totalSizeText.x = LayoutConstants.scaleValue(360)
+    this.sizeControlContainer.addChild(this.totalSizeText)
+
+    // 1v1模式隐藏人数调节
+    if (this.battleMode === '1v1') {
+      this.sizeControlContainer.visible = false
+    }
   }
 
   // 创建可滚动的角色网格
   private createScrollableCharacterGrid(): void {
     const size = this.renderer.getSize()
 
-    // 滚动区域参数 - 占据剩余98%空间
-    const titleHeight = size.height * 0.02 + LayoutConstants.scaleValue(80)
+    // 滚动区域参数 - 模式选择区域增加高度
+    const titleHeight = size.height * 0.02 + LayoutConstants.scaleValue(150)  // 增加50像素给模式选择区域
     const scrollAreaY = titleHeight
     this.viewHeight = size.height - scrollAreaY
 
@@ -663,7 +795,13 @@ export class CharacterSelectScene extends Scene {
     this.startButton.y = panelHeight - btnHeight - LayoutConstants.scaleValue(15)
     this.startButton.setOnClick(() => {
       if (this.selectedCharacterId && this.onGameStart) {
-        this.onGameStart(this.selectedCharacterId)
+        const config: BattleConfig = {
+          mode: this.battleMode,
+          playerId: this.selectedCharacterId,
+          teamSize: this.teamSize,
+          enemySize: this.enemySize
+        }
+        this.onGameStart(config)
       }
     })
     this.detailPanel.addChild(this.startButton)
@@ -671,6 +809,7 @@ export class CharacterSelectScene extends Scene {
     this.addChild(this.detailPanel)
   }
 
+  // 显示队伍详情（多人模式）
   // 加载角色立绘
   private async loadPortrait(name: string, x: number, y: number, maxWidth: number, maxHeight: number): Promise<void> {
     try {
@@ -728,12 +867,81 @@ export class CharacterSelectScene extends Scene {
     }
   }
 
+  // 切换战斗模式
+  private switchMode(mode: '1v1' | 'team' | 'freeforall'): void {
+    this.battleMode = mode
+
+    // 1v1模式固定人数
+    if (mode === '1v1') {
+      this.teamSize = 1
+      this.enemySize = 1
+      if (this.sizeControlContainer) {
+        this.sizeControlContainer.visible = false
+      }
+    } else {
+      // 多人模式显示人数调节
+      if (this.sizeControlContainer) {
+        this.sizeControlContainer.visible = true
+      }
+    }
+
+    // 清除之前的选择
+    if (this.selectedCharacterId) {
+      const item = this.characterItems.find(i => i.config.id === this.selectedCharacterId)
+      if (item) this.highlightCard(item.bg, false)
+      this.selectedCharacterId = null
+    }
+
+    this.updateModeButtons()
+    this.updateSizeDisplay()
+    this.closeDetailPanel()
+  }
+
+  // 更新模式按钮高亮
+  private updateModeButtons(): void {
+    this.modeButtons.forEach((btn, mode) => {
+      if (mode === this.battleMode) {
+        btn.setHighlighted(true)
+      } else {
+        btn.setHighlighted(false)
+      }
+    })
+  }
+
+  // 调节己方人数
+  private adjustTeamSize(delta: number): void {
+    const newSize = this.teamSize + delta
+    // 约束: 1 <= teamSize, teamSize + enemySize <= MAX_TOTAL
+    if (newSize >= 1 && newSize + this.enemySize <= this.MAX_TOTAL) {
+      this.teamSize = newSize
+      this.updateSizeDisplay()
+    }
+  }
+
+  // 调节敌方人数
+  private adjustEnemySize(delta: number): void {
+    const newSize = this.enemySize + delta
+    if (newSize >= 1 && this.teamSize + newSize <= this.MAX_TOTAL) {
+      this.enemySize = newSize
+      this.updateSizeDisplay()
+    }
+  }
+
+  // 更新人数显示
+  private updateSizeDisplay(): void {
+    if (this.teamSizeText) this.teamSizeText.text = `${this.teamSize}`
+    if (this.enemySizeText) this.enemySizeText.text = `${this.enemySize}`
+    if (this.totalSizeText) {
+      this.totalSizeText.text = `总人数: ${this.teamSize + this.enemySize}人 (最大${this.MAX_TOTAL}人)`
+    }
+  }
+
   // 设置回调
   setOnCharacterSelected(callback: (characterId: string) => void): void {
     this.onCharacterSelected = callback
   }
 
-  setOnGameStart(callback: (characterId: string) => void): void {
+  setOnGameStart(callback: (config: BattleConfig) => void): void {
     this.onGameStart = callback
   }
 

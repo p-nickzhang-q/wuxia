@@ -7,6 +7,11 @@ import { LayoutConstants } from './LayoutConstants'
 export class CharacterRenderer extends Container {
   private isEnemy: boolean
   private isSmall: boolean
+  private renderer: Renderer  // 保存renderer引用
+
+  // 目标选择状态
+  private isTargetable: boolean = false
+  private isTargeted: boolean = false
 
   private background: Graphics
   private portrait: Sprite | null = null
@@ -41,11 +46,17 @@ export class CharacterRenderer extends Container {
   private _barHeight: number
   private _barWidth: number
 
+  // 详情浮层
+  private detailPopup: Container | null = null
+  private characterData: CharacterState | null = null
+
   constructor(character: CharacterState, isEnemy: boolean, renderer: Renderer, isSmall: boolean = false) {
     super()
 
     this.isEnemy = isEnemy
     this.isSmall = isSmall
+    this.renderer = renderer  // 保存renderer引用
+    this.characterData = character  // 保存角色数据
 
     // 根据大小选择尺寸
     this._panelWidth = isSmall ? LayoutConstants.smallPanelWidth() : LayoutConstants.panelWidth()
@@ -130,6 +141,170 @@ export class CharacterRenderer extends Container {
     this.maxMp = character.maxMp
     this.drawHpMpBars(character)
     this.updatePassives(character)
+
+    // 小模式下添加查看详情按钮
+    if (isSmall) {
+      this.createInfoButton(renderer)
+    }
+  }
+
+  // 创建信息按钮（小模式专用）
+  private createInfoButton(renderer: Renderer): void {
+    const btnSize = LayoutConstants.scaleValue(20)
+    const infoBtn = renderer.createGraphics()
+    infoBtn.circle(this._panelWidth - btnSize - 5, 5, btnSize / 2)
+    infoBtn.fill({ color: Colors.TEXT_GOLD, alpha: 0.8 })
+    infoBtn.stroke({ color: Colors.TEXT_PRIMARY, width: 1 })
+
+    // 信息图标 "i"
+    const infoIcon = new Text({
+      text: 'i',
+      style: {
+        fontSize: LayoutConstants.scaleValue(14),
+        fill: Colors.TEXT_PRIMARY,
+        fontWeight: 'bold'
+      }
+    })
+    infoIcon.anchor.set(0.5)
+    infoIcon.x = this._panelWidth - btnSize - 5
+    infoIcon.y = 5
+
+    // 点击显示详情
+    infoBtn.eventMode = 'static'
+    infoBtn.cursor = 'pointer'
+    infoBtn.on('pointerdown', (e) => {
+      e.stopPropagation()
+      this.toggleDetailPopup(renderer)
+    })
+
+    this.addChild(infoBtn)
+    this.addChild(infoIcon)
+  }
+
+  // 切换详情浮层显示
+  toggleDetailPopup(renderer: Renderer): void {
+    if (this.detailPopup) {
+      this.removeChild(this.detailPopup)
+      this.detailPopup = null
+      return
+    }
+
+    if (!this.characterData) return
+
+    this.detailPopup = this.createDetailPopup(renderer, this.characterData)
+    // 浮层显示在面板右侧
+    this.detailPopup.x = this._panelWidth + 10
+    this.detailPopup.y = 0
+    this.addChild(this.detailPopup)
+  }
+
+  // 创建详情浮层
+  private createDetailPopup(renderer: Renderer, character: CharacterState): Container {
+    const popup = new Container()
+    const popupWidth = LayoutConstants.scaleValue(280)
+    const padding = LayoutConstants.scaleValue(10)
+    const lineHeight = LayoutConstants.scaleValue(18)
+
+    // 武功列表
+    const skills = character.skills || []
+    const passives = character.passives || []
+
+    // 计算高度（每个武功/内功占2行：名称+描述）
+    const totalLines = 1 + skills.length * 2 + (passives.length > 0 ? 1 + passives.length * 2 : 0)
+    const popupHeight = padding * 2 + totalLines * lineHeight
+
+    // 背景
+    const bg = renderer.createGraphics()
+    bg.roundRect(0, 0, popupWidth, popupHeight, 8)
+    bg.fill({ color: Colors.PANEL_BG, alpha: 0.95 })
+    bg.stroke({ color: Colors.TEXT_GOLD, width: 2 })
+    popup.addChild(bg)
+
+    let y = padding
+
+    // 武功标题
+    const skillTitle = new Text({
+      text: '【武功招式】',
+      style: { fontSize: LayoutConstants.scaleValue(14), fill: Colors.TEXT_GOLD, fontWeight: 'bold' }
+    })
+    skillTitle.x = padding
+    skillTitle.y = y
+    popup.addChild(skillTitle)
+    y += lineHeight + 2
+
+    // 武功列表
+    skills.forEach(skill => {
+      // 名称行
+      const nameText = new Text({
+        text: `${skill.name} (${skill.mpCost}内力, 范围${skill.range})`,
+        style: { fontSize: LayoutConstants.scaleValue(12), fill: Colors.TEXT_PRIMARY, fontWeight: 'bold' }
+      })
+      nameText.x = padding + 5
+      nameText.y = y
+      popup.addChild(nameText)
+      y += lineHeight
+
+      // 描述行
+      const descText = new Text({
+        text: skill.description,
+        style: { fontSize: LayoutConstants.scaleValue(11), fill: Colors.TEXT_SECONDARY, wordWrap: true, wordWrapWidth: popupWidth - padding * 2 - 10 }
+      })
+      descText.x = padding + 10
+      descText.y = y
+      popup.addChild(descText)
+      y += lineHeight + 2
+    })
+
+    // 内功标题
+    if (passives.length > 0) {
+      y += 5
+      const passiveTitle = new Text({
+        text: '【内功】',
+        style: { fontSize: LayoutConstants.scaleValue(14), fill: Colors.MP_BAR, fontWeight: 'bold' }
+      })
+      passiveTitle.x = padding
+      passiveTitle.y = y
+      popup.addChild(passiveTitle)
+      y += lineHeight + 2
+
+      passives.forEach(passive => {
+        // 名称行
+        const nameText = new Text({
+          text: passive.name,
+          style: { fontSize: LayoutConstants.scaleValue(12), fill: Colors.TEXT_PRIMARY, fontWeight: 'bold' }
+        })
+        nameText.x = padding + 5
+        nameText.y = y
+        popup.addChild(nameText)
+        y += lineHeight
+
+        // 描述行
+        const descText = new Text({
+          text: passive.description,
+          style: { fontSize: LayoutConstants.scaleValue(11), fill: Colors.TEXT_SECONDARY, wordWrap: true, wordWrapWidth: popupWidth - padding * 2 - 10 }
+        })
+        descText.x = padding + 10
+        descText.y = y
+        popup.addChild(descText)
+        y += lineHeight + 2
+      })
+    }
+
+    // 点击其他地方关闭
+    bg.eventMode = 'static'
+    bg.on('pointerdown', (e) => {
+      e.stopPropagation()
+    })
+
+    return popup
+  }
+
+  // 关闭详情浮层
+  hideDetailPopup(): void {
+    if (this.detailPopup) {
+      this.removeChild(this.detailPopup)
+      this.detailPopup = null
+    }
   }
 
   // 加载角色立绘
@@ -157,11 +332,30 @@ export class CharacterRenderer extends Container {
     this.background.clear()
     this.background.roundRect(0, 0, panelWidth, height, this.isSmall ? 8 : 12)
     this.background.fill({ color: Colors.PANEL_BG, alpha: 0.9 })
-    this.background.stroke({ color: this.isEnemy ? Colors.TEXT_RED : Colors.TEXT_BLUE, width: this.isSmall ? 2 : 3 })
+
+    // 根据目标状态设置边框
+    let borderColor: number
+    let borderWidth: number
+
+    if (this.isTargeted) {
+      borderColor = Colors.TEXT_GOLD
+      borderWidth = this.isSmall ? 3 : 4
+    } else if (this.isTargetable) {
+      borderColor = 0x00ff88  // 绿色高亮表示可选
+      borderWidth = this.isSmall ? 3 : 4
+    } else {
+      borderColor = this.isEnemy ? Colors.TEXT_RED : Colors.TEXT_BLUE
+      borderWidth = this.isSmall ? 2 : 3
+    }
+
+    this.background.stroke({ color: borderColor, width: borderWidth })
   }
 
   // 更新角色状态 - 启动平滑动画
   update(character: CharacterState): void {
+    // 更新角色数据
+    this.characterData = character
+
     // 设置目标值
     this.targetHp = character.hp
     this.targetMp = character.mp
@@ -280,59 +474,288 @@ export class CharacterRenderer extends Container {
     this.mpText.y = 2
   }
 
-  // 更新内功显示
+  // 更新内功显示 - 显示简称标签
   private updatePassives(character: CharacterState): void {
+    const skills = character.skills || []
     const passives = character.passives || []
-    const panelWidth = this._panelWidth
-    const passiveLineHeight = LayoutConstants.scaleValue(this.isSmall ? 16 : 22)
 
-    // 获取当前已有的内功ID
-    const existingIds = new Set(this.passiveTexts.keys())
-    const newIds = new Set(passives.map(p => p.id))
+    // 清除旧内容
+    this.passiveContainer.removeChildren()
+    this.passiveTexts.clear()
 
-    // 移除不再存在的内功文字
-    existingIds.forEach(id => {
-      if (!newIds.has(id)) {
-        const text = this.passiveTexts.get(id)
-        if (text) {
-          this.passiveContainer.removeChild(text)
-        }
-        this.passiveTexts.delete(id)
-      }
-    })
-
-    // 添加新的内功文字（保留已有的，避免覆盖特效状态）
+    const tagHeight = LayoutConstants.scaleValue(this.isSmall ? 18 : 22)
+    const tagGap = LayoutConstants.scaleValue(4)
     let yPos = 0
-    for (const passive of passives) {
-      // 如果已存在，只更新位置
-      if (this.passiveTexts.has(passive.id)) {
-        const text = this.passiveTexts.get(passive.id)!
-        text.y = yPos
-      } else {
-        // 创建新的内功文字
-        const nameText = new Text({
-          text: `◈ ${passive.name}: ${passive.description}`,
-          style: {
-            fontSize: LayoutConstants.fontCharacterTitle(),
-            fill: Colors.MP_BAR,
-            wordWrap: true,
-            wordWrapWidth: panelWidth - 20
-          }
-        })
-        nameText.x = 0
-        nameText.y = yPos
-        this.passiveContainer.addChild(nameText)
-        this.passiveTexts.set(passive.id, nameText)
-      }
-      yPos += passiveLineHeight
+
+    // 武功标签
+    if (skills.length > 0) {
+      // 武功标题
+      const skillLabel = new Text({
+        text: '武功:',
+        style: { fontSize: LayoutConstants.scaleValue(this.isSmall ? 11 : 13), fill: Colors.TEXT_SECONDARY }
+      })
+      skillLabel.x = 0
+      skillLabel.y = yPos
+      this.passiveContainer.addChild(skillLabel)
+
+      // 武功简称标签
+      let tagX = skillLabel.width + tagGap
+      skills.forEach(skill => {
+        const shortName = skill.shortName || skill.name.substring(0, 2)
+        const tag = this.createSkillTag(shortName, skill)
+        tag.x = tagX
+        tag.y = yPos
+        this.passiveContainer.addChild(tag)
+        tagX += tag.width + tagGap
+      })
+
+      yPos += tagHeight + tagGap
     }
 
-    // 面板高度 = 立绘高度 + 状态区 + 内功区域
-    const passivesHeight = passives.length * passiveLineHeight
+    // 内功标签
+    if (passives.length > 0) {
+      // 内功标题
+      const passiveLabel = new Text({
+        text: '内功:',
+        style: { fontSize: LayoutConstants.scaleValue(this.isSmall ? 11 : 13), fill: Colors.TEXT_SECONDARY }
+      })
+      passiveLabel.x = 0
+      passiveLabel.y = yPos
+      this.passiveContainer.addChild(passiveLabel)
+
+      // 内功简称标签
+      let tagX = passiveLabel.width + tagGap
+      passives.forEach(passive => {
+        const shortName = passive.shortName || passive.name.substring(0, 2)
+        const tag = this.createPassiveTag(shortName, passive)
+        tag.x = tagX
+        tag.y = yPos
+        this.passiveContainer.addChild(tag)
+        tagX += tag.width + tagGap
+      })
+
+      yPos += tagHeight + tagGap
+    }
+
+    // 计算面板高度
+    const passivesHeight = yPos > 0 ? yPos : 0
     const portraitHeight = this._portraitHeight
-    const baseHeight = portraitHeight + (this.isSmall ? 35 : 55) + (this._barHeight + 3) * 2 + (this.isSmall ? 10 : 50)
+    const baseHeight = portraitHeight + (this.isSmall ? 35 : 55) + (this._barHeight + 3) * 2 + (this.isSmall ? 10 : 30)
     const panelHeight = baseHeight + passivesHeight + 10
     this.drawBackground(panelHeight)
+  }
+
+  // 创建武功标签（可点击）
+  private createSkillTag(shortName: string, skill: any): Container {
+    const tag = new Container()
+    const bg = this.renderer.createGraphics()
+    const textWidth = LayoutConstants.scaleValue(shortName.length * 14 + 10)
+    const textHeight = LayoutConstants.scaleValue(this.isSmall ? 16 : 20)
+
+    bg.roundRect(0, 0, textWidth, textHeight, 4)
+    bg.fill({ color: Colors.TEXT_GOLD, alpha: 0.2 })
+    bg.stroke({ color: Colors.TEXT_GOLD, width: 1 })
+    tag.addChild(bg)
+
+    const text = new Text({
+      text: shortName,
+      style: { fontSize: LayoutConstants.scaleValue(this.isSmall ? 11 : 13), fill: Colors.TEXT_GOLD, fontWeight: 'bold' }
+    })
+    text.x = (textWidth - text.width) / 2
+    text.y = (textHeight - text.height) / 2
+    tag.addChild(text)
+
+    // 点击交互
+    tag.eventMode = 'static'
+    tag.cursor = 'pointer'
+    tag.on('pointerdown', (e) => {
+      e.stopPropagation()
+      this.showSkillDetail(skill)
+    })
+
+    return tag
+  }
+
+  // 创建内功标签（可点击）
+  private createPassiveTag(shortName: string, passive: any): Container {
+    const tag = new Container()
+    const bg = this.renderer.createGraphics()
+    const textWidth = LayoutConstants.scaleValue(shortName.length * 14 + 10)
+    const textHeight = LayoutConstants.scaleValue(this.isSmall ? 16 : 20)
+
+    bg.roundRect(0, 0, textWidth, textHeight, 4)
+    bg.fill({ color: Colors.MP_BAR, alpha: 0.2 })
+    bg.stroke({ color: Colors.MP_BAR, width: 1 })
+    tag.addChild(bg)
+
+    const text = new Text({
+      text: shortName,
+      style: { fontSize: LayoutConstants.scaleValue(this.isSmall ? 11 : 13), fill: Colors.MP_BAR, fontWeight: 'bold' }
+    })
+    text.x = (textWidth - text.width) / 2
+    text.y = (textHeight - text.height) / 2
+    tag.addChild(text)
+
+    // 点击交互
+    tag.eventMode = 'static'
+    tag.cursor = 'pointer'
+    tag.on('pointerdown', (e) => {
+      e.stopPropagation()
+      this.showPassiveDetail(passive)
+    })
+
+    return tag
+  }
+
+  // 显示武功详情
+  private showSkillDetail(skill: any): void {
+    this.hideDetailPopup()
+
+    const popup = new Container()
+    const popupWidth = LayoutConstants.scaleValue(260)
+    const padding = LayoutConstants.scaleValue(10)
+    const lineHeight = LayoutConstants.scaleValue(18)
+
+    // 计算高度
+    const lines = 4 // 名称 + 内力消耗 + 范围 + 描述
+    const popupHeight = padding * 2 + lines * lineHeight
+
+    // 背景
+    const bg = this.renderer.createGraphics()
+    bg.roundRect(0, 0, popupWidth, popupHeight, 8)
+    bg.fill({ color: Colors.PANEL_BG, alpha: 0.95 })
+    bg.stroke({ color: Colors.TEXT_GOLD, width: 2 })
+    popup.addChild(bg)
+
+    let y = padding
+
+    // 名称
+    const nameText = new Text({
+      text: `【${skill.name}】`,
+      style: { fontSize: LayoutConstants.scaleValue(14), fill: Colors.TEXT_GOLD, fontWeight: 'bold' }
+    })
+    nameText.x = padding
+    nameText.y = y
+    popup.addChild(nameText)
+    y += lineHeight
+
+    // 内力消耗
+    const mpText = new Text({
+      text: `内力消耗: ${skill.mpCost}  轻功消耗: ${skill.agilityCost}`,
+      style: { fontSize: LayoutConstants.scaleValue(12), fill: Colors.TEXT_PRIMARY }
+    })
+    mpText.x = padding
+    mpText.y = y
+    popup.addChild(mpText)
+    y += lineHeight
+
+    // 攻击范围
+    const rangeText = new Text({
+      text: `攻击范围: ${skill.range}`,
+      style: { fontSize: LayoutConstants.scaleValue(12), fill: Colors.TEXT_PRIMARY }
+    })
+    rangeText.x = padding
+    rangeText.y = y
+    popup.addChild(rangeText)
+    y += lineHeight
+
+    // 描述
+    const descText = new Text({
+      text: skill.description,
+      style: { fontSize: LayoutConstants.scaleValue(12), fill: Colors.TEXT_SECONDARY, wordWrap: true, wordWrapWidth: popupWidth - padding * 2 }
+    })
+    descText.x = padding
+    descText.y = y
+    popup.addChild(descText)
+
+    // 点击关闭
+    bg.eventMode = 'static'
+    bg.on('pointerdown', (e) => {
+      e.stopPropagation()
+      this.hideDetailPopup()
+    })
+
+    this.detailPopup = popup
+    this.detailPopup.x = this._panelWidth + 10
+    this.detailPopup.y = 0
+    this.addChild(this.detailPopup)
+  }
+
+  // 显示内功详情
+  private showPassiveDetail(passive: any): void {
+    this.hideDetailPopup()
+
+    const popup = new Container()
+    const popupWidth = LayoutConstants.scaleValue(260)
+    const padding = LayoutConstants.scaleValue(10)
+    const lineHeight = LayoutConstants.scaleValue(18)
+
+    // 计算高度
+    const lines = 3 // 名称 + 触发时机 + 描述
+    const popupHeight = padding * 2 + lines * lineHeight
+
+    // 背景
+    const bg = this.renderer.createGraphics()
+    bg.roundRect(0, 0, popupWidth, popupHeight, 8)
+    bg.fill({ color: Colors.PANEL_BG, alpha: 0.95 })
+    bg.stroke({ color: Colors.MP_BAR, width: 2 })
+    popup.addChild(bg)
+
+    let y = padding
+
+    // 名称
+    const nameText = new Text({
+      text: `【${passive.name}】`,
+      style: { fontSize: LayoutConstants.scaleValue(14), fill: Colors.MP_BAR, fontWeight: 'bold' }
+    })
+    nameText.x = padding
+    nameText.y = y
+    popup.addChild(nameText)
+    y += lineHeight
+
+    // 触发时机
+    const triggerText = new Text({
+      text: `触发时机: ${this.getTriggerTimingText(passive.trigger)}`,
+      style: { fontSize: LayoutConstants.scaleValue(12), fill: Colors.TEXT_PRIMARY }
+    })
+    triggerText.x = padding
+    triggerText.y = y
+    popup.addChild(triggerText)
+    y += lineHeight
+
+    // 描述
+    const descText = new Text({
+      text: passive.description,
+      style: { fontSize: LayoutConstants.scaleValue(12), fill: Colors.TEXT_SECONDARY, wordWrap: true, wordWrapWidth: popupWidth - padding * 2 }
+    })
+    descText.x = padding
+    descText.y = y
+    popup.addChild(descText)
+
+    // 点击关闭
+    bg.eventMode = 'static'
+    bg.on('pointerdown', (e) => {
+      e.stopPropagation()
+      this.hideDetailPopup()
+    })
+
+    this.detailPopup = popup
+    this.detailPopup.x = this._panelWidth + 10
+    this.detailPopup.y = 0
+    this.addChild(this.detailPopup)
+  }
+
+  // 获取触发时机文本
+  private getTriggerTimingText(trigger: string): string {
+    const timingMap: Record<string, string> = {
+      'TURN_START': '回合开始',
+      'TURN_END': '回合结束',
+      'ON_DAMAGE': '造成伤害时',
+      'ON_TAKE_DAMAGE': '受到伤害时',
+      'ON_PLAY_CARD': '使用卡牌时',
+      'ON_SKILL_USE': '使用武功时'
+    }
+    return timingMap[trigger] || trigger
   }
 
   // 获取面板尺寸
@@ -493,5 +916,21 @@ export class CharacterRenderer extends Container {
     }
 
     requestAnimationFrame(animate)
+  }
+
+  // 目标选择状态方法
+  setTargetable(targetable: boolean): void {
+    this.isTargetable = targetable
+    this.redrawBackground()
+  }
+
+  setTargeted(targeted: boolean): void {
+    this.isTargeted = targeted
+    this.redrawBackground()
+  }
+
+  // 重绘背景（保持当前高度）
+  private redrawBackground(): void {
+    this.drawBackground(this.currentPanelHeight)
   }
 }

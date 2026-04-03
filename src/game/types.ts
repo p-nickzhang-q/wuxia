@@ -20,6 +20,7 @@ export enum TriggerTiming {
 export enum GamePhase {
   SETUP = 'setup',
   SELECTING = 'selecting',
+  SELECTING_TARGET = 'selectingTarget',  // 选择目标
   ACTING = 'acting',
   GAME_OVER = 'gameOver'
 }
@@ -88,6 +89,7 @@ export interface SkillEffect {
 export interface MartialArtSkill {
   id: string
   name: string
+  shortName?: string  // 简称（2-3个字），可选
   requiredCardType: CardType | 'any'
   mpCost: number
   agilityCost: number
@@ -110,6 +112,7 @@ export interface PassiveEffectResult {
 export interface PassiveSkill {
   id: string
   name: string
+  shortName?: string  // 简称（2-3个字），可选
   trigger: TriggerTiming
   effect: (character: CharacterState, ...args: any[]) => string | PassiveEffectResult | null
   initEffect?: (character: CharacterState) => void

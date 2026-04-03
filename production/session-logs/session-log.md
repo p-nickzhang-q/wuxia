@@ -520,3 +520,138 @@ src/renderer/UIComponents.ts
 src/scenes/BattleScene.ts
 ---
 
+## Session End: 20260403_101427
+### Commits
+b769100 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+src/game/types.ts
+src/renderer/CharacterRenderer.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_104037
+### Commits
+b769100 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/game/types.ts
+src/main.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/UIComponents.ts
+src/scenes/BattleScene.ts
+src/scenes/CharacterSelectScene.ts
+---
+
+## Session End: 20260403_104250
+### Commits
+b769100 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/game/types.ts
+src/main.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/UIComponents.ts
+src/scenes/BattleScene.ts
+src/scenes/CharacterSelectScene.ts
+---
+
+## Session End: 20260403_105312
+### Commits
+b769100 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/game/types.ts
+src/main.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/UIComponents.ts
+src/scenes/BattleScene.ts
+src/scenes/CharacterSelectScene.ts
+---
+
+## Session End: 20260403_105544
+### Commits
+b769100 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/game/types.ts
+src/main.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/UIComponents.ts
+src/scenes/BattleScene.ts
+src/scenes/CharacterSelectScene.ts
+---
+
+## Session End: 20260403_110418
+### Commits
+b769100 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/game/types.ts
+src/main.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/UIComponents.ts
+src/scenes/BattleScene.ts
+src/scenes/CharacterSelectScene.ts
+---
+
+## Session End: 20260403_111620
+### Commits
+b769100 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/game/types.ts
+src/main.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/UIComponents.ts
+src/scenes/BattleScene.ts
+src/scenes/CharacterSelectScene.ts
+---
+
+## Session End: 20260403_112457
+### Commits
+b769100 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/game/types.ts
+src/main.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/UIComponents.ts
+src/scenes/BattleScene.ts
+src/scenes/CharacterSelectScene.ts
+---
+
+## Session End: 20260403_115412
+### Commits
+b769100 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/game/types.ts
+src/main.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/UIComponents.ts
+src/scenes/BattleScene.ts
+src/scenes/CharacterSelectScene.ts
+---
+
+## Session End: 20260403_120510
+### Commits
+b769100 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/game/types.ts
+src/main.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/UIComponents.ts
+src/scenes/BattleScene.ts
+src/scenes/CharacterSelectScene.ts
+---
+
