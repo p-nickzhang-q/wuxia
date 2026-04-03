@@ -1,4 +1,5 @@
 import { Renderer } from './renderer/Renderer'
+import { TitleScene } from './scenes/TitleScene'
 import { CharacterSelectScene, BattleConfig } from './scenes/CharacterSelectScene'
 import { BattleScene } from './scenes/BattleScene'
 import { ResultScene } from './scenes/ResultScene'
@@ -12,6 +13,7 @@ import { characters } from './data/skills'
 class Game {
   private renderer: Renderer
   private currentScene: Scene | null = null
+  private titleScene: TitleScene | null = null
   private characterSelectScene: CharacterSelectScene | null = null
   private battleScene: BattleScene | null = null
   private resultScene: ResultScene | null = null
@@ -27,12 +29,27 @@ class Game {
     await this.renderer.init(container)
 
     // 创建场景
+    this.titleScene = new TitleScene(this.renderer)
     this.characterSelectScene = new CharacterSelectScene(this.renderer)
     this.battleScene = new BattleScene(this.renderer)
     this.resultScene = new ResultScene(this.renderer)
     this.skillListScene = new SkillListScene(this.renderer)
 
-    // 设置回调
+    // 标题场景回调
+    this.titleScene.setOnBattleMode(() => {
+      this.showCharacterSelect()
+    })
+
+    this.titleScene.setOnViewSkills(() => {
+      this.showSkillList()
+    })
+
+    this.titleScene.setOnExit(() => {
+      // 浏览器环境下无法真正退出，显示提示
+      alert('感谢游玩！')
+    })
+
+    // 角色选择场景回调
     this.characterSelectScene.setOnGameStart((config: BattleConfig) => {
       this.battleConfig = config
       // 用户交互后初始化音频
@@ -40,12 +57,12 @@ class Game {
       this.startBattle()
     })
 
-    this.characterSelectScene.setOnViewSkills(() => {
-      this.showSkillList()
+    this.characterSelectScene.setOnBackToTitle(() => {
+      this.showTitle()
     })
 
     this.skillListScene.setOnBack(() => {
-      this.showCharacterSelect()
+      this.showTitle()
     })
 
     this.battleScene.setOnBattleEnd((playerWon) => {
@@ -60,11 +77,25 @@ class Game {
       this.showCharacterSelect()
     })
 
-    // 显示角色选择场景
-    this.showCharacterSelect()
+    // 显示标题场景
+    this.showTitle()
 
     // 开始游戏循环
     this.startGameLoop()
+  }
+
+  // 显示标题场景
+  private showTitle(): void {
+    if (this.currentScene) {
+      this.currentScene.onExit()
+      this.renderer.getStage().removeChild(this.currentScene)
+    }
+
+    this.currentScene = this.titleScene
+    if (this.currentScene) {
+      this.renderer.getStage().addChild(this.currentScene)
+      this.currentScene.onEnter()
+    }
   }
 
   // 显示角色选择场景

@@ -29,7 +29,7 @@ export class CharacterSelectScene extends Scene {
   private startButton: Button | null = null
   private onCharacterSelected?: (characterId: string) => void
   private onGameStart?: (config: BattleConfig) => void
-  private onViewSkills?: () => void
+  private onBackToTitle?: () => void
 
   // 战斗模式状态
   private battleMode: '1v1' | 'team' | 'freeforall' = '1v1'
@@ -224,21 +224,21 @@ export class CharacterSelectScene extends Scene {
     const size = this.renderer.getSize()
     const titleY = size.height * 0.02
 
-    const title = this.renderer.createText('武侠卡牌对战', TextStyles.TITLE, 0, titleY)
+    const title = this.renderer.createText('选择角色', TextStyles.TITLE, 0, titleY)
     title.anchor.set(0.5, 0)
     title.x = size.width / 2
     this.addChild(title)
 
-    // 查看武功按钮 - 右上角
-    const btnWidth = LayoutConstants.scaleValue(120)
+    // 返回按钮 - 左上角
+    const btnWidth = LayoutConstants.scaleValue(80)
     const btnHeight = LayoutConstants.scaleValue(35)
-    const viewSkillsBtn = new Button('查看武功', btnWidth, btnHeight, this.renderer)
-    viewSkillsBtn.x = size.width - btnWidth - LayoutConstants.scaleValue(20)
-    viewSkillsBtn.y = titleY + LayoutConstants.scaleValue(10)
-    viewSkillsBtn.setOnClick(() => {
-      if (this.onViewSkills) this.onViewSkills()
+    const backBtn = new Button('返回', btnWidth, btnHeight, this.renderer)
+    backBtn.x = LayoutConstants.scaleValue(20)
+    backBtn.y = titleY + LayoutConstants.scaleValue(10)
+    backBtn.setOnClick(() => {
+      if (this.onBackToTitle) this.onBackToTitle()
     })
-    this.addChild(viewSkillsBtn)
+    this.addChild(backBtn)
 
     // 模式选择区域 - 标题下方
     const modeY = titleY + LayoutConstants.scaleValue(55)
@@ -972,8 +972,8 @@ export class CharacterSelectScene extends Scene {
     this.onGameStart = callback
   }
 
-  setOnViewSkills(callback: () => void): void {
-    this.onViewSkills = callback
+  setOnBackToTitle(callback: () => void): void {
+    this.onBackToTitle = callback
   }
 
   // 获取选中的角色

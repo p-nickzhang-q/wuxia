@@ -1087,3 +1087,111 @@ src/game/types.ts
 src/scenes/BattleScene.ts
 ---
 
+## Session End: 20260403_221135
+### Commits
+6437de2 fix(battle): 修复战斗系统中的攻击距离计算和AI行为问题
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+---
+
+## Session End: 20260403_221255
+### Commits
+6437de2 fix(battle): 修复战斗系统中的攻击距离计算和AI行为问题
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/session-log.md
+---
+
+## Session End: 20260403_221428
+### Commits
+6437de2 fix(battle): 修复战斗系统中的攻击距离计算和AI行为问题
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/milestones/v1.0-release.md
+production/session-logs/session-log.md
+production/sprints/sprint-1-audio.md
+---
+
+## Session End: 20260403_221718
+### Commits
+6437de2 fix(battle): 修复战斗系统中的攻击距离计算和AI行为问题
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+design/gdd/game-expansion-design.md
+production/milestones/v1.0-release.md
+production/session-logs/session-log.md
+production/sprints/sprint-1-audio.md
+---
+
+## Session End: 20260403_221945
+### Commits
+6437de2 fix(battle): 修复战斗系统中的攻击距离计算和AI行为问题
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+design/gdd/game-expansion-design.md
+production/milestones/v1.0-release.md
+production/session-logs/session-log.md
+production/sprints/sprint-1-audio.md
+---
+
+## Session End: 20260403_222735
+### Commits
+6437de2 fix(battle): 修复战斗系统中的攻击距离计算和AI行为问题
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+design/gdd/game-expansion-design.md
+production/milestones/v1.0-release.md
+production/session-logs/session-log.md
+production/sprints/sprint-1-audio.md
+src/main.ts
+src/scenes/CharacterSelectScene.ts
+---
+
+## Session End: 20260403_223302
+### Commits
+6437de2 fix(battle): 修复战斗系统中的攻击距离计算和AI行为问题
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+design/gdd/game-expansion-design.md
+production/milestones/v1.0-release.md
+production/session-logs/session-log.md
+production/sprints/sprint-1-audio.md
+src/main.ts
+src/scenes/CharacterSelectScene.ts
+---
+
+## Session End: 20260403_223659
+### Commits
+6437de2 fix(battle): 修复战斗系统中的攻击距离计算和AI行为问题
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+design/gdd/game-expansion-design.md
+production/milestones/v1.0-release.md
+production/session-logs/session-log.md
+production/sprints/sprint-1-audio.md
+src/main.ts
+src/scenes/CharacterSelectScene.ts
+src/scenes/SkillListScene.ts
+---
+
+## Session End: 20260403_223919
+### Commits
+6437de2 fix(battle): 修复战斗系统中的攻击距离计算和AI行为问题
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+design/gdd/game-expansion-design.md
+production/milestones/v1.0-release.md
+production/session-logs/session-log.md
+production/sprints/sprint-1-audio.md
+src/main.ts
+src/scenes/CharacterSelectScene.ts
+---
+
