@@ -2,7 +2,7 @@ import { Scene } from './Scene'
 import { Renderer, Colors } from '../renderer/Renderer'
 import { CardRenderer, getCardDimensions } from '../renderer/CardRenderer'
 import { CharacterRenderer } from '../renderer/CharacterRenderer'
-import { Button, SkillButton, BattleLog, StatusBar, AgilityAxis } from '../renderer/UIComponents'
+import { Button, SkillButton, BattleLog, StatusBar, VerticalAgilityAxis } from '../renderer/UIComponents'
 import { createGame } from '../game/Game'
 import { createCharacter } from '../game/Character'
 import { AI } from '../game/AI'
@@ -13,7 +13,6 @@ import { effectManager } from '../utils/EffectManager'
 import { eventManager } from '../utils/EventManager'
 import { tweenManager, Easing } from '../utils/TweenManager'
 import { Text, TextStyle } from 'pixi.js'
-import { getSeatPosition } from '../game/DistanceSystem'
 
 // 战斗场景
 export class BattleScene extends Scene {
@@ -31,7 +30,7 @@ export class BattleScene extends Scene {
   private skillButtons: SkillButton[] = []
   private battleLog: BattleLog | null = null
   private statusBar: StatusBar | null = null
-  private agilityAxis: AgilityAxis | null = null
+  private agilityAxis: VerticalAgilityAxis | null = null
   private endTurnButton: Button | null = null
   private confirmButton: Button | null = null
   private cancelButton: Button | null = null
@@ -326,38 +325,45 @@ export class BattleScene extends Scene {
     const skillBtnHeight = LayoutConstants.skillBtnHeight()
     const buttonHeight = LayoutConstants.buttonHeight()
 
+    // 右侧边栏宽度
+    const sidebarWidth = LayoutConstants.sidebarWidth()
+
     // 计算底部操作区域高度
     const bottomAreaHeight = cardDims.height + skillBtnHeight + buttonHeight + 50
 
-    // 状态栏 - 顶部居中
+    // 状态栏 - 顶部居中（避开右侧边栏）
     const statusWidth = LayoutConstants.statusWidth()
     this.statusBar = new StatusBar(this.renderer)
-    this.statusBar.x = size.width / 2 - statusWidth / 2
+    this.statusBar.x = (size.width - sidebarWidth) / 2 - statusWidth / 2
     this.statusBar.y = size.height * 0.02
     this.addChild(this.statusBar)
 
-    // 战斗日志 - 顶部中央（状态栏下方）
+    // 右侧边栏 - 战斗日志 + 竖向轻功轴
+    const sidebarX = size.width - sidebarWidth
+
+    // 战斗日志 - 右侧边栏上半部分
     const logWidth = LayoutConstants.logWidth()
+    const logHeight = LayoutConstants.logHeight()
     this.battleLog = new BattleLog(this.renderer)
-    this.battleLog.x = size.width / 2 - logWidth / 2
-    this.battleLog.y = size.height * 0.02 + LayoutConstants.statusHeight() + 10
+    this.battleLog.x = sidebarX + (sidebarWidth - logWidth) / 2
+    this.battleLog.y = size.height * 0.02
     this.addChild(this.battleLog)
 
-    // 轻功轴 - 战斗日志下方（多人模式下简化显示）
+    // 竖向轻功轴 - 右侧边栏下半部分（战斗日志下方）
     const axisWidth = LayoutConstants.agilityAxisWidth()
-    this.agilityAxis = new AgilityAxis(this.renderer)
-    this.agilityAxis.x = size.width / 2 - axisWidth / 2
-    this.agilityAxis.y = size.height * 0.02 + LayoutConstants.statusHeight() + LayoutConstants.logHeight() + 20
+    this.agilityAxis = new VerticalAgilityAxis(this.renderer)
+    this.agilityAxis.x = sidebarX + (sidebarWidth - axisWidth) / 2
+    this.agilityAxis.y = size.height * 0.02 + logHeight + 15
     this.addChild(this.agilityAxis)
 
-    // 创建角色面板 - 使用圆形布局
-    this.createCharacterPanels(bottomAreaHeight)
+    // 创建角色面板 - 左侧区域
+    this.createCharacterPanels(bottomAreaHeight, sidebarWidth)
 
-    // 结束回合按钮 - 右下角
-    const panelMarginH = size.width * 0.03
+    // 结束回合按钮 - 右下角（边栏下方）
+    const panelMarginH = size.width * 0.02
     const endTurnBtnWidth = LayoutConstants.scaleValue(130)
     this.endTurnButton = new Button('结束回合', endTurnBtnWidth, buttonHeight, this.renderer)
-    this.endTurnButton.x = size.width - endTurnBtnWidth - panelMarginH
+    this.endTurnButton.x = size.width - sidebarWidth - endTurnBtnWidth - panelMarginH
     this.endTurnButton.y = size.height - buttonHeight - 15
     this.endTurnButton.setOnClick(() => this.handleEndTurn())
     this.addChild(this.endTurnButton)
@@ -365,95 +371,111 @@ export class BattleScene extends Scene {
     // 确认按钮 - 底部中央偏左
     const actionBtnWidth = LayoutConstants.scaleValue(100)
     this.confirmButton = new Button('确认', actionBtnWidth, buttonHeight, this.renderer)
-    this.confirmButton.x = size.width / 2 - actionBtnWidth - 10
+    this.confirmButton.x = (size.width - sidebarWidth) / 2 - actionBtnWidth - 10
     this.confirmButton.y = size.height - buttonHeight - 15
     this.confirmButton.setOnClick(() => this.handleConfirm())
     this.addChild(this.confirmButton)
 
     // 取消按钮 - 底部中央偏右
     this.cancelButton = new Button('取消', actionBtnWidth, buttonHeight, this.renderer)
-    this.cancelButton.x = size.width / 2 + 10
+    this.cancelButton.x = (size.width - sidebarWidth) / 2 + 10
     this.cancelButton.y = size.height - buttonHeight - 15
     this.cancelButton.setOnClick(() => this.handleCancel())
     this.addChild(this.cancelButton)
   }
 
-  // 创建角色面板（圆形布局）
-  private createCharacterPanels(bottomAreaHeight: number): void {
+  // 创建角色面板（左侧区域布局）
+  private createCharacterPanels(bottomAreaHeight: number, sidebarWidth: number): void {
     if (!this.game) return
 
     const allChars = this.game.getAllCharacters()
     const totalSeats = this.game.totalSeats
+    const size = this.renderer.getSize()
 
-    // 1v1 模式使用传统左右布局
+    // 可用区域（去掉右侧边栏）
+    const availableWidth = size.width - sidebarWidth
+
+    // 根据人数选择布局
     if (totalSeats === 2) {
-      this.createTraditionalLayout(bottomAreaHeight)
+      // 1v1 使用较大面板，左右布局
+      this.createTraditionalLayout(bottomAreaHeight, sidebarWidth)
       return
     }
 
-    // 多人模式使用圆形布局
-    const size = this.renderer.getSize()
+    // 多人模式使用缩小面板，左右两侧分布
+    const panelWidth = LayoutConstants.smallPanelWidth()
+    const panelHeight = LayoutConstants.smallPortraitHeight() + 70  // 立绘 + 状态区
+    const panelSpacing = 15
 
-    // 圆形布局参数 - 避开顶部状态栏/日志和底部操作区
-    const topReserved = LayoutConstants.statusHeight() + LayoutConstants.logHeight() + LayoutConstants.agilityAxisHeight() + 40
-    const availableHeight = size.height - topReserved - bottomAreaHeight
-    const centerX = size.width / 2
-    const centerY = topReserved + availableHeight / 2
+    // 分离玩家队伍和敌人队伍
+    const players = allChars.filter(c => this.isPlayerTeam(c))
+    const enemies = allChars.filter(c => !this.isPlayerTeam(c))
 
-    // 根据可用空间计算半径
-    const maxRadiusX = (size.width - LayoutConstants.panelWidth()) / 2 - 20
-    const maxRadiusY = (availableHeight - LayoutConstants.portraitHeight()) / 2 - 20
-    const radius = Math.min(maxRadiusX, maxRadiusY, Math.min(size.width, size.height) * 0.25)
+    // 计算左侧玩家队伍布局
+    const leftX = 20
+    const leftStartY = (size.height - bottomAreaHeight - (players.length * (panelHeight + panelSpacing) - panelSpacing)) / 2
 
-    // 为每个角色创建面板
-    allChars.forEach(char => {
-      const isEnemy = char.battlePosition?.team === 'enemy'
-      const renderer = new CharacterRenderer(char, isEnemy, this.renderer)
+    players.forEach((char, index) => {
+      const renderer = new CharacterRenderer(char, false, this.renderer, true)  // 小面板
+      renderer.x = leftX
+      renderer.y = leftStartY + index * (panelHeight + panelSpacing)
+      this.addChild(renderer)
+      this.characterRenderers.set(char.id, renderer)
+    })
 
-      // 计算圆形位置
-      const pos = getSeatPosition(
-        char.battlePosition!.seatIndex,
-        totalSeats,
-        centerX,
-        centerY,
-        radius
-      )
+    // 计算右侧敌人队伍布局（边栏左侧）
+    const rightX = availableWidth - panelWidth - 20
+    const rightStartY = (size.height - bottomAreaHeight - (enemies.length * (panelHeight + panelSpacing) - panelSpacing)) / 2
 
-      renderer.x = pos.x - LayoutConstants.panelWidth() / 2
-      renderer.y = pos.y - LayoutConstants.portraitHeight() / 2
-
+    enemies.forEach((char, index) => {
+      const renderer = new CharacterRenderer(char, true, this.renderer, true)  // 小面板
+      renderer.x = rightX
+      renderer.y = rightStartY + index * (panelHeight + panelSpacing)
       this.addChild(renderer)
       this.characterRenderers.set(char.id, renderer)
     })
   }
 
   // 传统 1v1 左右布局
-  private createTraditionalLayout(bottomAreaHeight: number): void {
+  private createTraditionalLayout(bottomAreaHeight: number, sidebarWidth: number): void {
     if (!this.game) return
 
     const size = this.renderer.getSize()
     const allChars = this.game.getAllCharacters()
+    const availableWidth = size.width - sidebarWidth
 
     // 玩家在左边，敌人在右边
     const player = this.playerConfigs[0]
     const enemy = this.enemyConfigs[0]
 
-    const panelMarginH = size.width * 0.03
+    const panelMarginH = availableWidth * 0.05
+
+    // 先创建所有渲染器，获取尺寸
+    const renderers: Map<string, { renderer: CharacterRenderer; char: CharacterState }> = new Map()
+    let maxPanelHeight = 0
 
     allChars.forEach(char => {
       const isEnemy = char.battlePosition?.team === 'enemy'
-      const renderer = new CharacterRenderer(char, isEnemy, this.renderer)
+      const renderer = new CharacterRenderer(char, isEnemy, this.renderer, false)  // 正常大小
+      const panelSize = renderer.getSize()
+      maxPanelHeight = Math.max(maxPanelHeight, panelSize.height)
+      renderers.set(char.id, { renderer, char })
+    })
 
+    // 使用最大高度计算统一的 Y 坐标（底部对齐）
+    const baseY = size.height - maxPanelHeight - bottomAreaHeight - 20
+
+    renderers.forEach(({ renderer, char }) => {
       const panelSize = renderer.getSize()
 
       if (char === player) {
         // 玩家在左边
         renderer.x = panelMarginH
-        renderer.y = size.height - panelSize.height - bottomAreaHeight - 20
+        renderer.y = baseY
       } else if (char === enemy) {
-        // 敌人在右边
-        renderer.x = size.width - panelSize.width - panelMarginH
-        renderer.y = size.height - panelSize.height - bottomAreaHeight - 20
+        // 敌人在右边（边栏左侧）
+        renderer.x = availableWidth - panelSize.width - panelMarginH
+        renderer.y = baseY
       }
 
       this.addChild(renderer)
@@ -498,29 +520,26 @@ export class BattleScene extends Scene {
     }
   }
 
-  // 更新轻功轴（多人模式简化）
+  // 更新轻功轴（竖向显示所有角色）
   private updateAgilityAxis(): void {
     if (!this.agilityAxis || !this.game) return
 
-    // 对于多人模式，简化轻功轴显示
-    // 只显示当前行动者和下一个行动者的轻功对比
+    // 获取所有存活角色
+    const allChars = this.game.getAllCharacters()
     const currentActor = this.game.currentActor
-    if (!currentActor) return
 
-    // 找出下一个可能的行动者
-    const aliveChars = this.game.getAliveCharacters()
-      .filter(c => c.isAlive() && c.id !== currentActor.id)
-      .sort((a, b) => b.getCurrentAgility() - a.getCurrentAgility())
+    // 准备角色数据
+    const charData = allChars
+      .filter(c => c.isAlive())
+      .map(c => ({
+        id: c.id,
+        name: c.name,
+        agility: c.agility,
+        isPlayer: this.isPlayerTeam(c),
+        isAlive: c.isAlive()
+      }))
 
-    const nextActor = aliveChars[0]
-
-    this.agilityAxis.update(
-      currentActor.name,
-      currentActor.agility,
-      nextActor?.name || '',
-      nextActor?.agility || 0,
-      this.isPlayerTeam(currentActor) ? 'player' : 'enemy'
-    )
+    this.agilityAxis.update(charData, currentActor?.id || null)
   }
 
   // 判断角色是否属于玩家队伍
@@ -580,14 +599,18 @@ export class BattleScene extends Scene {
     const availableCards = currentActor.getAvailableCards(currentActor.agility)
     const availableIds = availableCards.map(c => c.instanceId)
 
-    // 手牌在底部中央
+    // 右侧边栏宽度
+    const sidebarWidth = LayoutConstants.sidebarWidth()
+    const availableWidth = size.width - sidebarWidth
+
+    // 手牌在底部中央（避开右侧边栏）
     const cardSpacing = cardDims.width + LayoutConstants.cardSpacing()
     const totalWidth = hand.length * cardSpacing - LayoutConstants.cardSpacing()
-    const startX = (size.width - totalWidth) / 2
+    const startX = availableWidth / 2 - totalWidth / 2
     const y = size.height - cardDims.height - LayoutConstants.buttonHeight() - 25
 
-    // 牌堆位置（屏幕中央）
-    const deckX = size.width / 2
+    // 牌堆位置（屏幕中央，避开边栏）
+    const deckX = availableWidth / 2
     const deckY = size.height / 2
 
     hand.forEach((card, index) => {
@@ -658,10 +681,14 @@ export class BattleScene extends Scene {
     const skillBtnWidth = LayoutConstants.skillBtnWidth()
     const skillBtnHeight = LayoutConstants.skillBtnHeight()
 
-    // 技能按钮在底部手牌上方，居中显示
+    // 右侧边栏宽度
+    const sidebarWidth = LayoutConstants.sidebarWidth()
+    const availableWidth = size.width - sidebarWidth
+
+    // 技能按钮在底部手牌上方，居中显示（避开右侧边栏）
     const btnSpacing = skillBtnWidth + 10
     const totalWidth = skills.length * btnSpacing - 10
-    const startX = (size.width - totalWidth) / 2
+    const startX = availableWidth / 2 - totalWidth / 2
     const y = size.height - cardDims.height - skillBtnHeight - LayoutConstants.buttonHeight() - 40
 
     skills.forEach((skill, index) => {

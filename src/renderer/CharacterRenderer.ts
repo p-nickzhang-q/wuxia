@@ -1,4 +1,4 @@
-import { Container, Graphics, Text, Sprite, Assets } from 'pixi.js'
+import { Container, Graphics, Text, Sprite, Assets, TextStyle } from 'pixi.js'
 import { CharacterState } from '../game/types'
 import { Colors, TextStyles, Renderer } from './Renderer'
 import { LayoutConstants } from './LayoutConstants'
@@ -6,6 +6,7 @@ import { LayoutConstants } from './LayoutConstants'
 // 角色渲染器 - 使用响应式尺寸
 export class CharacterRenderer extends Container {
   private isEnemy: boolean
+  private isSmall: boolean
 
   private background: Graphics
   private portrait: Sprite | null = null
@@ -34,17 +35,26 @@ export class CharacterRenderer extends Container {
   private maxHp: number = 0
   private maxMp: number = 0
 
-  constructor(character: CharacterState, isEnemy: boolean, renderer: Renderer) {
+  // 尺寸缓存
+  private _panelWidth: number
+  private _portraitHeight: number
+  private _barHeight: number
+  private _barWidth: number
+
+  constructor(character: CharacterState, isEnemy: boolean, renderer: Renderer, isSmall: boolean = false) {
     super()
 
     this.isEnemy = isEnemy
+    this.isSmall = isSmall
 
-    const portraitHeight = LayoutConstants.portraitHeight()
-    const panelWidth = LayoutConstants.panelWidth()
-    const barHeight = LayoutConstants.barHeight()
+    // 根据大小选择尺寸
+    this._panelWidth = isSmall ? LayoutConstants.smallPanelWidth() : LayoutConstants.panelWidth()
+    this._portraitHeight = isSmall ? LayoutConstants.smallPortraitHeight() : LayoutConstants.portraitHeight()
+    this._barHeight = LayoutConstants.barHeight()
+    this._barWidth = isSmall ? LayoutConstants.smallBarWidth() : LayoutConstants.barWidth()
 
     // 初始化面板高度
-    this.currentPanelHeight = portraitHeight + 100
+    this.currentPanelHeight = this._portraitHeight + (isSmall ? 70 : 100)
 
     // 背景
     this.background = renderer.createGraphics()
@@ -54,54 +64,60 @@ export class CharacterRenderer extends Container {
     this.loadPortrait(character.name)
 
     // 角色名称 - 立绘下方
-    this.nameText = renderer.createText(character.name, TextStyles.CHARACTER_NAME, 0, portraitHeight + 5)
+    const nameFontSize = isSmall ? LayoutConstants.fontCardName() : LayoutConstants.fontCharacterName()
+    this.nameText = renderer.createText(character.name, new TextStyle({ fontSize: nameFontSize, fill: Colors.TEXT_PRIMARY, fontWeight: 'bold' }), 0, this._portraitHeight + 3)
     this.addChild(this.nameText)
 
     // 角色称号
-    this.titleText = renderer.createText(character.title, TextStyles.CHARACTER_TITLE, 0, portraitHeight + 32)
+    const titleFontSize = isSmall ? LayoutConstants.fontCardType() : LayoutConstants.fontCharacterTitle()
+    this.titleText = renderer.createText(character.title, new TextStyle({ fontSize: titleFontSize, fill: Colors.TEXT_SECONDARY }), 0, this._portraitHeight + (isSmall ? 20 : 32))
     this.addChild(this.titleText)
 
     // HP 条
     this.hpBar = renderer.createGraphics()
-    this.hpBar.y = portraitHeight + 55
+    this.hpBar.y = this._portraitHeight + (isSmall ? 35 : 55)
     this.addChild(this.hpBar)
 
     // HP 标签
+    const statsFontSize = isSmall ? LayoutConstants.fontCardType() : LayoutConstants.fontStats()
     this.hpText = new Text({
       text: '',
-      style: { fontSize: LayoutConstants.fontStats(), fill: Colors.TEXT_PRIMARY, fontWeight: 'bold' }
+      style: { fontSize: statsFontSize, fill: Colors.TEXT_PRIMARY, fontWeight: 'bold' }
     })
     this.hpBar.addChild(this.hpText)
 
     // MP 条
     this.mpBar = renderer.createGraphics()
-    this.mpBar.y = portraitHeight + 55 + barHeight + 5
+    this.mpBar.y = this._portraitHeight + (isSmall ? 35 : 55) + this._barHeight + 3
     this.addChild(this.mpBar)
 
     // MP 标签
     this.mpText = new Text({
       text: '',
-      style: { fontSize: LayoutConstants.fontStats(), fill: Colors.TEXT_PRIMARY, fontWeight: 'bold' }
+      style: { fontSize: statsFontSize, fill: Colors.TEXT_PRIMARY, fontWeight: 'bold' }
     })
     this.mpBar.addChild(this.mpText)
 
     // 护盾和轻功 - 同一行显示
-    this.shieldText = renderer.createText('', TextStyles.STATS, 10, portraitHeight + 55 + (barHeight + 5) * 2 + 8)
-    this.shieldText.style.fill = Colors.TEXT_GREEN
+    const infoY = this._portraitHeight + (isSmall ? 35 : 55) + (this._barHeight + 3) * 2 + 5
+    this.shieldText = renderer.createText('', new TextStyle({ fontSize: statsFontSize, fill: Colors.TEXT_GREEN }), 8, infoY)
     this.addChild(this.shieldText)
 
-    this.agilityText = renderer.createText('', TextStyles.STATS, panelWidth / 2 + 10, portraitHeight + 55 + (barHeight + 5) * 2 + 8)
-    this.agilityText.style.fill = Colors.AGILITY_BAR
+    this.agilityText = renderer.createText('', new TextStyle({ fontSize: statsFontSize, fill: Colors.AGILITY_BAR }), this._panelWidth / 2 + 8, infoY)
     this.addChild(this.agilityText)
 
-    // 武功信息
-    this.martialArtsText = renderer.createText('', TextStyles.SKILL_NAME, 10, portraitHeight + 55 + (barHeight + 5) * 2 + 30)
-    this.addChild(this.martialArtsText)
+    // 武功信息（小模式不显示）
+    if (!isSmall) {
+      this.martialArtsText = renderer.createText('', TextStyles.SKILL_NAME, 10, this._portraitHeight + 55 + (this._barHeight + 5) * 2 + 30)
+      this.addChild(this.martialArtsText)
+    } else {
+      this.martialArtsText = new Text({ text: '' })
+    }
 
     // 内功容器
     this.passiveContainer = new Container()
-    this.passiveContainer.x = 10
-    this.passiveContainer.y = portraitHeight + 55 + (barHeight + 5) * 2 + 50
+    this.passiveContainer.x = 8
+    this.passiveContainer.y = this._portraitHeight + (isSmall ? 55 : 55) + (this._barHeight + 5) * 2 + (isSmall ? 10 : 50)
     this.addChild(this.passiveContainer)
 
     // 初始绘制
@@ -121,11 +137,11 @@ export class CharacterRenderer extends Container {
     try {
       const texture = await Assets.load(`/assets/characters/${name}.png`)
       this.portrait = new Sprite(texture)
-      const portraitWidth = LayoutConstants.portraitWidth()
-      const portraitHeight = LayoutConstants.portraitHeight()
-      const panelWidth = LayoutConstants.panelWidth()
+      const portraitWidth = this.isSmall ? LayoutConstants.smallPortraitWidth() : LayoutConstants.portraitWidth()
+      const portraitHeight = this._portraitHeight
+      const panelWidth = this._panelWidth
       this.portrait.x = (panelWidth - portraitWidth) / 2  // 居中
-      this.portrait.y = 5  // 顶部留小边距
+      this.portrait.y = 3  // 顶部留小边距
       this.portrait.width = portraitWidth
       this.portrait.height = portraitHeight
       this.addChildAt(this.portrait, 1)
@@ -137,11 +153,11 @@ export class CharacterRenderer extends Container {
   // 绘制背景
   private drawBackground(height: number): void {
     this.currentPanelHeight = height
-    const panelWidth = LayoutConstants.panelWidth()
+    const panelWidth = this._panelWidth
     this.background.clear()
-    this.background.roundRect(0, 0, panelWidth, height, 12)
+    this.background.roundRect(0, 0, panelWidth, height, this.isSmall ? 8 : 12)
     this.background.fill({ color: Colors.PANEL_BG, alpha: 0.9 })
-    this.background.stroke({ color: this.isEnemy ? Colors.TEXT_RED : Colors.TEXT_BLUE, width: 3 })
+    this.background.stroke({ color: this.isEnemy ? Colors.TEXT_RED : Colors.TEXT_BLUE, width: this.isSmall ? 2 : 3 })
   }
 
   // 更新角色状态 - 启动平滑动画
@@ -161,7 +177,7 @@ export class CharacterRenderer extends Container {
       this.drawHpMpBars(character)
     }
 
-    const panelWidth = LayoutConstants.panelWidth()
+    const panelWidth = this._panelWidth
 
     // 更新名称位置（居中）
     this.nameText.x = (panelWidth - this.nameText.width) / 2
@@ -173,8 +189,8 @@ export class CharacterRenderer extends Container {
     this.shieldText.text = character.shield > 0 ? `护盾:${character.shield}` : ''
     this.agilityText.text = `轻功:${character.agility}`
 
-    // 更新武功信息
-    if (character.martialArtsNames && character.martialArtsNames.length > 0) {
+    // 更新武功信息（小模式不显示）
+    if (!this.isSmall && character.martialArtsNames && character.martialArtsNames.length > 0) {
       this.martialArtsText.text = `武功: ${character.martialArtsNames.join(', ')}`
     }
 
@@ -228,9 +244,9 @@ export class CharacterRenderer extends Container {
 
   // 绘制 HP/MP 条（使用指定值）
   private drawHpMpBarsWithValues(hp: number, mp: number, maxHp: number, maxMp: number): void {
-    const panelWidth = LayoutConstants.panelWidth()
-    const barWidth = LayoutConstants.barWidth()
-    const barHeight = LayoutConstants.barHeight()
+    const panelWidth = this._panelWidth
+    const barWidth = this._barWidth
+    const barHeight = this._barHeight
     const barX = (panelWidth - barWidth) / 2  // 条形图居中
 
     // 更新 HP 条
@@ -244,8 +260,8 @@ export class CharacterRenderer extends Container {
     }
     this.hpBar.stroke({ color: 0x555555, width: 1 })
 
-    this.hpText.text = `HP ${hp}/${maxHp}`
-    this.hpText.x = barX + 8
+    this.hpText.text = this.isSmall ? `${hp}` : `HP ${hp}/${maxHp}`
+    this.hpText.x = barX + 4
     this.hpText.y = 2
 
     // 更新 MP 条
@@ -259,16 +275,16 @@ export class CharacterRenderer extends Container {
     }
     this.mpBar.stroke({ color: 0x555555, width: 1 })
 
-    this.mpText.text = `MP ${mp}/${maxMp}`
-    this.mpText.x = barX + 8
+    this.mpText.text = this.isSmall ? `${mp}` : `MP ${mp}/${maxMp}`
+    this.mpText.x = barX + 4
     this.mpText.y = 2
   }
 
   // 更新内功显示
   private updatePassives(character: CharacterState): void {
     const passives = character.passives || []
-    const panelWidth = LayoutConstants.panelWidth()
-    const passiveLineHeight = LayoutConstants.scaleValue(22)
+    const panelWidth = this._panelWidth
+    const passiveLineHeight = LayoutConstants.scaleValue(this.isSmall ? 16 : 22)
 
     // 获取当前已有的内功ID
     const existingIds = new Set(this.passiveTexts.keys())
@@ -313,15 +329,15 @@ export class CharacterRenderer extends Container {
 
     // 面板高度 = 立绘高度 + 状态区 + 内功区域
     const passivesHeight = passives.length * passiveLineHeight
-    const portraitHeight = LayoutConstants.portraitHeight()
-    const baseHeight = portraitHeight + 55 + (LayoutConstants.barHeight() + 5) * 2 + 50
+    const portraitHeight = this._portraitHeight
+    const baseHeight = portraitHeight + (this.isSmall ? 35 : 55) + (this._barHeight + 3) * 2 + (this.isSmall ? 10 : 50)
     const panelHeight = baseHeight + passivesHeight + 10
     this.drawBackground(panelHeight)
   }
 
   // 获取面板尺寸
   getSize(): { width: number; height: number } {
-    return { width: LayoutConstants.panelWidth(), height: this.currentPanelHeight }
+    return { width: this._panelWidth, height: this.currentPanelHeight }
   }
 
   // 公开方法：获取HP条用于特效

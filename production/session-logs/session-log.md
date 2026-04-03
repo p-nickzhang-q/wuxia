@@ -503,3 +503,20 @@ production/session-logs/compaction-log.txt
 production/session-logs/session-log.md
 ---
 
+## Session End: 20260403_094120
+### Uncommitted Changes
+src/renderer/CharacterRenderer.ts
+src/renderer/LayoutConstants.ts
+src/renderer/UIComponents.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_094626
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/renderer/CharacterRenderer.ts
+src/renderer/LayoutConstants.ts
+src/renderer/UIComponents.ts
+src/scenes/BattleScene.ts
+---
+

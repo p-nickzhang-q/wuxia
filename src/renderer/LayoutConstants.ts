@@ -11,6 +11,15 @@ export class LayoutConstants {
   static readonly BASE_BAR_WIDTH = 280         // HP/MP条宽度
   static readonly BASE_BAR_HEIGHT = 20         // HP/MP条高度
 
+  // 多人模式角色面板尺寸（缩小版）
+  static readonly BASE_SMALL_PORTRAIT_WIDTH = 200
+  static readonly BASE_SMALL_PORTRAIT_HEIGHT = 113   // 保持 1.78:1 比例
+  static readonly BASE_SMALL_PANEL_WIDTH = 200
+  static readonly BASE_SMALL_BAR_WIDTH = 180
+
+  // 右侧边栏
+  static readonly BASE_SIDEBAR_WIDTH = 280     // 右侧边栏宽度
+
   // 卡牌基准尺寸
   static readonly BASE_CARD_WIDTH = 100
   static readonly BASE_CARD_HEIGHT = 140
@@ -24,17 +33,17 @@ export class LayoutConstants {
   static readonly BASE_SKILL_BTN_HEIGHT = 75
 
   // 战斗日志基准尺寸
-  static readonly BASE_LOG_WIDTH = 450
-  static readonly BASE_LOG_HEIGHT = 220
+  static readonly BASE_LOG_WIDTH = 260         // 右侧边栏内的宽度
+  static readonly BASE_LOG_HEIGHT = 300        // 增加高度
 
   // 状态栏基准尺寸
   static readonly BASE_STATUS_WIDTH = 240
   static readonly BASE_STATUS_HEIGHT = 42
 
-  // 轻功轴基准尺寸
-  static readonly BASE_AGILITY_AXIS_WIDTH = 600
-  static readonly BASE_AGILITY_AXIS_HEIGHT = 60
-  static readonly BASE_AGILITY_MARKER_SIZE = 14
+  // 轻功轴基准尺寸（竖向）
+  static readonly BASE_AGILITY_AXIS_WIDTH = 60
+  static readonly BASE_AGILITY_AXIS_HEIGHT = 280
+  static readonly BASE_AGILITY_MARKER_SIZE = 12
 
   // 字体基准大小
   static readonly BASE_FONT_TITLE = 38
@@ -67,6 +76,15 @@ export class LayoutConstants {
   static barWidth(): number { return Math.round(this.BASE_BAR_WIDTH * this._scale) }
   static barHeight(): number { return Math.round(this.BASE_BAR_HEIGHT * this._scale) }
 
+  // 多人模式角色面板尺寸（缩小版）
+  static smallPortraitWidth(): number { return Math.round(this.BASE_SMALL_PORTRAIT_WIDTH * this._scale) }
+  static smallPortraitHeight(): number { return Math.round(this.BASE_SMALL_PORTRAIT_HEIGHT * this._scale) }
+  static smallPanelWidth(): number { return Math.round(this.BASE_SMALL_PANEL_WIDTH * this._scale) }
+  static smallBarWidth(): number { return Math.round(this.BASE_SMALL_BAR_WIDTH * this._scale) }
+
+  // 右侧边栏
+  static sidebarWidth(): number { return Math.round(this.BASE_SIDEBAR_WIDTH * this._scale) }
+
   // 卡牌尺寸
   static cardWidth(): number { return Math.round(this.BASE_CARD_WIDTH * this._scale) }
   static cardHeight(): number { return Math.round(this.BASE_CARD_HEIGHT * this._scale) }
@@ -87,7 +105,7 @@ export class LayoutConstants {
   static statusWidth(): number { return Math.round(this.BASE_STATUS_WIDTH * this._scale) }
   static statusHeight(): number { return Math.round(this.BASE_STATUS_HEIGHT * this._scale) }
 
-  // 轻功轴尺寸
+  // 轻功轴尺寸（竖向）
   static agilityAxisWidth(): number { return Math.round(this.BASE_AGILITY_AXIS_WIDTH * this._scale) }
   static agilityAxisHeight(): number { return Math.round(this.BASE_AGILITY_AXIS_HEIGHT * this._scale) }
   static agilityMarkerSize(): number { return Math.round(this.BASE_AGILITY_MARKER_SIZE * this._scale) }
