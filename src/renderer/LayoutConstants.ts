@@ -17,6 +17,12 @@ export class LayoutConstants {
   static readonly BASE_SMALL_PANEL_WIDTH = 200
   static readonly BASE_SMALL_BAR_WIDTH = 180
 
+  // 迷你面板尺寸（圆形布局专用）
+  static readonly BASE_MINI_PANEL_WIDTH = 180
+  static readonly BASE_MINI_PANEL_HEIGHT = 130
+  static readonly BASE_MINI_AVATAR_SIZE = 50        // 圆形头像直径
+  static readonly BASE_MINI_TAG_HEIGHT = 18         // 武功标签高度
+
   // 右侧边栏
   static readonly BASE_SIDEBAR_WIDTH = 280     // 右侧边栏宽度
 
@@ -81,6 +87,12 @@ export class LayoutConstants {
   static smallPortraitHeight(): number { return Math.round(this.BASE_SMALL_PORTRAIT_HEIGHT * this._scale) }
   static smallPanelWidth(): number { return Math.round(this.BASE_SMALL_PANEL_WIDTH * this._scale) }
   static smallBarWidth(): number { return Math.round(this.BASE_SMALL_BAR_WIDTH * this._scale) }
+
+  // 迷你面板尺寸（圆形布局专用）
+  static miniPanelWidth(): number { return Math.round(this.BASE_MINI_PANEL_WIDTH * this._scale) }
+  static miniPanelHeight(): number { return Math.round(this.BASE_MINI_PANEL_HEIGHT * this._scale) }
+  static miniAvatarSize(): number { return Math.round(this.BASE_MINI_AVATAR_SIZE * this._scale) }
+  static miniTagHeight(): number { return Math.round(this.BASE_MINI_TAG_HEIGHT * this._scale) }
 
   // 右侧边栏
   static sidebarWidth(): number { return Math.round(this.BASE_SIDEBAR_WIDTH * this._scale) }

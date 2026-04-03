@@ -222,6 +222,16 @@ export function createGame(): GameState {
     useBasicCard(cardInstanceId: string, targetId?: string) {
       const actor = this.currentActor!
 
+      const card = actor.hand.find(c => c.instanceId === cardInstanceId)
+
+      if (!card) {
+        return { success: false, message: '未找到该卡牌' }
+      }
+
+      if (card.agilityCost > actor.agility) {
+        return { success: false, message: '轻功不足' }
+      }
+
       // 确定目标
       let target: CharacterState
       if (targetId) {
@@ -232,19 +242,12 @@ export function createGame(): GameState {
         target = foundTarget
       } else if (this.selectedTarget) {
         target = this.selectedTarget
+      } else if (card.baseShield > 0 && card.baseDamage === 0) {
+        // 纯防御卡牌（如格挡），目标是自己
+        target = actor
       } else {
         // 向后兼容：默认攻击敌人
         target = actor === this.player ? this.enemy! : this.player!
-      }
-
-      const card = actor.hand.find(c => c.instanceId === cardInstanceId)
-
-      if (!card) {
-        return { success: false, message: '未找到该卡牌' }
-      }
-
-      if (card.agilityCost > actor.agility) {
-        return { success: false, message: '轻功不足' }
       }
 
       actor.playCard(cardInstanceId)

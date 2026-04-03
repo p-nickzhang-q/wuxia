@@ -2,6 +2,7 @@ import { Scene } from './Scene'
 import { Renderer, Colors } from '../renderer/Renderer'
 import { CardRenderer, getCardDimensions } from '../renderer/CardRenderer'
 import { CharacterRenderer } from '../renderer/CharacterRenderer'
+import { MiniCharacterRenderer } from '../renderer/MiniCharacterRenderer'
 import { Button, SkillButton, BattleLog, StatusBar, VerticalAgilityAxis } from '../renderer/UIComponents'
 import { createGame } from '../game/Game'
 import { createCharacter } from '../game/Character'
@@ -24,7 +25,7 @@ export class BattleScene extends Scene {
   private ai: AI | null = null
 
   // 渲染组件 - 多人支持
-  private characterRenderers: Map<string, CharacterRenderer> = new Map()
+  private characterRenderers: Map<string, CharacterRenderer | MiniCharacterRenderer> = new Map()
 
   private cardRenderers: CardRenderer[] = []
   private skillButtons: SkillButton[] = []
@@ -191,8 +192,11 @@ export class BattleScene extends Scene {
     if (this.pendingCardId) return
 
     const currentActor = this.game.currentActor
-    // 判断当前行动者是否由玩家控制（AI控制所有非玩家角色，包括队友）
-    if (!currentActor || this.isPlayerControlled(currentActor)) return
+
+    // 判断当前行动者是否由玩家控制
+    // 玩家只控制选择的角色，其他角色（包括队友）都由AI控制
+    if (!currentActor) return
+    if (this.isPlayerControlled(currentActor)) return
     if (this.game.phase !== GamePhase.SELECTING) return
 
     this.handleAITurn()
@@ -400,62 +404,78 @@ export class BattleScene extends Scene {
     this.addChild(this.cancelButton)
   }
 
-  // 创建角色面板（左侧区域布局）
+  // 创建角色面板（左右布局）
   private createCharacterPanels(bottomAreaHeight: number, sidebarWidth: number): void {
     if (!this.game) return
 
-    const allChars = this.game.getAllCharacters()
     const totalSeats = this.game.totalSeats
-    const size = this.renderer.getSize()
+    const isMultiBattle = totalSeats > 2
 
-    // 可用区域（去掉右侧边栏）
+    if (isMultiBattle) {
+      // 多人战斗：使用迷你面板
+      this.createMultiPlayerLayout(bottomAreaHeight, sidebarWidth)
+    } else {
+      // 1v1：使用普通面板
+      this.createTraditionalLayout(bottomAreaHeight, sidebarWidth)
+    }
+  }
+
+  // 多人战斗左右布局（迷你面板）
+  private createMultiPlayerLayout(bottomAreaHeight: number, sidebarWidth: number): void {
+    if (!this.game) return
+
+    const size = this.renderer.getSize()
+    const allChars = this.game.getAllCharacters()
     const availableWidth = size.width - sidebarWidth
 
-    // 根据人数选择布局
-    if (totalSeats === 2) {
-      // 1v1 使用较大面板，左右布局
-      this.createTraditionalLayout(bottomAreaHeight, sidebarWidth)
-      return
-    }
+    // 分组：玩家队伍和敌人队伍
+    const playerTeam = allChars.filter(c => this.isPlayerTeam(c))
+    const enemyTeam = allChars.filter(c => !this.isPlayerTeam(c))
 
-    // 多人模式使用缩小面板，左右两侧分布
-    const panelWidth = LayoutConstants.smallPanelWidth()
-    const panelHeight = LayoutConstants.smallPortraitHeight() + 70  // 立绘 + 状态区
-    const panelSpacing = 15
+    const panelMarginH = availableWidth * 0.03
+    const panelSpacing = 8  // 面板之间的垂直间距
 
-    // 分离玩家队伍和敌人队伍
-    const players = allChars.filter(c => this.isPlayerTeam(c))
-    const enemies = allChars.filter(c => !this.isPlayerTeam(c))
+    // 迷你面板尺寸
+    const panelWidth = LayoutConstants.miniPanelWidth()
+    const panelHeight = LayoutConstants.miniPanelHeight()
 
-    // 计算左侧玩家队伍布局
-    const leftX = 20
-    const leftStartY = (size.height - bottomAreaHeight - (players.length * (panelHeight + panelSpacing) - panelSpacing)) / 2
+    // 计算每边的总高度
+    const playerTeamHeight = playerTeam.length * panelHeight + (playerTeam.length - 1) * panelSpacing
+    const enemyTeamHeight = enemyTeam.length * panelHeight + (enemyTeam.length - 1) * panelSpacing
+    const maxTeamHeight = Math.max(playerTeamHeight, enemyTeamHeight)
 
-    players.forEach((char, index) => {
-      const renderer = new CharacterRenderer(char, false, this.renderer, true)  // 小面板
-      renderer.x = leftX
-      renderer.y = leftStartY + index * (panelHeight + panelSpacing)
-      this.setupCharacterRendererClick(renderer, char.id)
+    // 计算起始 Y 坐标（居中）
+    const baseY = (size.height - bottomAreaHeight - maxTeamHeight) / 2
+
+    // 放置玩家队伍（左边）
+    playerTeam.forEach((char, index) => {
+      const isEnemy = false
+      const renderer = new MiniCharacterRenderer(char, isEnemy, this.renderer)
+
+      renderer.x = panelMarginH
+      renderer.y = baseY + index * (panelHeight + panelSpacing)
+
+      this.setupMiniPanelClick(renderer, char.id)
       this.addChild(renderer)
       this.characterRenderers.set(char.id, renderer)
     })
 
-    // 计算右侧敌人队伍布局（边栏左侧）
-    const rightX = availableWidth - panelWidth - 20
-    const rightStartY = (size.height - bottomAreaHeight - (enemies.length * (panelHeight + panelSpacing) - panelSpacing)) / 2
+    // 放置敌人队伍（右边）
+    enemyTeam.forEach((char, index) => {
+      const isEnemy = true
+      const renderer = new MiniCharacterRenderer(char, isEnemy, this.renderer)
 
-    enemies.forEach((char, index) => {
-      const renderer = new CharacterRenderer(char, true, this.renderer, true)  // 小面板
-      renderer.x = rightX
-      renderer.y = rightStartY + index * (panelHeight + panelSpacing)
-      this.setupCharacterRendererClick(renderer, char.id)
+      renderer.x = availableWidth - panelWidth - panelMarginH
+      renderer.y = baseY + index * (panelHeight + panelSpacing)
+
+      this.setupMiniPanelClick(renderer, char.id)
       this.addChild(renderer)
       this.characterRenderers.set(char.id, renderer)
     })
   }
 
-  // 设置角色面板点击事件
-  private setupCharacterRendererClick(renderer: CharacterRenderer, charId: string): void {
+  // 设置迷你面板点击事件
+  private setupMiniPanelClick(renderer: MiniCharacterRenderer, charId: string): void {
     renderer.eventMode = 'static'
     renderer.cursor = 'pointer'
     renderer.on('pointerdown', () => {
@@ -465,7 +485,7 @@ export class BattleScene extends Scene {
     })
   }
 
-  // 传统 1v1 左右布局
+  // 传统 1v1 左右布局（普通面板）
   private createTraditionalLayout(bottomAreaHeight: number, sidebarWidth: number): void {
     if (!this.game) return
 
@@ -485,7 +505,7 @@ export class BattleScene extends Scene {
 
     allChars.forEach(char => {
       const isEnemy = char.battlePosition?.team === 'enemy'
-      const renderer = new CharacterRenderer(char, isEnemy, this.renderer, false)  // 正常大小
+      const renderer = new CharacterRenderer(char, isEnemy, this.renderer, false)
       const panelSize = renderer.getSize()
       maxPanelHeight = Math.max(maxPanelHeight, panelSize.height)
       renderers.set(char.id, { renderer, char })
@@ -510,6 +530,17 @@ export class BattleScene extends Scene {
       this.setupCharacterRendererClick(renderer, char.id)
       this.addChild(renderer)
       this.characterRenderers.set(char.id, renderer)
+    })
+  }
+
+  // 设置角色面板点击事件
+  private setupCharacterRendererClick(renderer: CharacterRenderer, charId: string): void {
+    renderer.eventMode = 'static'
+    renderer.cursor = 'pointer'
+    renderer.on('pointerdown', () => {
+      if (this.game?.phase === GamePhase.SELECTING_TARGET) {
+        this.handleTargetClick(charId)
+      }
     })
   }
 
@@ -888,6 +919,20 @@ export class BattleScene extends Scene {
     const currentActor = this.game.currentActor
     if (!currentActor) return
 
+    // 获取卡牌信息
+    const card = currentActor.hand.find(c => c.instanceId === cardInstanceId)
+
+    // 检查是否是纯防御卡牌（有护盾无伤害）
+    if (card && card.baseShield > 0 && card.baseDamage === 0 && !skillId) {
+      // 纯防御卡牌不需要选择目标，直接保存状态等待确认
+      this.targetableIds = [currentActor.id]  // 目标是自己
+      this.selectedTargetId = currentActor.id
+      this.pendingSkillId = null
+      this.pendingCardId = cardInstanceId
+      this.updateTargetHighlights()
+      return
+    }
+
     // 获取攻击范围
     let range = 1  // 基础招式默认范围
     if (skillId) {
@@ -1086,7 +1131,10 @@ export class BattleScene extends Scene {
     // 获取存活的敌人（玩家队伍）
     const alivePlayerTeam = this.playerConfigs.filter(c => c.isAlive())
     if (alivePlayerTeam.length === 0) {
-      this.finishAITurn()
+      // 玩家队伍全灭，游戏结束
+      this.game.checkGameEnd()
+      this.isAIProcessing = false
+      this.handleGameOver()
       return
     }
 
@@ -1095,6 +1143,8 @@ export class BattleScene extends Scene {
 
     if (!action) {
       this.game.addLog(`${currentActor.name}没有可用的招式`)
+      // 没有可用行动，强制结束本轮行动
+      currentActor.agility = 0
       this.finishAITurn()
       return
     }

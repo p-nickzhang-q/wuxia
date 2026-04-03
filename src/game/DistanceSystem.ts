@@ -69,7 +69,20 @@ export function getTargetsInRange(
 }
 
 /**
- * 分配座位位置
+ * 分配座位位置（适配左右布局的圆形距离）
+ *
+ * 左右布局的座位分配逻辑：
+ * - 座位按圆形排列，但UI显示为左右两边
+ * - 距离计算仍按圆形最短路径
+ *
+ * 座位示意（3v3）：
+ *   左边(玩家)        右边(敌人)
+ *   座位5 ← ─ ─ ─ ─ → 座位0
+ *   座位4              座位1
+ *   座位3 ─ ─ ─ ─ ─ → 座位2
+ *
+ * 这样：同侧相邻距离=1，对角距离=3
+ *
  * @param playerTeam 玩家队伍
  * @param enemyTeam 敌人队伍
  * @param battleMode 战斗模式
@@ -79,19 +92,21 @@ export function assignSeats(
   enemyTeam: CharacterState[],
   battleMode: BattleMode
 ): void {
+  const totalSeats = playerTeam.length + enemyTeam.length
+
   if (battleMode === 'team') {
-    // 阵营对战：友方坐在一起
-    // 敌人占前面座位
+    // 阵营对战：左右分布
+    // 敌人在右边（座位0到enemyCount-1，从上到下）
     enemyTeam.forEach((char, index) => {
       char.battlePosition = {
         seatIndex: index,
         team: 'enemy'
       }
     })
-    // 玩家占后面座位
+    // 玩家在左边（座位从totalSeats-1往下，形成圆形闭环）
     playerTeam.forEach((char, index) => {
       char.battlePosition = {
-        seatIndex: enemyTeam.length + index,
+        seatIndex: totalSeats - 1 - index,
         team: 'player'
       }
     })
