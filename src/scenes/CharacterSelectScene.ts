@@ -289,40 +289,47 @@ export class CharacterSelectScene extends Scene {
     const btnSize = LayoutConstants.scaleValue(30)
     const textSize = LayoutConstants.scaleValue(16)
 
-    // 我方人数
-    const teamLabel = new Text({
-      text: '我方人数:',
-      style: { fontSize: textSize, fill: Colors.TEXT_PRIMARY }
-    })
-    this.sizeControlContainer.addChild(teamLabel)
+    const isFreeForAll = this.battleMode === 'freeforall'
 
-    const teamMinusBtn = new Button('-', btnSize, btnSize, this.renderer)
-    teamMinusBtn.x = LayoutConstants.scaleValue(80)
-    teamMinusBtn.setOnClick(() => this.adjustTeamSize(-1))
-    this.sizeControlContainer.addChild(teamMinusBtn)
+    // 我方人数（混战模式下隐藏，固定为1）
+    if (!isFreeForAll) {
+      const teamLabel = new Text({
+        text: '我方人数:',
+        style: { fontSize: textSize, fill: Colors.TEXT_PRIMARY }
+      })
+      this.sizeControlContainer.addChild(teamLabel)
 
-    this.teamSizeText = new Text({
-      text: `${this.teamSize}`,
-      style: { fontSize: textSize, fill: Colors.TEXT_GOLD, fontWeight: 'bold' }
-    })
-    this.teamSizeText.x = LayoutConstants.scaleValue(115)
-    this.sizeControlContainer.addChild(this.teamSizeText)
+      const teamMinusBtn = new Button('-', btnSize, btnSize, this.renderer)
+      teamMinusBtn.x = LayoutConstants.scaleValue(80)
+      teamMinusBtn.setOnClick(() => this.adjustTeamSize(-1))
+      this.sizeControlContainer.addChild(teamMinusBtn)
 
-    const teamPlusBtn = new Button('+', btnSize, btnSize, this.renderer)
-    teamPlusBtn.x = LayoutConstants.scaleValue(135)
-    teamPlusBtn.setOnClick(() => this.adjustTeamSize(1))
-    this.sizeControlContainer.addChild(teamPlusBtn)
+      this.teamSizeText = new Text({
+        text: `${this.teamSize}`,
+        style: { fontSize: textSize, fill: Colors.TEXT_GOLD, fontWeight: 'bold' }
+      })
+      this.teamSizeText.x = LayoutConstants.scaleValue(115)
+      this.sizeControlContainer.addChild(this.teamSizeText)
 
-    // 敌方人数
+      const teamPlusBtn = new Button('+', btnSize, btnSize, this.renderer)
+      teamPlusBtn.x = LayoutConstants.scaleValue(135)
+      teamPlusBtn.setOnClick(() => this.adjustTeamSize(1))
+      this.sizeControlContainer.addChild(teamPlusBtn)
+    }
+
+    // 敌方人数（混战模式下显示为"总人数"）
+    const enemyLabelX = isFreeForAll ? 0 : LayoutConstants.scaleValue(180)
+    const enemyLabelText = isFreeForAll ? '总人数:' : '敌方人数:'
+
     const enemyLabel = new Text({
-      text: '敌方人数:',
+      text: enemyLabelText,
       style: { fontSize: textSize, fill: Colors.TEXT_PRIMARY }
     })
-    enemyLabel.x = LayoutConstants.scaleValue(180)
+    enemyLabel.x = enemyLabelX
     this.sizeControlContainer.addChild(enemyLabel)
 
     const enemyMinusBtn = new Button('-', btnSize, btnSize, this.renderer)
-    enemyMinusBtn.x = LayoutConstants.scaleValue(260)
+    enemyMinusBtn.x = enemyLabelX + LayoutConstants.scaleValue(80)
     enemyMinusBtn.setOnClick(() => this.adjustEnemySize(-1))
     this.sizeControlContainer.addChild(enemyMinusBtn)
 
@@ -330,20 +337,21 @@ export class CharacterSelectScene extends Scene {
       text: `${this.enemySize}`,
       style: { fontSize: textSize, fill: Colors.TEXT_GOLD, fontWeight: 'bold' }
     })
-    this.enemySizeText.x = LayoutConstants.scaleValue(295)
+    this.enemySizeText.x = enemyLabelX + LayoutConstants.scaleValue(115)
     this.sizeControlContainer.addChild(this.enemySizeText)
 
     const enemyPlusBtn = new Button('+', btnSize, btnSize, this.renderer)
-    enemyPlusBtn.x = LayoutConstants.scaleValue(315)
+    enemyPlusBtn.x = enemyLabelX + LayoutConstants.scaleValue(135)
     this.sizeControlContainer.addChild(enemyPlusBtn)
     enemyPlusBtn.setOnClick(() => this.adjustEnemySize(1))
 
     // 总人数提示
+    const total = isFreeForAll ? (1 + this.enemySize) : (this.teamSize + this.enemySize)
     this.totalSizeText = new Text({
-      text: `总人数: ${this.teamSize + this.enemySize}人 (最大${this.MAX_TOTAL}人)`,
+      text: `总人数: ${total}人 (最大${this.MAX_TOTAL}人)`,
       style: { fontSize: textSize, fill: Colors.TEXT_SECONDARY }
     })
-    this.totalSizeText.x = LayoutConstants.scaleValue(360)
+    this.totalSizeText.x = enemyLabelX + LayoutConstants.scaleValue(180)
     this.sizeControlContainer.addChild(this.totalSizeText)
 
     // 1v1模式隐藏人数调节
@@ -878,8 +886,14 @@ export class CharacterSelectScene extends Scene {
       if (this.sizeControlContainer) {
         this.sizeControlContainer.visible = false
       }
+    } else if (mode === 'freeforall') {
+      // 混战模式：玩家只能选择1个角色
+      this.teamSize = 1
+      if (this.sizeControlContainer) {
+        this.sizeControlContainer.visible = true
+      }
     } else {
-      // 多人模式显示人数调节
+      // 队伍对战模式
       if (this.sizeControlContainer) {
         this.sizeControlContainer.visible = true
       }
@@ -894,7 +908,13 @@ export class CharacterSelectScene extends Scene {
 
     this.updateModeButtons()
     this.updateSizeDisplay()
+    this.recreateSizeControls()
     this.closeDetailPanel()
+  }
+
+  // 重建人数调节UI
+  private recreateSizeControls(): void {
+    this.createSizeControls()
   }
 
   // 更新模式按钮高亮
@@ -929,10 +949,17 @@ export class CharacterSelectScene extends Scene {
 
   // 更新人数显示
   private updateSizeDisplay(): void {
-    if (this.teamSizeText) this.teamSizeText.text = `${this.teamSize}`
-    if (this.enemySizeText) this.enemySizeText.text = `${this.enemySize}`
+    const isFreeForAll = this.battleMode === 'freeforall'
+
+    if (this.teamSizeText && !isFreeForAll) {
+      this.teamSizeText.text = `${this.teamSize}`
+    }
+    if (this.enemySizeText) {
+      this.enemySizeText.text = `${this.enemySize}`
+    }
     if (this.totalSizeText) {
-      this.totalSizeText.text = `总人数: ${this.teamSize + this.enemySize}人 (最大${this.MAX_TOTAL}人)`
+      const total = isFreeForAll ? (1 + this.enemySize) : (this.teamSize + this.enemySize)
+      this.totalSizeText.text = `总人数: ${total}人 (最大${this.MAX_TOTAL}人)`
     }
   }
 

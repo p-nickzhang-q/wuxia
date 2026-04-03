@@ -428,50 +428,91 @@ export class BattleScene extends Scene {
     const allChars = this.game.getAllCharacters()
     const availableWidth = size.width - sidebarWidth
 
-    // 分组：玩家队伍和敌人队伍
-    const playerTeam = allChars.filter(c => this.isPlayerTeam(c))
-    const enemyTeam = allChars.filter(c => !this.isPlayerTeam(c))
-
-    const panelMarginH = availableWidth * 0.03
-    const panelSpacing = 8  // 面板之间的垂直间距
-
     // 迷你面板尺寸
     const panelWidth = LayoutConstants.miniPanelWidth()
     const panelHeight = LayoutConstants.miniPanelHeight()
+    const panelMarginH = availableWidth * 0.03
+    const panelSpacing = 8
 
-    // 计算每边的总高度
-    const playerTeamHeight = playerTeam.length * panelHeight + (playerTeam.length - 1) * panelSpacing
-    const enemyTeamHeight = enemyTeam.length * panelHeight + (enemyTeam.length - 1) * panelSpacing
-    const maxTeamHeight = Math.max(playerTeamHeight, enemyTeamHeight)
+    if (this.game.battleMode === 'freeforall') {
+      // 混战模式：按座位顺序交错分布在左右两边
+      // 座位0-(N/2-1)在左，座位N/2-(N-1)在右（模拟圆形布局）
+      const sortedChars = [...allChars].sort((a, b) =>
+        (a.battlePosition?.seatIndex || 0) - (b.battlePosition?.seatIndex || 0)
+      )
 
-    // 计算起始 Y 坐标（居中）
-    const baseY = (size.height - bottomAreaHeight - maxTeamHeight) / 2
+      const totalSeats = sortedChars.length
+      const leftCount = Math.ceil(totalSeats / 2)  // 左边人数
+      const rightCount = totalSeats - leftCount    // 右边人数
 
-    // 放置玩家队伍（左边）
-    playerTeam.forEach((char, index) => {
-      const isEnemy = false
-      const renderer = new MiniCharacterRenderer(char, isEnemy, this.renderer)
+      const leftHeight = leftCount * panelHeight + (leftCount - 1) * panelSpacing
+      const rightHeight = rightCount * panelHeight + (rightCount - 1) * panelSpacing
+      const maxHeight = Math.max(leftHeight, rightHeight)
 
-      renderer.x = panelMarginH
-      renderer.y = baseY + index * (panelHeight + panelSpacing)
+      const baseY = (size.height - bottomAreaHeight - maxHeight) / 2
 
-      this.setupMiniPanelClick(renderer, char.id)
-      this.addChild(renderer)
-      this.characterRenderers.set(char.id, renderer)
-    })
+      let leftIndex = 0
+      let rightIndex = 0
 
-    // 放置敌人队伍（右边）
-    enemyTeam.forEach((char, index) => {
-      const isEnemy = true
-      const renderer = new MiniCharacterRenderer(char, isEnemy, this.renderer)
+      sortedChars.forEach((char) => {
+        const seatIndex = char.battlePosition!.seatIndex
+        const isEnemy = !this.isPlayerTeam(char)
+        const renderer = new MiniCharacterRenderer(char, isEnemy, this.renderer)
 
-      renderer.x = availableWidth - panelWidth - panelMarginH
-      renderer.y = baseY + index * (panelHeight + panelSpacing)
+        // 座位0到一半在左边，其余在右边（模拟圆形布局的左右分布）
+        if (seatIndex < leftCount) {
+          // 左边（从上到下按座位顺序）
+          renderer.x = panelMarginH
+          renderer.y = baseY + seatIndex * (panelHeight + panelSpacing)
+          leftIndex++
+        } else {
+          // 右边（从上到下按座位顺序）
+          renderer.x = availableWidth - panelWidth - panelMarginH
+          renderer.y = baseY + (seatIndex - leftCount) * (panelHeight + panelSpacing)
+          rightIndex++
+        }
 
-      this.setupMiniPanelClick(renderer, char.id)
-      this.addChild(renderer)
-      this.characterRenderers.set(char.id, renderer)
-    })
+        this.setupMiniPanelClick(renderer, char.id)
+        this.addChild(renderer)
+        this.characterRenderers.set(char.id, renderer)
+      })
+    } else {
+      // 阵营对战：玩家在左边，敌人在右边
+      const playerTeam = allChars.filter(c => this.isPlayerTeam(c))
+      const enemyTeam = allChars.filter(c => !this.isPlayerTeam(c))
+
+      const playerTeamHeight = playerTeam.length * panelHeight + (playerTeam.length - 1) * panelSpacing
+      const enemyTeamHeight = enemyTeam.length * panelHeight + (enemyTeam.length - 1) * panelSpacing
+      const maxTeamHeight = Math.max(playerTeamHeight, enemyTeamHeight)
+
+      const baseY = (size.height - bottomAreaHeight - maxTeamHeight) / 2
+
+      // 放置玩家队伍（左边）
+      playerTeam.forEach((char, index) => {
+        const isEnemy = false
+        const renderer = new MiniCharacterRenderer(char, isEnemy, this.renderer)
+
+        renderer.x = panelMarginH
+        renderer.y = baseY + index * (panelHeight + panelSpacing)
+
+        this.setupMiniPanelClick(renderer, char.id)
+        this.addChild(renderer)
+        this.characterRenderers.set(char.id, renderer)
+      })
+
+      // 放置敌人队伍（右边）
+      enemyTeam.forEach((char, index) => {
+        const isEnemy = true
+        const renderer = new MiniCharacterRenderer(char, isEnemy, this.renderer)
+
+        renderer.x = availableWidth - panelWidth - panelMarginH
+        renderer.y = baseY + index * (panelHeight + panelSpacing)
+
+        this.setupMiniPanelClick(renderer, char.id)
+        this.addChild(renderer)
+        this.characterRenderers.set(char.id, renderer)
+      })
+    }
   }
 
   // 设置迷你面板点击事件
@@ -940,7 +981,7 @@ export class BattleScene extends Scene {
       range = skill?.range || 1
     }
 
-    // 获取范围内目标
+    // 获取范围内的敌方目标（不含友方）
     const targets = this.game.getTargetsInRange(currentActor, range)
 
     if (targets.length === 0) {

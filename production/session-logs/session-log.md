@@ -857,3 +857,55 @@ src/renderer/LayoutConstants.ts
 src/scenes/BattleScene.ts
 ---
 
+## Session End: 20260403_172242
+### Commits
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+5f87daf feat(ui): 武功和内功添加简称，支持点击查看详情
+b769100 refactor(battle): 重构战斗场景UI布局和角色渲染器
+---
+
+## Session End: 20260403_172849
+### Commits
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+5f87daf feat(ui): 武功和内功添加简称，支持点击查看详情
+b769100 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/DistanceSystem.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_173229
+### Commits
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+5f87daf feat(ui): 武功和内功添加简称，支持点击查看详情
+b769100 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/DistanceSystem.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_173513
+### Commits
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+5f87daf feat(ui): 武功和内功添加简称，支持点击查看详情
+b769100 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/DistanceSystem.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_174030
+### Commits
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+5f87daf feat(ui): 武功和内功添加简称，支持点击查看详情
+b769100 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/DistanceSystem.ts
+src/scenes/BattleScene.ts
+src/scenes/CharacterSelectScene.ts
+---
+

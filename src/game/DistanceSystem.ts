@@ -71,17 +71,17 @@ export function getTargetsInRange(
 /**
  * 分配座位位置（适配左右布局的圆形距离）
  *
- * 左右布局的座位分配逻辑：
- * - 座位按圆形排列，但UI显示为左右两边
- * - 距离计算仍按圆形最短路径
- *
- * 座位示意（3v3）：
+ * 座位示意（3v3 阵营对战）：
  *   左边(玩家)        右边(敌人)
  *   座位5 ← ─ ─ ─ ─ → 座位0
  *   座位4              座位1
  *   座位3 ─ ─ ─ ─ ─ → 座位2
  *
- * 这样：同侧相邻距离=1，对角距离=3
+ * 混战模式（3v3）：
+ *   座位按圆形排列，UI上左右交错显示
+ *   座位0(左) ─ 座位1(右)
+ *   座位2(右) ─ 座位3(左)
+ *   座位4(左) ─ 座位5(右)
  *
  * @param playerTeam 玩家队伍
  * @param enemyTeam 敌人队伍
@@ -111,7 +111,9 @@ export function assignSeats(
       }
     })
   } else {
-    // 混战模式：交替分配
+    // 混战模式：敌我交替分配座位
+    // 敌人0(座位0)、玩家0(座位1)、敌人1(座位2)、玩家1(座位3)...
+    // UI上：偶数座位在左，奇数座位在右
     let seatIndex = 0
     const maxLength = Math.max(playerTeam.length, enemyTeam.length)
     for (let i = 0; i < maxLength; i++) {
