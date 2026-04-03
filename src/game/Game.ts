@@ -1,6 +1,6 @@
 import { CharacterState, GameState, GamePhase, MartialArtSkill, SkillEffect, TriggerTiming, GameEventType, BattleMode } from './types'
 import { eventManager } from '../utils/EventManager'
-import { getTargetsInRange, assignSeats } from './DistanceSystem'
+import { getTargetsInRange, assignSeats, calculateActualDistance } from './DistanceSystem'
 
 // 创建游戏状态
 export function createGame(): GameState {
@@ -118,6 +118,16 @@ export function createGame(): GameState {
       )
     },
 
+    getActualDistance(actor: CharacterState, target: CharacterState): number {
+      if (!actor.battlePosition || !target.battlePosition) return 0
+      return calculateActualDistance(
+        actor.battlePosition.seatIndex,
+        target.battlePosition.seatIndex,
+        this.getAllCharacters(),
+        this.totalSeats
+      )
+    },
+
     selectTarget(target: CharacterState | null): void {
       this.selectedTarget = target
     },
@@ -170,10 +180,10 @@ export function createGame(): GameState {
     },
 
     decideTurnOrder() {
-      // 获取所有存活角色并按轻功排序
+      // 获取所有存活角色并按当前轻功排序
       const aliveChars = this.getAliveCharacters()
         .filter(c => c.isAlive())
-        .sort((a, b) => b.getCurrentAgility() - a.getCurrentAgility())
+        .sort((a, b) => b.agility - a.agility)  // 使用当前轻功值排序
 
       if (aliveChars.length === 0) {
         this.endGame()
@@ -188,7 +198,7 @@ export function createGame(): GameState {
     switchActor() {
       const aliveChars = this.getAliveCharacters()
         .filter(c => c.isAlive())
-        .sort((a, b) => b.getCurrentAgility() - a.getCurrentAgility())
+        .sort((a, b) => b.agility - a.agility)  // 使用当前剩余轻功排序
 
       const currentIndex = aliveChars.findIndex(c => c.id === this.currentActor?.id)
       const nextIndex = (currentIndex + 1) % aliveChars.length
@@ -221,6 +231,8 @@ export function createGame(): GameState {
 
     useBasicCard(cardInstanceId: string, targetId?: string) {
       const actor = this.currentActor!
+      // console.log('[useBasicCard] actor:', actor.name, 'id:', actor.id, 'card:', cardInstanceId)
+      // console.trace('[useBasicCard] 调用堆栈')
 
       const card = actor.hand.find(c => c.instanceId === cardInstanceId)
 
@@ -248,6 +260,14 @@ export function createGame(): GameState {
       } else {
         // 向后兼容：默认攻击敌人
         target = actor === this.player ? this.enemy! : this.player!
+      }
+
+      // 检查攻击距离（纯防御卡牌不需要检查）
+      if (card.baseDamage > 0 && target.id !== actor.id) {
+        const distance = this.getActualDistance(actor, target)
+        if (distance > card.range) {
+          return { success: false, message: `目标距离${distance}，超出攻击范围${card.range}` }
+        }
       }
 
       actor.playCard(cardInstanceId)
@@ -327,6 +347,8 @@ export function createGame(): GameState {
 
     useSkill(skillId: string, cardInstanceId: string, targetId?: string) {
       const actor = this.currentActor!
+      // console.log('[useSkill] actor:', actor.name, 'id:', actor.id, 'skill:', skillId)
+      // console.trace('[useSkill] 调用堆栈')
 
       // 确定目标
       let target: CharacterState
@@ -353,6 +375,15 @@ export function createGame(): GameState {
 
       if (!actor.canUseSkill(skill, card, actor.agility)) {
         return { success: false, message: '条件不足' }
+      }
+
+      // 检查攻击距离（武功招式的效果可能包含伤害）
+      const hasDamageEffect = skill.effects.some(e => e.type === 'damage' || e.type === 'drainHp' || e.type === 'dot')
+      if (hasDamageEffect && target.id !== actor.id) {
+        const distance = this.getActualDistance(actor, target)
+        if (distance > skill.range) {
+          return { success: false, message: `目标距离${distance}，超出攻击范围${skill.range}` }
+        }
       }
 
       const skillCopy = { ...skill }
@@ -607,11 +638,15 @@ export function createGame(): GameState {
     },
 
     addLog(message: string) {
-      this.battleLog.push({
+      const logEntry = {
         id: Date.now() + Math.random(),
         text: message,
         time: new Date().toLocaleTimeString()
-      })
+      }
+      this.battleLog.push(logEntry)
+      // === 调试日志 ===
+      // console.log('[战斗日志]', message)
+      eventManager.emit(GameEventType.LOG_MESSAGE, logEntry)
     }
   }
 

@@ -126,7 +126,7 @@ export class AI {
     }
 
     // 选择攻击卡牌
-    const attackCard = this.selectAttackCard(availableCards, target)
+    const attackCard = this.selectAttackCard(availableCards, currentActor, target)
     if (attackCard) {
       return { type: 'basic', cardId: attackCard.instanceId, targetId: target.id }
     }
@@ -149,8 +149,8 @@ export class AI {
         return a.hp - b.hp
       }
       // 然后考虑距离
-      const distA = actor.getDistanceTo(a, this.game.totalSeats)
-      const distB = actor.getDistanceTo(b, this.game.totalSeats)
+      const distA = this.game.getActualDistance(actor, a)
+      const distB = this.game.getActualDistance(actor, b)
       return distA - distB
     })[0]
   }
@@ -169,7 +169,7 @@ export class AI {
       }
 
       // 检查目标是否在攻击范围内
-      const distance = actor.getDistanceTo(target, this.game.totalSeats)
+      const distance = this.game.getActualDistance(actor, target)
       if (distance > skill.range) {
         continue
       }
@@ -231,9 +231,12 @@ export class AI {
   }
 
   // 选择攻击卡牌
-  private selectAttackCard(cards: Card[], target: CharacterState): Card | null {
-    const attackCards = cards.filter(c => c.baseDamage > 0)
+  private selectAttackCard(cards: Card[], actor: CharacterState, target: CharacterState): Card | null {
+    const distance = this.game.getActualDistance(actor, target)
+    // 过滤出能打到目标的攻击卡牌
+    const attackCards = cards.filter(c => c.baseDamage > 0 && c.range >= distance)
     if (attackCards.length === 0) {
+      // 如果没有能打到的攻击卡牌，返回任意一张可用卡牌
       return cards[0] || null
     }
 

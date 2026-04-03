@@ -72,6 +72,7 @@ export interface Card {
   baseShield: number
   agilityCost: number
   selfDamage?: number
+  range: number  // 攻击距离
   isBasicCard: true
 }
 
@@ -262,6 +263,7 @@ export interface GameState {
   getAllCharacters(): CharacterState[]
   getAliveCharacters(team?: 'player' | 'enemy'): CharacterState[]
   getTargetsInRange(actor: CharacterState, range: number): CharacterState[]
+  getActualDistance(actor: CharacterState, target: CharacterState): number
   selectTarget(target: CharacterState | null): void
 }
 
@@ -274,6 +276,7 @@ export interface BasicCardTemplate {
   baseShield: number
   agilityCost: number
   selfDamage?: number
+  range: number  // 攻击距离
   description: string
 }
 

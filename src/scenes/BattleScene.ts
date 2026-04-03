@@ -199,6 +199,9 @@ export class BattleScene extends Scene {
     if (this.isPlayerControlled(currentActor)) return
     if (this.game.phase !== GamePhase.SELECTING) return
 
+    // === 调试日志：只在触发AI时打印 ===
+    // console.log('[AI接管]', currentActor.name, 'playerControlledId:', this.playerControlledId, 'actorId:', currentActor.id)
+
     this.handleAITurn()
   }
 
@@ -589,6 +592,8 @@ export class BattleScene extends Scene {
   private updateUI(): void {
     if (!this.game) return
 
+    // console.log('[updateUI] 开始, currentActor:', this.game.currentActor?.name, 'phase:', this.game.phase)
+
     // 更新状态栏
     this.statusBar?.setTurn(this.game.currentTurn)
     this.statusBar?.setPhase(this.getPhaseText())
@@ -924,6 +929,9 @@ export class BattleScene extends Scene {
   private handleConfirm(): void {
     if (!this.game) return
 
+    // console.log('[handleConfirm] 被调用, phase:', this.game.phase, 'pendingCardId:', this.pendingCardId, 'selectedTargetId:', this.selectedTargetId)
+    // console.trace('[handleConfirm] 调用堆栈')
+
     // 如果在目标选择阶段，确认目标
     if (this.game.phase === GamePhase.SELECTING_TARGET) {
       this.confirmTarget()
@@ -975,10 +983,13 @@ export class BattleScene extends Scene {
     }
 
     // 获取攻击范围
-    let range = 1  // 基础招式默认范围
+    let range = 1  // 默认范围
     if (skillId) {
       const skill = currentActor.skills.find(s => s.id === skillId)
       range = skill?.range || 1
+    } else if (card) {
+      // 基础招式使用卡牌的攻击范围
+      range = card.range
     }
 
     // 获取范围内的敌方目标（不含友方）
@@ -1161,7 +1172,16 @@ export class BattleScene extends Scene {
   private runAI(): void {
     if (!this.ai || !this.game) return
 
+    // === 关键修复：检查 isAIProcessing ===
+    if (!this.isAIProcessing) {
+      // console.log('[runAI] isAIProcessing=false, 跳过执行')
+      return
+    }
+
     const currentActor = this.game.currentActor!
+
+    // === 调试日志 ===
+    // console.log('[runAI] 开始执行, currentActor:', currentActor.name, 'id:', currentActor.id)
 
     // 检查是否可以继续行动
     if (currentActor.agility <= 0 || !currentActor.isAlive()) {
@@ -1191,6 +1211,7 @@ export class BattleScene extends Scene {
     }
 
     // 执行行动
+    // console.log('[runAI] 执行行动:', action, 'actor:', currentActor.name)
     if (action.type === 'skill' && action.skillId) {
       this.game.useSkill(action.skillId, action.cardId, action.targetId)
     } else {
@@ -1213,6 +1234,14 @@ export class BattleScene extends Scene {
       return
     }
 
+    // === 修复：在继续下一个行动前，检查当前行动者是否还是同一个角色 ===
+    // 如果行动者已切换，需要通过 finishAITurn 正确处理
+    if (this.game.currentActor !== currentActor) {
+      // console.log('[runAI] 行动者已切换:', this.game.currentActor?.name, '检查是否需要 AI')
+      this.finishAITurn()
+      return
+    }
+
     // 继续下一个行动
     setTimeout(() => this.runAI(), 600)
   }
@@ -1220,19 +1249,26 @@ export class BattleScene extends Scene {
   private finishAITurn(): void {
     if (!this.game) return
 
+    // console.log('[finishAITurn] 开始, phase:', this.game.phase, 'isAIProcessing:', this.isAIProcessing)
+
     if (this.game.phase !== GamePhase.GAME_OVER) {
       if (this.game.shouldSwitchActor()) {
         this.game.switchActor()
-        this.game.addLog(`轮到${this.game.currentActor!.name}行动`)
+        const newActor = this.game.currentActor!
+        // console.log('[finishAITurn] 切换到:', newActor.name, 'id:', newActor.id, '玩家控制:', this.isPlayerControlled(newActor))
+        this.game.addLog(`轮到${newActor.name}行动`)
         this.game.phase = GamePhase.SELECTING
         // 清除之前的选择状态
         this.clearSelection()
       } else {
+        // console.log('[finishAITurn] 调用 endTurn')
         this.game.endTurn()
+        // console.log('[finishAITurn] endTurn 返回, currentActor:', this.game.currentActor?.name, 'phase:', this.game.phase)
       }
     }
 
     this.isAIProcessing = false
+    // console.log('[finishAITurn] 设置 isAIProcessing = false')
     this.updateUI()
 
     if (this.game.phase === GamePhase.GAME_OVER) {

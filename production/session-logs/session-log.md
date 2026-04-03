@@ -909,3 +909,181 @@ src/scenes/BattleScene.ts
 src/scenes/CharacterSelectScene.ts
 ---
 
+## Session End: 20260403_205011
+### Commits
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+---
+
+## Session End: 20260403_205349
+### Commits
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_205538
+### Commits
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_205834
+### Commits
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_212140
+### Commits
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_212726
+### Commits
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_213130
+### Commits
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_213401
+### Commits
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_213813
+### Commits
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_214116
+### Commits
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_214454
+### Commits
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_214554
+### Commits
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_214949
+### Commits
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_215312
+### Commits
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/game/Game.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_215628
+### Commits
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/game/Game.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_220408
+### Commits
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/data/cards.ts
+src/game/AI.ts
+src/game/DistanceSystem.ts
+src/game/Game.ts
+src/game/types.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260403_220645
+### Commits
+1721466 feat(battle): 添加混战模式角色选择和界面布局
+0e727d0 refactor(battle): 重构战斗场景UI布局和角色渲染器
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/data/cards.ts
+src/game/AI.ts
+src/game/DistanceSystem.ts
+src/game/Game.ts
+src/game/types.ts
+src/scenes/BattleScene.ts
+---
+

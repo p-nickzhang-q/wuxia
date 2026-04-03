@@ -6,7 +6,7 @@
 import { CharacterState, BattleMode } from '../game/types'
 
 /**
- * 计算两个座位之间的圆形距离
+ * 计算两个座位之间的物理距离（不考虑死亡）
  * @param seatA 座位A的索引
  * @param seatB 座位B的索引
  * @param totalSeats 总座位数
@@ -15,6 +15,53 @@ import { CharacterState, BattleMode } from '../game/types'
 export function calculateDistance(seatA: number, seatB: number, totalSeats: number): number {
   const diff = Math.abs(seatA - seatB)
   return Math.min(diff, totalSeats - diff)
+}
+
+/**
+ * 计算两个座位之间的实际距离（跳过死亡角色）
+ * 在圆形布局中，死亡的角色不计入距离
+ * @param seatA 座位A的索引
+ * @param seatB 座位B的索引
+ * @param allCharacters 所有角色列表
+ * @param totalSeats 总座位数
+ * @returns 实际距离值
+ */
+export function calculateActualDistance(
+  seatA: number,
+  seatB: number,
+  allCharacters: CharacterState[],
+  totalSeats: number
+): number {
+  if (seatA === seatB) return 0
+
+  // 构建座位到存活状态的映射
+  const aliveSeats = new Set<number>()
+  allCharacters.forEach(char => {
+    if (char.isAlive() && char.battlePosition) {
+      aliveSeats.add(char.battlePosition.seatIndex)
+    }
+  })
+
+  // 计算顺时针和逆时针两个方向的距离，取最小值
+  let clockwiseDist = 0
+  let currentSeat = seatA
+  while (currentSeat !== seatB) {
+    currentSeat = (currentSeat + 1) % totalSeats
+    if (aliveSeats.has(currentSeat) || currentSeat === seatB) {
+      clockwiseDist++
+    }
+  }
+
+  let counterClockwiseDist = 0
+  currentSeat = seatA
+  while (currentSeat !== seatB) {
+    currentSeat = (currentSeat - 1 + totalSeats) % totalSeats
+    if (aliveSeats.has(currentSeat) || currentSeat === seatB) {
+      counterClockwiseDist++
+    }
+  }
+
+  return Math.min(clockwiseDist, counterClockwiseDist)
 }
 
 /**
@@ -54,14 +101,17 @@ export function getTargetsInRange(
 ): CharacterState[] {
   return allCharacters.filter(char => {
     // 排除死亡角色
-    if (char.hp <= 0) return false
+    if (!char.isAlive()) return false
+    // 排除自己
+    if (char.id === actor.id) return false
     // 排除非敌人
     if (!isEnemy(actor, char, battleMode)) return false
     // 检查距离
     if (!actor.battlePosition || !char.battlePosition) return false
-    const distance = calculateDistance(
+    const distance = calculateActualDistance(
       actor.battlePosition.seatIndex,
       char.battlePosition.seatIndex,
+      allCharacters,
       totalSeats
     )
     return distance <= range
