@@ -21,10 +21,10 @@ description: 使用 Gemini AI 生成游戏美术素材（角色头像、UI界面
 用户需要先启动Chrome调试模式：
 
 ```bash
-google-chrome --remote-debugging-port=9222 --user-data-dir=~/.chrome-debug
+google-chrome --remote-debugging-port=9222 --user-data-dir=/home/nickzhang/.chrome-debug
 ```
 
-首次使用需要在Chrome中登录Gemini，之后登录状态会保存在 `~/.chrome-debug`。
+首次使用需要在Chrome中登录Gemini，之后登录状态会保存在 `/home/nickzhang/.chrome-debug`。
 
 ### 2. 连接Chrome并生成图片
 
@@ -138,7 +138,7 @@ curl -s http://localhost:9222/json/version
 如果失败，确保使用了 `--user-data-dir` 参数：
 
 ```bash
-google-chrome --remote-debugging-port=9222 --user-data-dir=~/.chrome-debug
+google-chrome --remote-debugging-port=9222 --user-data-dir=/home/nickzhang/.chrome-debug
 ```
 
 ### 图片下载失败
