@@ -5,6 +5,8 @@
 ---
 
 ### 1. 乔峰 - 丐帮帮主
+![乔峰头像](assets/characters/portraits/qiaofeng-portrait.png)
+
 **出自**：《天龙八部》
 
 | 属性 | 值 |
@@ -29,6 +31,8 @@
 ---
 
 ### 2. 段誉 - 大理世子
+![段誉头像](assets/characters/portraits/duanyu-portrait.png)
+
 **出自**：《天龙八部》
 
 | 属性 | 值 |
@@ -56,6 +60,8 @@
 ---
 
 ### 3. 虚竹 - 灵鹫宫主
+![虚竹头像](assets/characters/portraits/xuzhu-portrait.png)
+
 **出自**：《天龙八部》
 
 | 属性 | 值 |
@@ -87,6 +93,8 @@
 ---
 
 ### 4. 郭靖 - 北侠
+![郭靖头像](assets/characters/portraits/guojing-portrait.png)
+
 **出自**：《射雕英雄传》《神雕侠侣》
 
 | 属性 | 值 |
@@ -114,6 +122,8 @@
 ---
 
 ### 5. 黄蓉 - 丐帮帮主
+![黄蓉头像](assets/characters/portraits/huangrong-portrait.png)
+
 **出自**：《射雕英雄传》《神雕侠侣》
 
 | 属性 | 值 |
@@ -138,6 +148,8 @@
 ---
 
 ### 6. 洪七公 - 北丐
+![洪七公头像](assets/characters/portraits/hongqigong-portrait.png)
+
 **出自**：《射雕英雄传》
 
 | 属性 | 值 |
@@ -161,6 +173,8 @@
 ---
 
 ### 7. 欧阳锋 - 西毒
+![欧阳锋头像](assets/characters/portraits/ouyangfeng-portrait.png)
+
 **出自**：《射雕英雄传》
 
 | 属性 | 值 |
@@ -180,6 +194,8 @@
 ---
 
 ### 8. 黄药师 - 东邪
+![黄药师头像](assets/characters/portraits/huangyaoshi-portrait.png)
+
 **出自**：《射雕英雄传》
 
 | 属性 | 值 |
@@ -208,6 +224,8 @@
 ---
 
 ### 9. 一灯大师 - 南帝
+![一灯大师头像](assets/characters/portraits/yideng-portrait.png)
+
 **出自**：《射雕英雄传》
 
 | 属性 | 值 |
@@ -227,6 +245,8 @@
 ---
 
 ### 10. 杨过 - 神雕大侠
+![杨过头像](assets/characters/portraits/yangguo-portrait.png)
+
 **出自**：《神雕侠侣》
 
 | 属性 | 值 |
@@ -255,6 +275,8 @@
 ---
 
 ### 11. 小龙女 - 古墓派传人
+![小龙女头像](assets/characters/portraits/xiaolongnv-portrait.png)
+
 **出自**：《神雕侠侣》
 
 | 属性 | 值 |
@@ -282,6 +304,8 @@
 ---
 
 ### 12. 金轮法王 - 蒙古国师
+![金轮法王头像](assets/characters/portraits/jinlunfawang-portrait.png)
+
 **出自**：《神雕侠侣》
 
 | 属性 | 值 |
@@ -301,6 +325,8 @@
 ---
 
 ### 13. 张无忌 - 明教教主
+![张无忌头像](assets/characters/portraits/zhangwuji-portrait.png)
+
 **出自**：《倚天屠龙记》
 
 | 属性 | 值 |
@@ -328,6 +354,8 @@
 ---
 
 ### 14. 张三丰 - 武当祖师
+![张三丰头像](assets/characters/portraits/zhangsanfeng-portrait.png)
+
 **出自**：《倚天屠龙记》
 
 | 属性 | 值 |
@@ -356,6 +384,8 @@
 ---
 
 ### 15. 谢逊 - 金毛狮王
+![谢逊头像](assets/characters/portraits/xiexun-portrait.png)
+
 **出自**：《倚天屠龙记》
 
 | 属性 | 值 |
@@ -379,6 +409,8 @@
 ---
 
 ### 16. 令狐冲 - 华山弟子
+![令狐冲头像](assets/characters/portraits/linghuchong-portrait.png)
+
 **出自**：《笑傲江湖》
 
 | 属性 | 值 |
@@ -406,6 +438,8 @@
 ---
 
 ### 17. 任我行 - 日月神教教主
+![任我行头像](assets/characters/portraits/renwoxing-portrait.png)
+
 **出自**：《笑傲江湖》
 
 | 属性 | 值 |
@@ -426,6 +460,8 @@
 ---
 
 ### 18. 东方不败 - 日月神教前教主
+![东方不败头像](assets/characters/portraits/dongfangbubai-portrait.png)
+
 **出自**：《笑傲江湖》
 
 | 属性 | 值 |
@@ -445,6 +481,8 @@
 ---
 
 ### 19. 风清扬 - 华山剑宗
+![风清扬头像](assets/characters/portraits/fengqingyang-portrait.png)
+
 **出自**：《笑傲江湖》
 
 | 属性 | 值 |
@@ -464,6 +502,8 @@
 ---
 
 ### 20. 鸠摩智 - 吐蕃国师
+![鸠摩智头像](assets/characters/portraits/jiumozhi-portrait.png)
+
 **出自**：《天龙八部》
 
 | 属性 | 值 |
@@ -488,6 +528,8 @@
 ---
 
 ### 21. 慕容复 - 姑苏慕容
+![慕容复头像](assets/characters/portraits/murongfu-portrait.png)
+
 **出自**：《天龙八部》
 
 | 属性 | 值 |
@@ -509,6 +551,8 @@
 ---
 
 ### 22. 袁承志 - 金蛇王
+![袁承志头像](assets/characters/portraits/yuanchengzhi-portrait.png)
+
 **出自**：《碧血剑》
 
 | 属性 | 值 |
@@ -532,6 +576,8 @@
 ---
 
 ### 23. 狄云 - 连城诀主角
+![狄云头像](assets/characters/portraits/diyun-portrait.png)
+
 **出自**：《连城诀》
 
 | 属性 | 值 |
@@ -551,6 +597,8 @@
 ---
 
 ### 24. 石破天 - 侠客行主角
+![石破天头像](assets/characters/portraits/shibaitian-portrait.png)
+
 **出自**：《侠客行》
 
 | 属性 | 值 |
