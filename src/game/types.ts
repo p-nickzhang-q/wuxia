@@ -296,3 +296,66 @@ export interface LayoutConfig {
   characterPanelHeight: number
   actionBarHeight: number
 }
+
+// ==================== 弟子境界 ====================
+export enum DiscipleRealm {
+  OUTER = '外门',      // 外门弟子
+  INNER = '内门',      // 内门弟子
+  DISCIPLE = '亲传',   // 亲传弟子
+  ELDER = '长老'       // 长老
+}
+
+// ==================== 弟子状态 ====================
+export interface DiscipleState {
+  id: string
+  name: string
+
+  // 基础属性（先天属性，创建时确定）
+  root: number       // 根骨 - 成长潜力 (1-10)
+  insight: number    // 悟性 - 学习速度 (1-10)
+  will: number       // 定力 - 内功效果 (1-10)
+  strength: number   // 臂力 - 伤害加成 (1-10)
+  agility: number    // 身法 - 轻功值 (1-10)
+
+  // 战斗属性（后天属性，随境界提升）
+  maxHp: number
+  maxMp: number
+  baseAgility: number
+
+  // 境界与等级
+  realm: DiscipleRealm
+  level: number      // 当前境界内的等级 (1-10)
+  exp: number        // 当前等级经验值
+
+  // 武功掌握
+  learnedSkills: string[]     // 已学会的武功招式ID
+  masteredSkills: string[]    // 已精通的武功招式ID
+  equippedSkills: string[]    // 装备的武功招式ID（战斗可用）
+  passiveSkill: string | null // 装备的内功ID
+
+  // 状态
+  isRecruited: boolean        // 是否已招募
+  recruitCost: number         // 招募花费（银两）
+}
+
+// ==================== 弟子模板 ====================
+export interface DiscipleTemplate {
+  id: string
+  name: string
+  description: string
+
+  // 基础属性范围
+  rootRange: [number, number]      // 根骨范围
+  insightRange: [number, number]   // 悟性范围
+  willRange: [number, number]      // 定力范围
+  strengthRange: [number, number]  // 臂力范围
+  agilityRange: [number, number]   // 身法范围
+
+  // 初始武功
+  initialSkills: string[]          // 初始可学会的武功招式ID
+  initialPassive: string | null    // 初始内功ID
+
+  // 招募条件
+  recruitCost: number              // 基础招募花费
+  minReputation: number            // 需要的最低声望
+}

@@ -4,6 +4,7 @@ import { CharacterSelectScene, BattleConfig } from './scenes/CharacterSelectScen
 import { BattleScene } from './scenes/BattleScene'
 import { ResultScene } from './scenes/ResultScene'
 import { SkillListScene } from './scenes/SkillListScene'
+import { DiscipleRecruitScene } from './scenes/DiscipleRecruitScene'
 import { Scene } from './scenes/Scene'
 import { tweenManager } from './utils/TweenManager'
 import { audioManager } from './utils/AudioManager'
@@ -18,6 +19,7 @@ class Game {
   private battleScene: BattleScene | null = null
   private resultScene: ResultScene | null = null
   private skillListScene: SkillListScene | null = null
+  private discipleRecruitScene: DiscipleRecruitScene | null = null
   private battleConfig: BattleConfig | null = null
 
   constructor() {
@@ -34,6 +36,7 @@ class Game {
     this.battleScene = new BattleScene(this.renderer)
     this.resultScene = new ResultScene(this.renderer)
     this.skillListScene = new SkillListScene(this.renderer)
+    this.discipleRecruitScene = new DiscipleRecruitScene(this.renderer)
 
     // 标题场景回调
     this.titleScene.setOnBattleMode(() => {
@@ -42,6 +45,10 @@ class Game {
 
     this.titleScene.setOnViewSkills(() => {
       this.showSkillList()
+    })
+
+    this.titleScene.setOnRecruitDisciple(() => {
+      this.showDiscipleRecruit()
     })
 
     this.titleScene.setOnExit(() => {
@@ -63,6 +70,14 @@ class Game {
 
     this.skillListScene.setOnBack(() => {
       this.showTitle()
+    })
+
+    this.discipleRecruitScene.setOnBack(() => {
+      this.showTitle()
+    })
+
+    this.discipleRecruitScene.setOnDiscipleRecruited((disciple) => {
+      console.log('招募弟子:', disciple.name, disciple)
     })
 
     this.battleScene.setOnBattleEnd((playerWon) => {
@@ -188,6 +203,20 @@ class Game {
     }
 
     this.currentScene = this.skillListScene
+    if (this.currentScene) {
+      this.renderer.getStage().addChild(this.currentScene)
+      this.currentScene.onEnter()
+    }
+  }
+
+  // 显示弟子招募场景
+  private showDiscipleRecruit(): void {
+    if (this.currentScene) {
+      this.currentScene.onExit()
+      this.renderer.getStage().removeChild(this.currentScene)
+    }
+
+    this.currentScene = this.discipleRecruitScene
     if (this.currentScene) {
       this.renderer.getStage().addChild(this.currentScene)
       this.currentScene.onEnter()

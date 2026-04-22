@@ -1,4 +1,4 @@
-import { Graphics, Text, Container } from 'pixi.js'
+import { Graphics, Text } from 'pixi.js'
 import { Scene } from './Scene'
 import { Renderer } from '../renderer/Renderer'
 import { Button } from '../renderer/UIComponents'
@@ -6,9 +6,9 @@ import { LayoutConstants } from '../renderer/LayoutConstants'
 
 // 标题场景
 export class TitleScene extends Scene {
-  private buttons: Container[] = []
   private onBattleMode?: () => void
   private onViewSkills?: () => void
+  private onRecruitDisciple?: () => void
   private onExitGame?: () => void
 
   constructor(renderer: Renderer) {
@@ -22,6 +22,10 @@ export class TitleScene extends Scene {
 
   setOnViewSkills(callback: () => void): void {
     this.onViewSkills = callback
+  }
+
+  setOnRecruitDisciple(callback: () => void): void {
+    this.onRecruitDisciple = callback
   }
 
   setOnExit(callback: () => void): void {
@@ -81,8 +85,8 @@ export class TitleScene extends Scene {
     // 菜单按钮
     const btnWidth = LayoutConstants.scaleValue(200)
     const btnHeight = LayoutConstants.scaleValue(50)
-    const buttonY = height * 0.5
-    const buttonSpacing = LayoutConstants.scaleValue(70)
+    const buttonY = height * 0.45
+    const buttonSpacing = LayoutConstants.scaleValue(60)
 
     // 战斗模式按钮
     const battleBtn = new Button('战斗模式', btnWidth, btnHeight, this.renderer)
@@ -91,24 +95,31 @@ export class TitleScene extends Scene {
     battleBtn.setOnClick(() => this.onBattleMode?.())
     this.addChild(battleBtn)
 
+    // 招募弟子按钮
+    const recruitBtn = new Button('招募弟子', btnWidth, btnHeight, this.renderer)
+    recruitBtn.x = width / 2 - btnWidth / 2
+    recruitBtn.y = buttonY + buttonSpacing
+    recruitBtn.setOnClick(() => this.onRecruitDisciple?.())
+    this.addChild(recruitBtn)
+
     // 武功图鉴按钮
     const skillBtn = new Button('武功图鉴', btnWidth, btnHeight, this.renderer)
     skillBtn.x = width / 2 - btnWidth / 2
-    skillBtn.y = buttonY + buttonSpacing
+    skillBtn.y = buttonY + buttonSpacing * 2
     skillBtn.setOnClick(() => this.onViewSkills?.())
     this.addChild(skillBtn)
 
     // 设置按钮（暂未实现）
     const settingsBtn = new Button('设置', btnWidth, btnHeight, this.renderer)
     settingsBtn.x = width / 2 - btnWidth / 2
-    settingsBtn.y = buttonY + buttonSpacing * 2
+    settingsBtn.y = buttonY + buttonSpacing * 3
     settingsBtn.setOnClick(() => {})
     this.addChild(settingsBtn)
 
     // 退出按钮
     const exitBtn = new Button('退出', btnWidth, btnHeight, this.renderer)
     exitBtn.x = width / 2 - btnWidth / 2
-    exitBtn.y = buttonY + buttonSpacing * 3
+    exitBtn.y = buttonY + buttonSpacing * 4
     exitBtn.setOnClick(() => this.onExitGame?.())
     this.addChild(exitBtn)
 
