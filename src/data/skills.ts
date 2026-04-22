@@ -1,12 +1,14 @@
-import { CardType, TriggerTiming, MartialArtSkill, PassiveSkill, MartialArt, CharacterConfig, CharacterState, PassiveEffectResult } from '../game/types'
+import { CardType, TriggerTiming, MartialArtSkill, PassiveSkill, MartialArt, CharacterConfig, CharacterState, PassiveEffectResult, SkillLevel, Faction } from '../game/types'
 
 // ==================== 武功招式数据 ====================
 export const martialArtSkills: Record<string, MartialArtSkill> = {
-  // ========== 空手类武功招式 ==========
+  // ========== 丐帮武功 ==========
   dragonPalm: {
     id: 'dragonPalm',
     name: '降龙十八掌',
     shortName: '降龙',
+    level: SkillLevel.ADVANCED,
+    faction: Faction.BEGGAR,
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 4,
     agilityCost: 3,
@@ -14,10 +16,27 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     description: '造成10点伤害',
     range: 1
   },
+  dogBeating: {
+    id: 'dogBeating',
+    name: '打狗棒法',
+    shortName: '打狗',
+    level: SkillLevel.ADVANCED,
+    faction: Faction.BEGGAR,
+    requiredCardType: CardType.LONG_WEAPON,
+    mpCost: 4,
+    agilityCost: 4,
+    effects: [{ type: 'damage', value: 7 }, { type: 'disableCardType', cardType: CardType.LEG, duration: 1 }],
+    description: '造成7点伤害，对方下回合无法使用腿法',
+    range: 2
+  },
+
+  // ========== 大理段氏武功 ==========
   sixMeridianSword: {
     id: 'sixMeridianSword',
     name: '六脉神剑',
     shortName: '六脉',
+    level: SkillLevel.MASTER,
+    faction: Faction.DALI,
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 5,
     agilityCost: 3,
@@ -25,10 +44,27 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     description: '造成12点伤害，无视护盾',
     range: 3
   },
+  oneYang: {
+    id: 'oneYang',
+    name: '一阳指',
+    shortName: '一阳',
+    level: SkillLevel.INTERMEDIATE,
+    faction: Faction.DALI,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 3,
+    agilityCost: 2,
+    effects: [{ type: 'damage', value: 8, ignoreShield: true }],
+    description: '造成8点伤害，无视护盾',
+    range: 2
+  },
+
+  // ========== 天山派武功 ==========
   tianShanZheMei: {
     id: 'tianShanZheMei',
     name: '天山折梅手',
     shortName: '折梅',
+    level: SkillLevel.INTERMEDIATE,
+    faction: Faction.TIANSHAN,
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 3,
     agilityCost: 2,
@@ -40,6 +76,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     id: 'tianShanLiuYang',
     name: '天山六阳掌',
     shortName: '六阳',
+    level: SkillLevel.INTERMEDIATE,
+    faction: Faction.TIANSHAN,
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 4,
     agilityCost: 3,
@@ -47,177 +85,27 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     description: '造成8点伤害',
     range: 1
   },
-  kongMing: {
-    id: 'kongMing',
-    name: '空明拳',
-    shortName: '空明',
-    requiredCardType: CardType.EMPTY_HAND,
-    mpCost: 2,
-    agilityCost: 2,
-    effects: [{ type: 'damage', value: 5 }, { type: 'shield', value: 3 }],
-    description: '造成5点伤害，获得3点护盾',
-    range: 1
-  },
-  luoYing: {
-    id: 'luoYing',
-    name: '落英神剑掌',
-    shortName: '落英',
-    requiredCardType: CardType.EMPTY_HAND,
+  lifeDeath: {
+    id: 'lifeDeath',
+    name: '生死符',
+    shortName: '生死',
+    level: SkillLevel.INTERMEDIATE,
+    faction: Faction.TIANSHAN,
+    requiredCardType: 'any',
     mpCost: 3,
-    agilityCost: 3,
-    effects: [{ type: 'damage', value: 6 }, { type: 'damage', value: 6 }],
-    description: '造成6点伤害×2',
-    range: 1
-  },
-  lanHua: {
-    id: 'lanHua',
-    name: '兰花拂穴手',
-    shortName: '兰花',
-    requiredCardType: CardType.EMPTY_HAND,
-    mpCost: 2,
     agilityCost: 2,
-    effects: [{ type: 'damage', value: 4 }, { type: 'debuffAgility', value: 3, duration: 1 }],
-    description: '造成4点伤害，对方下回合轻功-3',
-    range: 1
-  },
-  haMa: {
-    id: 'haMa',
-    name: '蛤蟆功',
-    shortName: '蛤蟆',
-    requiredCardType: CardType.EMPTY_HAND,
-    mpCost: 5,
-    agilityCost: 4,
-    effects: [{ type: 'damage', value: 12 }],
-    description: '造成12点伤害（需蓄力）',
-    range: 1
-  },
-  tanZhi: {
-    id: 'tanZhi',
-    name: '弹指神通',
-    shortName: '弹指',
-    requiredCardType: CardType.EMPTY_HAND,
-    mpCost: 2,
-    agilityCost: 2,
-    effects: [{ type: 'damage', value: 5, ignoreShield: true }],
-    description: '造成5点伤害，无视护盾',
+    effects: [{ type: 'dot', value: 3, duration: 3 }],
+    description: '对方每回合失去3点体力，持续3回合',
     range: 2
-  },
-  anRan: {
-    id: 'anRan',
-    name: '黯然销魂掌',
-    shortName: '黯然',
-    requiredCardType: CardType.EMPTY_HAND,
-    mpCost: 5,
-    agilityCost: 4,
-    effects: [{ type: 'damage', value: 11 }],
-    description: '造成11点伤害（体力低于50%时伤害+50%）',
-    range: 1
-  },
-  sevenInjury: {
-    id: 'sevenInjury',
-    name: '七伤拳',
-    shortName: '七伤',
-    requiredCardType: CardType.EMPTY_HAND,
-    mpCost: 3,
-    agilityCost: 3,
-    effects: [{ type: 'damage', value: 8 }, { type: 'selfDamage', value: 2 }],
-    description: '造成8点伤害，自身失去2点体力',
-    range: 1
-  },
-  taiChiSkill: {
-    id: 'taiChiSkill',
-    name: '太极拳',
-    shortName: '太极',
-    requiredCardType: CardType.EMPTY_HAND,
-    mpCost: 2,
-    agilityCost: 2,
-    effects: [{ type: 'damage', value: 5 }, { type: 'shield', value: 4 }],
-    description: '造成5点伤害，获得4点护盾',
-    range: 1
-  },
-  huoYan: {
-    id: 'huoYan',
-    name: '火焰刀',
-    shortName: '火焰',
-    requiredCardType: CardType.EMPTY_HAND,
-    mpCost: 4,
-    agilityCost: 3,
-    effects: [{ type: 'damage', value: 9, ignoreShield: true }],
-    description: '造成9点伤害，无视护盾',
-    range: 2
-  },
-  shenZhao: {
-    id: 'shenZhao',
-    name: '神照经掌',
-    shortName: '神照',
-    requiredCardType: CardType.EMPTY_HAND,
-    mpCost: 3,
-    agilityCost: 2,
-    effects: [{ type: 'damage', value: 7 }],
-    description: '造成7点伤害，恢复3点体力',
-    range: 1
-  },
-  taiXuan: {
-    id: 'taiXuan',
-    name: '太玄经',
-    shortName: '太玄',
-    requiredCardType: CardType.EMPTY_HAND,
-    mpCost: 5,
-    agilityCost: 4,
-    effects: [{ type: 'damage', value: 12 }],
-    description: '造成12点伤害',
-    range: 1
-  },
-  longXiang: {
-    id: 'longXiang',
-    name: '龙象般若功',
-    shortName: '龙象',
-    requiredCardType: CardType.EMPTY_HAND,
-    mpCost: 5,
-    agilityCost: 4,
-    effects: [{ type: 'damage', value: 12 }],
-    description: '造成12点伤害',
-    range: 1
-  },
-  oneYang: {
-    id: 'oneYang',
-    name: '一阳指',
-    shortName: '一阳',
-    requiredCardType: CardType.EMPTY_HAND,
-    mpCost: 3,
-    agilityCost: 2,
-    effects: [{ type: 'damage', value: 8, ignoreShield: true }],
-    description: '造成8点伤害，无视护盾',
-    range: 2
-  },
-  lingSheQuan: {
-    id: 'lingSheQuan',
-    name: '灵蛇拳',
-    shortName: '灵蛇',
-    requiredCardType: CardType.EMPTY_HAND,
-    mpCost: 3,
-    agilityCost: 2,
-    effects: [{ type: 'damage', value: 6 }, { type: 'debuffAgility', value: 2, duration: 1 }],
-    description: '造成6点伤害，对方下回合轻功-2',
-    range: 1
   },
 
-  // ========== 短兵类武功招式 ==========
-  nineSwords: {
-    id: 'nineSwords',
-    name: '独孤九剑',
-    shortName: '九剑',
-    requiredCardType: CardType.SHORT_WEAPON,
-    mpCost: 4,
-    agilityCost: 3,
-    effects: [{ type: 'damage', value: 9, ignoreShield: true }],
-    description: '造成9点伤害，无视护盾',
-    range: 2
-  },
+  // ========== 古墓派武功 ==========
   yuNu: {
     id: 'yuNu',
     name: '玉女剑法',
     shortName: '玉女',
+    level: SkillLevel.INTERMEDIATE,
+    faction: Faction.GUMU,
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 3,
     agilityCost: 2,
@@ -229,6 +117,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     id: 'shuangJian',
     name: '双剑合璧',
     shortName: '双剑',
+    level: SkillLevel.MASTER,
+    faction: Faction.GUMU,
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 6,
     agilityCost: 4,
@@ -236,10 +126,85 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     description: '造成14点伤害（需2张短兵牌）',
     range: 1
   },
+
+  // ========== 星宿派武功 ==========
+  northernMingSkill: {
+    id: 'northernMingSkill',
+    name: '北冥神功',
+    shortName: '北冥',
+    level: SkillLevel.ADVANCED,
+    faction: Faction.XINGSU,
+    requiredCardType: 'any',
+    mpCost: 0,
+    agilityCost: 3,
+    effects: [{ type: 'drainMp', value: 6 }],
+    description: '吸取对方6点内力',
+    range: 1
+  },
+  huoYan: {
+    id: 'huoYan',
+    name: '火焰刀',
+    shortName: '火焰',
+    level: SkillLevel.ADVANCED,
+    faction: Faction.XINGSU,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 4,
+    agilityCost: 3,
+    effects: [{ type: 'damage', value: 9, ignoreShield: true }],
+    description: '造成9点伤害，无视护盾',
+    range: 2
+  },
+
+  // ========== 华山武功 ==========
+  nineSwords: {
+    id: 'nineSwords',
+    name: '独孤九剑',
+    shortName: '九剑',
+    level: SkillLevel.ADVANCED,
+    faction: Faction.HUASHAN,
+    requiredCardType: CardType.SHORT_WEAPON,
+    mpCost: 4,
+    agilityCost: 3,
+    effects: [{ type: 'damage', value: 9, ignoreShield: true }],
+    description: '造成9点伤害，无视护盾',
+    range: 2
+  },
+
+  // ========== 明教武功 ==========
+  qiankunMove: {
+    id: 'qiankunMove',
+    name: '乾坤大挪移',
+    shortName: '乾坤',
+    level: SkillLevel.ADVANCED,
+    faction: Faction.MINGJIAO,
+    requiredCardType: 'any',
+    mpCost: 4,
+    agilityCost: 3,
+    effects: [{ type: 'damage', value: 8 }, { type: 'shield', value: 5 }],
+    description: '造成8点伤害，获得5点护盾',
+    range: 2
+  },
+
+  // ========== 武当武功 ==========
+  taiChiSkill: {
+    id: 'taiChiSkill',
+    name: '太极拳',
+    shortName: '太极',
+    level: SkillLevel.BEGINNER,
+    faction: Faction.WUDANG,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 2,
+    agilityCost: 2,
+    effects: [{ type: 'damage', value: 5 }, { type: 'shield', value: 4 }],
+    description: '造成5点伤害，获得4点护盾',
+    range: 1
+  },
   taiJiJian: {
     id: 'taiJiJian',
     name: '太极剑',
     shortName: '太极剑',
+    level: SkillLevel.INTERMEDIATE,
+    faction: Faction.WUDANG,
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 3,
     agilityCost: 2,
@@ -247,10 +212,160 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     description: '造成6点伤害，获得3点护盾',
     range: 1
   },
+
+  // ========== 侠客岛武功 ==========
+  taiXuan: {
+    id: 'taiXuan',
+    name: '太玄经',
+    shortName: '太玄',
+    level: SkillLevel.MASTER,
+    faction: Faction.XIAKE,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 5,
+    agilityCost: 4,
+    effects: [{ type: 'damage', value: 12 }],
+    description: '造成12点伤害',
+    range: 1
+  },
+
+  // ========== 江湖散人武功（无门派）==========
+  kongMing: {
+    id: 'kongMing',
+    name: '空明拳',
+    shortName: '空明',
+    level: SkillLevel.BEGINNER,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 2,
+    agilityCost: 2,
+    effects: [{ type: 'damage', value: 5 }, { type: 'shield', value: 3 }],
+    description: '造成5点伤害，获得3点护盾',
+    range: 1
+  },
+  luoYing: {
+    id: 'luoYing',
+    name: '落英神剑掌',
+    shortName: '落英',
+    level: SkillLevel.INTERMEDIATE,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 3,
+    agilityCost: 3,
+    effects: [{ type: 'damage', value: 6 }, { type: 'damage', value: 6 }],
+    description: '造成6点伤害×2',
+    range: 1
+  },
+  lanHua: {
+    id: 'lanHua',
+    name: '兰花拂穴手',
+    shortName: '兰花',
+    level: SkillLevel.BEGINNER,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 2,
+    agilityCost: 2,
+    effects: [{ type: 'damage', value: 4 }, { type: 'debuffAgility', value: 3, duration: 1 }],
+    description: '造成4点伤害，对方下回合轻功-3',
+    range: 1
+  },
+  tanZhi: {
+    id: 'tanZhi',
+    name: '弹指神通',
+    shortName: '弹指',
+    level: SkillLevel.BEGINNER,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 2,
+    agilityCost: 2,
+    effects: [{ type: 'damage', value: 5, ignoreShield: true }],
+    description: '造成5点伤害，无视护盾',
+    range: 2
+  },
+  anRan: {
+    id: 'anRan',
+    name: '黯然销魂掌',
+    shortName: '黯然',
+    level: SkillLevel.MASTER,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 5,
+    agilityCost: 4,
+    effects: [{ type: 'damage', value: 11 }],
+    description: '造成11点伤害（体力低于50%时伤害+50%）',
+    range: 1
+  },
+  sevenInjury: {
+    id: 'sevenInjury',
+    name: '七伤拳',
+    shortName: '七伤',
+    level: SkillLevel.INTERMEDIATE,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 3,
+    agilityCost: 3,
+    effects: [{ type: 'damage', value: 8 }, { type: 'selfDamage', value: 2 }],
+    description: '造成8点伤害，自身失去2点体力',
+    range: 1
+  },
+  shenZhao: {
+    id: 'shenZhao',
+    name: '神照经掌',
+    shortName: '神照',
+    level: SkillLevel.INTERMEDIATE,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 3,
+    agilityCost: 2,
+    effects: [{ type: 'damage', value: 7 }],
+    description: '造成7点伤害，恢复3点体力',
+    range: 1
+  },
+  longXiang: {
+    id: 'longXiang',
+    name: '龙象般若功',
+    shortName: '龙象',
+    level: SkillLevel.MASTER,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 5,
+    agilityCost: 4,
+    effects: [{ type: 'damage', value: 12 }],
+    description: '造成12点伤害',
+    range: 1
+  },
+  lingSheQuan: {
+    id: 'lingSheQuan',
+    name: '灵蛇拳',
+    shortName: '灵蛇',
+    level: SkillLevel.INTERMEDIATE,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 3,
+    agilityCost: 2,
+    effects: [{ type: 'damage', value: 6 }, { type: 'debuffAgility', value: 2, duration: 1 }],
+    description: '造成6点伤害，对方下回合轻功-2',
+    range: 1
+  },
+  haMa: {
+    id: 'haMa',
+    name: '蛤蟆功',
+    shortName: '蛤蟆',
+    level: SkillLevel.MASTER,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 5,
+    agilityCost: 4,
+    effects: [{ type: 'damage', value: 12 }],
+    description: '造成12点伤害（需蓄力）',
+    range: 1
+  },
+  xuanTie: {
+    id: 'xuanTie',
+    name: '玄铁剑法',
+    shortName: '玄铁',
+    level: SkillLevel.ADVANCED,
+    requiredCardType: CardType.LONG_WEAPON,
+    mpCost: 4,
+    agilityCost: 3,
+    effects: [{ type: 'damage', value: 9, ignoreShield: true }],
+    description: '造成9点伤害，无视护盾',
+    range: 2
+  },
   goldenSnake: {
     id: 'goldenSnake',
     name: '金蛇剑法',
     shortName: '金蛇',
+    level: SkillLevel.INTERMEDIATE,
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 3,
     agilityCost: 3,
@@ -262,6 +377,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     id: 'goldenSnakeZhui',
     name: '金蛇锥',
     shortName: '蛇锥',
+    level: SkillLevel.ADVANCED,
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 4,
     agilityCost: 3,
@@ -269,21 +385,11 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     description: '造成8点伤害，无视护盾',
     range: 2
   },
-  kuiHua: {
-    id: 'kuiHua',
-    name: '葵花宝典',
-    shortName: '葵花',
-    requiredCardType: CardType.SHORT_WEAPON,
-    mpCost: 3,
-    agilityCost: 2,
-    effects: [{ type: 'damage', value: 7 }, { type: 'extraAction' }],
-    description: '造成7点伤害，可再行动一次',
-    range: 1
-  },
   lianChengJian: {
     id: 'lianChengJian',
     name: '连城剑法',
     shortName: '连城',
+    level: SkillLevel.INTERMEDIATE,
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 3,
     agilityCost: 3,
@@ -291,10 +397,23 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     description: '造成8点伤害',
     range: 1
   },
+  kuiHua: {
+    id: 'kuiHua',
+    name: '葵花宝典',
+    shortName: '葵花',
+    level: SkillLevel.ADVANCED,
+    requiredCardType: CardType.SHORT_WEAPON,
+    mpCost: 3,
+    agilityCost: 2,
+    effects: [{ type: 'damage', value: 7 }, { type: 'extraAction' }],
+    description: '造成7点伤害，可再行动一次',
+    range: 1
+  },
   xiuHuaZhen: {
     id: 'xiuHuaZhen',
     name: '绣花针法',
     shortName: '绣花',
+    level: SkillLevel.BEGINNER,
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 2,
     agilityCost: 1,
@@ -302,58 +421,11 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     description: '造成4点伤害，可再行动一次',
     range: 2
   },
-
-  // ========== 长兵类武功招式 ==========
-  dogBeating: {
-    id: 'dogBeating',
-    name: '打狗棒法',
-    shortName: '打狗',
-    requiredCardType: CardType.LONG_WEAPON,
-    mpCost: 4,
-    agilityCost: 4,
-    effects: [{ type: 'damage', value: 7 }, { type: 'disableCardType', cardType: CardType.LEG, duration: 1 }],
-    description: '造成7点伤害，对方下回合无法使用腿法',
-    range: 2
-  },
-  xuanTie: {
-    id: 'xuanTie',
-    name: '玄铁剑法',
-    shortName: '玄铁',
-    requiredCardType: CardType.LONG_WEAPON,
-    mpCost: 4,
-    agilityCost: 3,
-    effects: [{ type: 'damage', value: 9, ignoreShield: true }],
-    description: '造成9点伤害，无视护盾',
-    range: 2
-  },
-
-  // ========== 特殊武功招式（任意类型手牌）==========
-  lifeDeath: {
-    id: 'lifeDeath',
-    name: '生死符',
-    shortName: '生死',
-    requiredCardType: 'any',
-    mpCost: 3,
-    agilityCost: 2,
-    effects: [{ type: 'dot', value: 3, duration: 3 }],
-    description: '对方每回合失去3点体力，持续3回合',
-    range: 2
-  },
-  northernMingSkill: {
-    id: 'northernMingSkill',
-    name: '北冥神功',
-    shortName: '北冥',
-    requiredCardType: 'any',
-    mpCost: 0,
-    agilityCost: 3,
-    effects: [{ type: 'drainMp', value: 6 }],
-    description: '吸取对方6点内力',
-    range: 1
-  },
   starAbsorbing: {
     id: 'starAbsorbing',
     name: '吸星大法',
     shortName: '吸星',
+    level: SkillLevel.ADVANCED,
     requiredCardType: 'any',
     mpCost: 0,
     agilityCost: 3,
@@ -361,21 +433,11 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     description: '吸取对方5点内力',
     range: 1
   },
-  qiankunMove: {
-    id: 'qiankunMove',
-    name: '乾坤大挪移',
-    shortName: '乾坤',
-    requiredCardType: 'any',
-    mpCost: 4,
-    agilityCost: 3,
-    effects: [{ type: 'damage', value: 8 }, { type: 'shield', value: 5 }],
-    description: '造成8点伤害，获得5点护盾',
-    range: 2
-  },
   littleFormless: {
     id: 'littleFormless',
     name: '小无相功',
     shortName: '无相',
+    level: SkillLevel.INTERMEDIATE,
     requiredCardType: 'any',
     mpCost: 2,
     agilityCost: 2,
@@ -387,6 +449,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     id: 'biHai',
     name: '碧海潮生曲',
     shortName: '碧海',
+    level: SkillLevel.ADVANCED,
     requiredCardType: 'any',
     mpCost: 4,
     agilityCost: 3,
@@ -398,6 +461,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     id: 'shiZiHou',
     name: '狮子吼',
     shortName: '狮子',
+    level: SkillLevel.ADVANCED,
     requiredCardType: 'any',
     mpCost: 4,
     agilityCost: 3,
@@ -409,6 +473,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     id: 'douZhuan',
     name: '斗转星移',
     shortName: '斗转',
+    level: SkillLevel.INTERMEDIATE,
     requiredCardType: 'any',
     mpCost: 3,
     agilityCost: 2,
@@ -420,10 +485,13 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
 
 // ==================== 内功数据 ====================
 export const passiveSkills: Record<string, PassiveSkill> = {
+  // ========== 少林内功 ==========
   goldenBell: {
     id: 'goldenBell',
     name: '金钟罩',
     shortName: '金钟',
+    level: SkillLevel.INTERMEDIATE,
+    faction: Faction.SHAOLIN,
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       character.shield += 6
@@ -435,6 +503,8 @@ export const passiveSkills: Record<string, PassiveSkill> = {
     id: 'muscleChange',
     name: '易筋经',
     shortName: '易筋',
+    level: SkillLevel.ADVANCED,
+    faction: Faction.SHAOLIN,
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       character.mp = Math.min(character.maxMp, character.mp + 3)
@@ -442,10 +512,14 @@ export const passiveSkills: Record<string, PassiveSkill> = {
     },
     description: '每回合恢复3点内力'
   },
+
+  // ========== 明教内功 ==========
   nineYang: {
     id: 'nineYang',
     name: '九阳神功',
     shortName: '九阳',
+    level: SkillLevel.MASTER,
+    faction: Faction.MINGJIAO,
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       character.hp = Math.min(character.maxHp, character.hp + 4)
@@ -453,59 +527,12 @@ export const passiveSkills: Record<string, PassiveSkill> = {
     },
     description: '每回合恢复4点体力'
   },
-  lingbo: {
-    id: 'lingbo',
-    name: '凌波微步',
-    shortName: '凌波',
-    trigger: TriggerTiming.TURN_START,
-    effect: (character: CharacterState): string => {
-      character.agilityBonus = (character.agilityBonus || 0) + 2
-      return `${character.name}的凌波微步发动，轻功+2`
-    },
-    initEffect: (character: CharacterState): void => {
-      character.agilityBonus = 5
-    },
-    description: '初始轻功+5，每回合轻功+2'
-  },
-  northernMingPassive: {
-    id: 'northernMingPassive',
-    name: '北冥神功',
-    shortName: '北冥',
-    trigger: TriggerTiming.ON_DAMAGE,
-    effect: (character: CharacterState, damage: number): string | null => {
-      const recover = Math.floor(damage * 0.5)
-      character.mp = Math.min(character.maxMp, character.mp + recover)
-      return recover > 0 ? `${character.name}的北冥神功发动，恢复${recover}点内力` : null
-    },
-    description: '造成伤害时恢复等量内力的50%'
-  },
-  starAbsorbingPassive: {
-    id: 'starAbsorbingPassive',
-    name: '吸星大法',
-    shortName: '吸星',
-    trigger: TriggerTiming.ON_DAMAGE,
-    effect: (character: CharacterState, damage: number): string | null => {
-      const recover = Math.floor(damage * 0.5)
-      character.hp = Math.min(character.maxHp, character.hp + recover)
-      return recover > 0 ? `${character.name}的吸星大法发动，恢复${recover}点体力` : null
-    },
-    description: '造成伤害时恢复等量体力的50%'
-  },
-  taiChiHeart: {
-    id: 'taiChiHeart',
-    name: '太极心法',
-    shortName: '太极',
-    trigger: TriggerTiming.ON_TAKE_DAMAGE,
-    effect: (character: CharacterState, damage: number): PassiveEffectResult => {
-      const reduction = Math.floor(damage * 0.25)
-      return { reducedDamage: damage - reduction, message: `${character.name}的太极心法发动，伤害减少25%` }
-    },
-    description: '受到伤害减少25%'
-  },
   qiankun: {
     id: 'qiankun',
     name: '乾坤大挪移',
     shortName: '乾坤',
+    level: SkillLevel.MASTER,
+    faction: Faction.MINGJIAO,
     trigger: TriggerTiming.ON_TAKE_DAMAGE,
     effect: (character: CharacterState, damage: number): PassiveEffectResult | null => {
       if (Math.random() < 0.2) {
@@ -516,24 +543,30 @@ export const passiveSkills: Record<string, PassiveSkill> = {
     },
     description: '20%几率闪避攻击，成功时反弹50%伤害'
   },
-  nineYin: {
-    id: 'nineYin',
-    name: '九阴真经',
-    shortName: '九阴',
-    trigger: TriggerTiming.ON_SKILL_USE,
-    effect: (character: CharacterState, skill: MartialArtSkill): string | null => {
-      if (skill.mpCost > 0) {
-        skill.mpCostReduction = 1
-        return `${character.name}的九阴真经发动，内力消耗-1`
-      }
-      return null
+
+  // ========== 星宿派内功 ==========
+  northernMingPassive: {
+    id: 'northernMingPassive',
+    name: '北冥神功',
+    shortName: '北冥',
+    level: SkillLevel.MASTER,
+    faction: Faction.XINGSU,
+    trigger: TriggerTiming.ON_DAMAGE,
+    effect: (character: CharacterState, damage: number): string | null => {
+      const recover = Math.floor(damage * 0.5)
+      character.mp = Math.min(character.maxMp, character.mp + recover)
+      return recover > 0 ? `${character.name}的北冥神功发动，恢复${recover}点内力` : null
     },
-    description: '武功招式内力消耗-1'
+    description: '造成伤害时恢复等量内力的50%'
   },
+
+  // ========== 大理段氏内功 ==========
   congenital: {
     id: 'congenital',
     name: '先天功',
     shortName: '先天',
+    level: SkillLevel.ADVANCED,
+    faction: Faction.DALI,
     trigger: TriggerTiming.ON_SKILL_USE,
     effect: (character: CharacterState, _skill: MartialArtSkill, damage?: number): PassiveEffectResult | null => {
       if (damage) {
@@ -544,10 +577,132 @@ export const passiveSkills: Record<string, PassiveSkill> = {
     },
     description: '武功招式伤害+20%'
   },
+
+  // ========== 武当内功 ==========
+  taiChiHeart: {
+    id: 'taiChiHeart',
+    name: '太极心法',
+    shortName: '太极',
+    level: SkillLevel.INTERMEDIATE,
+    faction: Faction.WUDANG,
+    trigger: TriggerTiming.ON_TAKE_DAMAGE,
+    effect: (character: CharacterState, damage: number): PassiveEffectResult => {
+      const reduction = Math.floor(damage * 0.25)
+      return { reducedDamage: damage - reduction, message: `${character.name}的太极心法发动，伤害减少25%` }
+    },
+    description: '受到伤害减少25%'
+  },
+  chunYang: {
+    id: 'chunYang',
+    name: '纯阳无极功',
+    shortName: '纯阳',
+    level: SkillLevel.ADVANCED,
+    faction: Faction.WUDANG,
+    trigger: TriggerTiming.TURN_START,
+    effect: (character: CharacterState): string => {
+      character.mp = Math.min(character.maxMp, character.mp + 3)
+      return `${character.name}的纯阳无极功发动，恢复3点内力`
+    },
+    description: '每回合恢复3点内力，武功招式伤害+20%'
+  },
+
+  // ========== 古墓派内功 ==========
+  yuNuXin: {
+    id: 'yuNuXin',
+    name: '玉女心经',
+    shortName: '玉女',
+    level: SkillLevel.INTERMEDIATE,
+    faction: Faction.GUMU,
+    trigger: TriggerTiming.TURN_START,
+    effect: (character: CharacterState): string => {
+      character.hp = Math.min(character.maxHp, character.hp + 2)
+      return `${character.name}的玉女心经发动，恢复2点体力`
+    },
+    description: '每回合恢复2点体力，受到伤害减少20%'
+  },
+
+  // ========== 侠客岛内功 ==========
+  taiXuanPassive: {
+    id: 'taiXuanPassive',
+    name: '太玄经',
+    shortName: '太玄',
+    level: SkillLevel.MASTER,
+    faction: Faction.XIAKE,
+    trigger: TriggerTiming.TURN_START,
+    effect: (character: CharacterState): string => {
+      character.hp = Math.min(character.maxHp, character.hp + 4)
+      return `${character.name}的太玄经发动，恢复4点体力`
+    },
+    description: '每回合恢复4点体力，受到伤害减少20%'
+  },
+
+  // ========== 华山内功 ==========
+  ziXia: {
+    id: 'ziXia',
+    name: '紫霞神功',
+    shortName: '紫霞',
+    level: SkillLevel.BEGINNER,
+    faction: Faction.HUASHAN,
+    trigger: TriggerTiming.ON_SKILL_USE,
+    effect: (character: CharacterState, _skill: MartialArtSkill, damage?: number): PassiveEffectResult | null => {
+      if (damage) {
+        const bonus = Math.floor(damage * 0.15)
+        return { bonusDamage: bonus, message: `${character.name}的紫霞神功发动，伤害+15%` }
+      }
+      return null
+    },
+    description: '武功招式伤害+15%'
+  },
+
+  // ========== 江湖散人内功（无门派）==========
+  lingbo: {
+    id: 'lingbo',
+    name: '凌波微步',
+    shortName: '凌波',
+    level: SkillLevel.ADVANCED,
+    trigger: TriggerTiming.TURN_START,
+    effect: (character: CharacterState): string => {
+      character.agilityBonus = (character.agilityBonus || 0) + 2
+      return `${character.name}的凌波微步发动，轻功+2`
+    },
+    initEffect: (character: CharacterState): void => {
+      character.agilityBonus = 5
+    },
+    description: '初始轻功+5，每回合轻功+2'
+  },
+  starAbsorbingPassive: {
+    id: 'starAbsorbingPassive',
+    name: '吸星大法',
+    shortName: '吸星',
+    level: SkillLevel.ADVANCED,
+    trigger: TriggerTiming.ON_DAMAGE,
+    effect: (character: CharacterState, damage: number): string | null => {
+      const recover = Math.floor(damage * 0.5)
+      character.hp = Math.min(character.maxHp, character.hp + recover)
+      return recover > 0 ? `${character.name}的吸星大法发动，恢复${recover}点体力` : null
+    },
+    description: '造成伤害时恢复等量体力的50%'
+  },
+  nineYin: {
+    id: 'nineYin',
+    name: '九阴真经',
+    shortName: '九阴',
+    level: SkillLevel.MASTER,
+    trigger: TriggerTiming.ON_SKILL_USE,
+    effect: (character: CharacterState, skill: MartialArtSkill): string | null => {
+      if (skill.mpCost > 0) {
+        skill.mpCostReduction = 1
+        return `${character.name}的九阴真经发动，内力消耗-1`
+      }
+      return null
+    },
+    description: '武功招式内力消耗-1'
+  },
   dragonElephant: {
     id: 'dragonElephant',
     name: '龙象般若功',
     shortName: '龙象',
+    level: SkillLevel.MASTER,
     trigger: TriggerTiming.ON_PLAY_CARD,
     effect: (character: CharacterState, card: { isBasicCard: boolean }, damage?: number): PassiveEffectResult | null => {
       if (card.isBasicCard && damage) {
@@ -561,6 +716,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
     id: 'kuiHuaPassive',
     name: '葵花宝典',
     shortName: '葵花',
+    level: SkillLevel.ADVANCED,
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       character.agilityBonus = (character.agilityBonus || 0) + 2
@@ -568,21 +724,11 @@ export const passiveSkills: Record<string, PassiveSkill> = {
     },
     description: '每回合轻功+2，30%几率闪避攻击'
   },
-  yuNuXin: {
-    id: 'yuNuXin',
-    name: '玉女心经',
-    shortName: '玉女',
-    trigger: TriggerTiming.TURN_START,
-    effect: (character: CharacterState): string => {
-      character.hp = Math.min(character.maxHp, character.hp + 2)
-      return `${character.name}的玉女心经发动，恢复2点体力`
-    },
-    description: '每回合恢复2点体力，受到伤害减少20%'
-  },
   shenZhaoPassive: {
     id: 'shenZhaoPassive',
     name: '神照经',
     shortName: '神照',
+    level: SkillLevel.ADVANCED,
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       const heal = character.hp < character.maxHp * 0.2 ? 6 : 3
@@ -591,21 +737,11 @@ export const passiveSkills: Record<string, PassiveSkill> = {
     },
     description: '每回合恢复3点体力，体力低于20%时恢复翻倍'
   },
-  taiXuanPassive: {
-    id: 'taiXuanPassive',
-    name: '太玄经',
-    shortName: '太玄',
-    trigger: TriggerTiming.TURN_START,
-    effect: (character: CharacterState): string => {
-      character.hp = Math.min(character.maxHp, character.hp + 4)
-      return `${character.name}的太玄经发动，恢复4点体力`
-    },
-    description: '每回合恢复4点体力，受到伤害减少20%'
-  },
   douZhuanPassive: {
     id: 'douZhuanPassive',
     name: '斗转星移',
     shortName: '斗转',
+    level: SkillLevel.INTERMEDIATE,
     trigger: TriggerTiming.ON_TAKE_DAMAGE,
     effect: (character: CharacterState, damage: number): PassiveEffectResult | null => {
       if (Math.random() < 0.25) {
@@ -620,37 +756,13 @@ export const passiveSkills: Record<string, PassiveSkill> = {
     id: 'haMaPassive',
     name: '蛤蟆功',
     shortName: '蛤蟆',
+    level: SkillLevel.ADVANCED,
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       character.shield += 4
       return `${character.name}的蛤蟆功发动，获得4点护盾`
     },
     description: '每回合开始获得4点护盾'
-  },
-  chunYang: {
-    id: 'chunYang',
-    name: '纯阳无极功',
-    shortName: '纯阳',
-    trigger: TriggerTiming.TURN_START,
-    effect: (character: CharacterState): string => {
-      character.mp = Math.min(character.maxMp, character.mp + 3)
-      return `${character.name}的纯阳无极功发动，恢复3点内力`
-    },
-    description: '每回合恢复3点内力，武功招式伤害+20%'
-  },
-  ziXia: {
-    id: 'ziXia',
-    name: '紫霞神功',
-    shortName: '紫霞',
-    trigger: TriggerTiming.ON_SKILL_USE,
-    effect: (character: CharacterState, _skill: MartialArtSkill, damage?: number): PassiveEffectResult | null => {
-      if (damage) {
-        const bonus = Math.floor(damage * 0.15)
-        return { bonusDamage: bonus, message: `${character.name}的紫霞神功发动，伤害+15%` }
-      }
-      return null
-    },
-    description: '武功招式伤害+15%'
   }
 }
 

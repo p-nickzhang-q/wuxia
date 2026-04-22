@@ -1569,3 +1569,44 @@ src/main.ts
 src/scenes/TitleScene.ts
 ---
 
+## Session End: 20260422_111910
+### Commits
+13c809a feat(game): 添加弟子招募系统和属性成长公式
+### Uncommitted Changes
+src/data/skills.ts
+src/game/types.ts
+tests/game.test.ts
+---
+
+## Session End: 20260422_112255
+### Commits
+13c809a feat(game): 添加弟子招募系统和属性成长公式
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/data/skills.ts
+src/game/types.ts
+tests/game.test.ts
+---
+
+## Session End: 20260422_112417
+### Commits
+13c809a feat(game): 添加弟子招募系统和属性成长公式
+### Uncommitted Changes
+docs/CHARACTERS.md
+production/session-logs/session-log.md
+src/data/skills.ts
+src/game/types.ts
+tests/game.test.ts
+---
+
+## Session End: 20260422_114237
+### Commits
+13c809a feat(game): 添加弟子招募系统和属性成长公式
+### Uncommitted Changes
+docs/CHARACTERS.md
+production/session-logs/session-log.md
+src/data/skills.ts
+src/game/types.ts
+tests/game.test.ts
+---
+

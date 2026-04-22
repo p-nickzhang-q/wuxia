@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createCharacter } from '../src/game/Character'
 import { createGame } from '../src/game/Game'
-import { CardType, TriggerTiming } from '../src/game/types'
+import { CardType, TriggerTiming, SkillLevel } from '../src/game/types'
 import type { CharacterConfig, MartialArt, MartialArtSkill, PassiveSkill } from '../src/game/types'
 
 // 测试用角色配置
@@ -41,6 +41,7 @@ const testMartialArt: MartialArt = {
 const testSkill: MartialArtSkill = {
   id: 'testSkill',
   name: '测试招式',
+  level: SkillLevel.INTERMEDIATE,
   requiredCardType: CardType.EMPTY_HAND,
   mpCost: 3,
   agilityCost: 2,
@@ -52,6 +53,7 @@ const testSkill: MartialArtSkill = {
 const testPassive: PassiveSkill = {
   id: 'testPassive',
   name: '测试内功',
+  level: SkillLevel.BEGINNER,
   trigger: TriggerTiming.TURN_START,
   effect: (character) => {
     character.heal(3)

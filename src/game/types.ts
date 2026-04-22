@@ -1,3 +1,29 @@
+// ==================== 武功等级 ====================
+export enum SkillLevel {
+  BEGINNER = '初级',
+  INTERMEDIATE = '中级',
+  ADVANCED = '高级',
+  MASTER = '顶级'
+}
+
+// ==================== 门派 ====================
+export enum Faction {
+  BEGGAR = '丐帮',
+  SHAOLIN = '少林',
+  WUDANG = '武当',
+  EMEI = '峨眉',
+  HUASHAN = '华山',
+  MINGJIAO = '明教',
+  GUMU = '古墓派',
+  XINGSU = '星宿派',
+  TIANSHAN = '天山派',
+  DALI = '大理段氏',
+  XIAKE = '侠客岛',
+  QINGCHENG = '青城派',
+  JINGUA = '金刀门',
+  RIVERSIDE = '江湖散人'  // 无门派
+}
+
 // ==================== 卡牌类型 ====================
 export enum CardType {
   EMPTY_HAND = '空手',
@@ -91,6 +117,8 @@ export interface MartialArtSkill {
   id: string
   name: string
   shortName?: string  // 简称（2-3个字），可选
+  level: SkillLevel   // 武功等级
+  faction?: Faction   // 所属门派，可选（江湖散人武功无门派）
   requiredCardType: CardType | 'any'
   mpCost: number
   agilityCost: number
@@ -114,6 +142,8 @@ export interface PassiveSkill {
   id: string
   name: string
   shortName?: string  // 简称（2-3个字），可选
+  level: SkillLevel   // 内功等级
+  faction?: Faction   // 所属门派，可选
   trigger: TriggerTiming
   effect: (character: CharacterState, ...args: any[]) => string | PassiveEffectResult | null
   initEffect?: (character: CharacterState) => void
