@@ -1610,3 +1610,73 @@ src/game/types.ts
 tests/game.test.ts
 ---
 
+## Session End: 20260422_115007
+### Commits
+5a6271f feat(game): 为武功招式添加等级和门派属性
+13c809a feat(game): 添加弟子招募系统和属性成长公式
+### Uncommitted Changes
+docs/SKILLS.md
+src/data/skills.ts
+src/game/types.ts
+---
+
+## Session End: 20260422_121510
+### Commits
+5a6271f feat(game): 为武功招式添加等级和门派属性
+13c809a feat(game): 添加弟子招募系统和属性成长公式
+### Uncommitted Changes
+docs/SKILLS.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/data/skills.ts
+src/game/types.ts
+---
+
+## Session End: 20260422_131830
+### Commits
+5a6271f feat(game): 为武功招式添加等级和门派属性
+13c809a feat(game): 添加弟子招募系统和属性成长公式
+### Uncommitted Changes
+docs/SKILLS.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/data/skills.ts
+src/game/types.ts
+---
+
+## Session End: 20260422_132244
+### Commits
+5a6271f feat(game): 为武功招式添加等级和门派属性
+13c809a feat(game): 添加弟子招募系统和属性成长公式
+### Uncommitted Changes
+docs/SKILLS.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/data/skills.ts
+src/game/types.ts
+---
+
+## Session End: 20260422_140645
+### Commits
+5a6271f feat(game): 为武功招式添加等级和门派属性
+13c809a feat(game): 添加弟子招募系统和属性成长公式
+### Uncommitted Changes
+docs/SKILLS.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/data/skills.ts
+src/game/types.ts
+---
+
+## Session End: 20260422_150759
+### Commits
+5a6271f feat(game): 为武功招式添加等级和门派属性
+13c809a feat(game): 添加弟子招募系统和属性成长公式
+### Uncommitted Changes
+docs/SKILLS.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/data/skills.ts
+src/game/types.ts
+---
+

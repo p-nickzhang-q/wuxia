@@ -7,7 +7,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     id: 'dragonPalm',
     name: '降龙十八掌',
     shortName: '降龙',
-    level: SkillLevel.ADVANCED,
+    level: SkillLevel.MASTER,
     faction: Faction.BEGGAR,
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 4,
@@ -20,7 +20,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     id: 'dogBeating',
     name: '打狗棒法',
     shortName: '打狗',
-    level: SkillLevel.ADVANCED,
+    level: SkillLevel.MASTER,
     faction: Faction.BEGGAR,
     requiredCardType: CardType.LONG_WEAPON,
     mpCost: 4,
@@ -29,8 +29,47 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     description: '造成7点伤害，对方下回合无法使用腿法',
     range: 2
   },
+  drunkStep: {
+    id: 'drunkStep',
+    name: '醉仙望月步',
+    shortName: '醉仙',
+    level: SkillLevel.BEGINNER,
+    faction: Faction.BEGGAR,
+    requiredCardType: CardType.LEG,
+    mpCost: 2,
+    agilityCost: 2,
+    effects: [{ type: 'shield', value: 3 }, { type: 'debuffAgility', value: 2, duration: 1 }],
+    description: '获得3点护盾，对方下回合轻功-2',
+    range: 1
+  },
+  captureDragon: {
+    id: 'captureDragon',
+    name: '擒龙手',
+    shortName: '擒龙',
+    level: SkillLevel.INTERMEDIATE,
+    faction: Faction.BEGGAR,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 3,
+    agilityCost: 2,
+    effects: [{ type: 'damage', value: 6 }, { type: 'drainHp', value: 3 }],
+    description: '造成6点伤害，吸取3点体力',
+    range: 2
+  },
 
   // ========== 大理段氏武功 ==========
+  duanSword: {
+    id: 'duanSword',
+    name: '段家剑法',
+    shortName: '段剑',
+    level: SkillLevel.ADVANCED,
+    faction: Faction.DALI,
+    requiredCardType: CardType.SHORT_WEAPON,
+    mpCost: 4,
+    agilityCost: 3,
+    effects: [{ type: 'damage', value: 9, ignoreShield: true }],
+    description: '造成9点伤害，无视护盾',
+    range: 2
+  },
   sixMeridianSword: {
     id: 'sixMeridianSword',
     name: '六脉神剑',
@@ -63,7 +102,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     id: 'tianShanZheMei',
     name: '天山折梅手',
     shortName: '折梅',
-    level: SkillLevel.INTERMEDIATE,
+    level: SkillLevel.ADVANCED,
     faction: Faction.TIANSHAN,
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 3,
@@ -76,7 +115,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     id: 'tianShanLiuYang',
     name: '天山六阳掌',
     shortName: '六阳',
-    level: SkillLevel.INTERMEDIATE,
+    level: SkillLevel.ADVANCED,
     faction: Faction.TIANSHAN,
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 4,
@@ -99,6 +138,101 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     range: 2
   },
 
+  // ========== 峨眉派武功 ==========
+  emeiSword: {
+    id: 'emeiSword',
+    name: '峨眉剑法',
+    shortName: '峨眉',
+    level: SkillLevel.BEGINNER,
+    faction: Faction.EMEI,
+    requiredCardType: CardType.SHORT_WEAPON,
+    mpCost: 2,
+    agilityCost: 2,
+    effects: [{ type: 'damage', value: 5 }],
+    description: '造成5点伤害',
+    range: 1
+  },
+  fourImagePalm: {
+    id: 'fourImagePalm',
+    name: '四象掌',
+    shortName: '四象',
+    level: SkillLevel.INTERMEDIATE,
+    faction: Faction.EMEI,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 3,
+    agilityCost: 2,
+    effects: [{ type: 'damage', value: 6 }, { type: 'shield', value: 3 }],
+    description: '造成6点伤害，获得3点护盾',
+    range: 1
+  },
+  goldenTopPalm: {
+    id: 'goldenTopPalm',
+    name: '金顶绵掌',
+    shortName: '金顶',
+    level: SkillLevel.ADVANCED,
+    faction: Faction.EMEI,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 4,
+    agilityCost: 3,
+    effects: [{ type: 'damage', value: 9 }],
+    description: '造成9点伤害，恢复3点体力',
+    range: 1
+  },
+
+  // ========== 青城派武功 ==========
+  qingchengSword: {
+    id: 'qingchengSword',
+    name: '青城剑法',
+    shortName: '青城',
+    level: SkillLevel.BEGINNER,
+    faction: Faction.QINGCHENG,
+    requiredCardType: CardType.SHORT_WEAPON,
+    mpCost: 2,
+    agilityCost: 2,
+    effects: [{ type: 'damage', value: 5 }],
+    description: '造成5点伤害',
+    range: 1
+  },
+  pineWindSword: {
+    id: 'pineWindSword',
+    name: '松风剑法',
+    shortName: '松风',
+    level: SkillLevel.INTERMEDIATE,
+    faction: Faction.QINGCHENG,
+    requiredCardType: CardType.SHORT_WEAPON,
+    mpCost: 3,
+    agilityCost: 3,
+    effects: [{ type: 'damage', value: 7 }, { type: 'debuffAgility', value: 2, duration: 1 }],
+    description: '造成7点伤害，对方下回合轻功-2',
+    range: 1
+  },
+  hiddenNeedle: {
+    id: 'hiddenNeedle',
+    name: '暗藏金针',
+    shortName: '金针',
+    level: SkillLevel.ADVANCED,
+    faction: Faction.QINGCHENG,
+    requiredCardType: CardType.SHORT_WEAPON,
+    mpCost: 4,
+    agilityCost: 2,
+    effects: [{ type: 'damage', value: 8, ignoreShield: true }],
+    description: '造成8点伤害，无视护盾',
+    range: 2
+  },
+  cuiXinPalm: {
+    id: 'cuiXinPalm',
+    name: '摧心掌',
+    shortName: '摧心',
+    level: SkillLevel.MASTER,
+    faction: Faction.QINGCHENG,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 5,
+    agilityCost: 4,
+    effects: [{ type: 'damage', value: 11 }, { type: 'dot', value: 2, duration: 3 }],
+    description: '造成11点伤害，对方每回合失去2点体力，持续3回合',
+    range: 1
+  },
+
   // ========== 古墓派武功 ==========
   yuNu: {
     id: 'yuNu',
@@ -113,27 +247,14 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     description: '造成7点伤害',
     range: 1
   },
-  shuangJian: {
-    id: 'shuangJian',
-    name: '双剑合璧',
-    shortName: '双剑',
-    level: SkillLevel.MASTER,
-    faction: Faction.GUMU,
-    requiredCardType: CardType.SHORT_WEAPON,
-    mpCost: 6,
-    agilityCost: 4,
-    effects: [{ type: 'damage', value: 14 }],
-    description: '造成14点伤害（需2张短兵牌）',
-    range: 1
-  },
 
   // ========== 星宿派武功 ==========
   northernMingSkill: {
     id: 'northernMingSkill',
     name: '北冥神功',
     shortName: '北冥',
-    level: SkillLevel.ADVANCED,
-    faction: Faction.XINGSU,
+    level: SkillLevel.MASTER,
+    faction: Faction.TIANSHAN,
     requiredCardType: 'any',
     mpCost: 0,
     agilityCost: 3,
@@ -146,7 +267,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     name: '火焰刀',
     shortName: '火焰',
     level: SkillLevel.ADVANCED,
-    faction: Faction.XINGSU,
+    faction: Faction.SHAOLIN,
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 4,
     agilityCost: 3,
@@ -156,6 +277,45 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   },
 
   // ========== 华山武功 ==========
+  huashanSword: {
+    id: 'huashanSword',
+    name: '华山剑法',
+    shortName: '华山',
+    level: SkillLevel.BEGINNER,
+    faction: Faction.HUASHAN,
+    requiredCardType: CardType.SHORT_WEAPON,
+    mpCost: 2,
+    agilityCost: 2,
+    effects: [{ type: 'damage', value: 5 }],
+    description: '造成5点伤害',
+    range: 1
+  },
+  taiYueSanQing: {
+    id: 'taiYueSanQing',
+    name: '太岳三青峰',
+    shortName: '太岳',
+    level: SkillLevel.INTERMEDIATE,
+    faction: Faction.HUASHAN,
+    requiredCardType: CardType.SHORT_WEAPON,
+    mpCost: 3,
+    agilityCost: 3,
+    effects: [{ type: 'damage', value: 7 }],
+    description: '造成7点伤害',
+    range: 1
+  },
+  duoMingSanXian: {
+    id: 'duoMingSanXian',
+    name: '夺命三仙剑',
+    shortName: '夺命',
+    level: SkillLevel.ADVANCED,
+    faction: Faction.HUASHAN,
+    requiredCardType: CardType.SHORT_WEAPON,
+    mpCost: 4,
+    agilityCost: 3,
+    effects: [{ type: 'damage', value: 9, ignoreShield: true }],
+    description: '造成9点伤害，无视护盾',
+    range: 2
+  },
   nineSwords: {
     id: 'nineSwords',
     name: '独孤九剑',
@@ -175,8 +335,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     id: 'qiankunMove',
     name: '乾坤大挪移',
     shortName: '乾坤',
-    level: SkillLevel.ADVANCED,
-    faction: Faction.MINGJIAO,
+    level: SkillLevel.MASTER,
+    faction: Faction.MOZU,
     requiredCardType: 'any',
     mpCost: 4,
     agilityCost: 3,
@@ -186,11 +346,37 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
   },
 
   // ========== 武当武功 ==========
+  softPalm: {
+    id: 'softPalm',
+    name: '绵掌',
+    shortName: '绵掌',
+    level: SkillLevel.BEGINNER,
+    faction: Faction.WUDANG,
+    requiredCardType: CardType.EMPTY_HAND,
+    mpCost: 4,
+    agilityCost: 3,
+    effects: [{ type: 'damage', value: 8 }, { type: 'shield', value: 4 }],
+    description: '造成8点伤害，获得4点护盾',
+    range: 1
+  },
+  trueWuSword: {
+    id: 'trueWuSword',
+    name: '真武剑法',
+    shortName: '真武',
+    level: SkillLevel.MASTER,
+    faction: Faction.WUDANG,
+    requiredCardType: CardType.SHORT_WEAPON,
+    mpCost: 5,
+    agilityCost: 4,
+    effects: [{ type: 'damage', value: 11 }, { type: 'shield', value: 5 }],
+    description: '造成11点伤害，获得5点护盾',
+    range: 2
+  },
   taiChiSkill: {
     id: 'taiChiSkill',
     name: '太极拳',
     shortName: '太极',
-    level: SkillLevel.BEGINNER,
+    level: SkillLevel.INTERMEDIATE,
     faction: Faction.WUDANG,
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 2,
@@ -281,7 +467,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     id: 'anRan',
     name: '黯然销魂掌',
     shortName: '黯然',
-    level: SkillLevel.MASTER,
+    level: SkillLevel.ADVANCED,
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 5,
     agilityCost: 4,
@@ -318,6 +504,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     name: '龙象般若功',
     shortName: '龙象',
     level: SkillLevel.MASTER,
+    faction: Faction.SHAOLIN,
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 5,
     agilityCost: 4,
@@ -329,7 +516,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     id: 'lingSheQuan',
     name: '灵蛇拳',
     shortName: '灵蛇',
-    level: SkillLevel.INTERMEDIATE,
+    level: SkillLevel.BEGINNER,
+    faction: Faction.MOZU,
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 3,
     agilityCost: 2,
@@ -342,6 +530,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     name: '蛤蟆功',
     shortName: '蛤蟆',
     level: SkillLevel.MASTER,
+    faction: Faction.MOZU,
     requiredCardType: CardType.EMPTY_HAND,
     mpCost: 5,
     agilityCost: 4,
@@ -366,6 +555,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     name: '金蛇剑法',
     shortName: '金蛇',
     level: SkillLevel.INTERMEDIATE,
+    faction: Faction.MOZU,
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 3,
     agilityCost: 3,
@@ -377,7 +567,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     id: 'goldenSnakeZhui',
     name: '金蛇锥',
     shortName: '蛇锥',
-    level: SkillLevel.ADVANCED,
+    level: SkillLevel.INTERMEDIATE,
+    faction: Faction.MOZU,
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 4,
     agilityCost: 3,
@@ -401,7 +592,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     id: 'kuiHua',
     name: '葵花宝典',
     shortName: '葵花',
-    level: SkillLevel.ADVANCED,
+    level: SkillLevel.MASTER,
+    faction: Faction.MOZU,
     requiredCardType: CardType.SHORT_WEAPON,
     mpCost: 3,
     agilityCost: 2,
@@ -426,6 +618,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     name: '吸星大法',
     shortName: '吸星',
     level: SkillLevel.ADVANCED,
+    faction: Faction.MOZU,
     requiredCardType: 'any',
     mpCost: 0,
     agilityCost: 3,
@@ -437,7 +630,8 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     id: 'littleFormless',
     name: '小无相功',
     shortName: '无相',
-    level: SkillLevel.INTERMEDIATE,
+    level: SkillLevel.ADVANCED,
+    faction: Faction.TIANSHAN,
     requiredCardType: 'any',
     mpCost: 2,
     agilityCost: 2,
@@ -462,6 +656,7 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
     name: '狮子吼',
     shortName: '狮子',
     level: SkillLevel.ADVANCED,
+    faction: Faction.SHAOLIN,
     requiredCardType: 'any',
     mpCost: 4,
     agilityCost: 3,
@@ -485,6 +680,81 @@ export const martialArtSkills: Record<string, MartialArtSkill> = {
 
 // ==================== 内功数据 ====================
 export const passiveSkills: Record<string, PassiveSkill> = {
+  // ========== 峨眉派内功 ==========
+  emeiHeart: {
+    id: 'emeiHeart',
+    name: '峨眉心法',
+    shortName: '峨眉',
+    level: SkillLevel.INTERMEDIATE,
+    faction: Faction.EMEI,
+    trigger: TriggerTiming.TURN_START,
+    effect: (character: CharacterState): string => {
+      character.shield += 3
+      return `${character.name}的峨眉心法发动，获得3点护盾`
+    },
+    description: '每回合开始获得3点护盾'
+  },
+  emeiNineYangPassive: {
+    id: 'emeiNineYangPassive',
+    name: '峨眉九阳功',
+    shortName: '九阳',
+    level: SkillLevel.ADVANCED,
+    faction: Faction.EMEI,
+    trigger: TriggerTiming.TURN_START,
+    effect: (character: CharacterState): string => {
+      character.hp = Math.min(character.maxHp, character.hp + 3)
+      character.shield += 3
+      return `${character.name}的峨眉九阳功发动，恢复3点体力，获得3点护盾`
+    },
+    description: '每回合恢复3点体力，获得3点护盾'
+  },
+
+  // ========== 青城派内功 ==========
+  qingchengHeart: {
+    id: 'qingchengHeart',
+    name: '青城心法',
+    shortName: '青城',
+    level: SkillLevel.BEGINNER,
+    faction: Faction.QINGCHENG,
+    trigger: TriggerTiming.ON_SKILL_USE,
+    effect: (character: CharacterState, _skill: MartialArtSkill, damage?: number): PassiveEffectResult | null => {
+      if (damage) {
+        const bonus = Math.floor(damage * 0.1)
+        return { bonusDamage: bonus, message: `${character.name}的青城心法发动，伤害+10%` }
+      }
+      return null
+    },
+    description: '武功招式伤害+10%'
+  },
+
+  // ========== 丐帮内功 ==========
+  hunTian: {
+    id: 'hunTian',
+    name: '混天功',
+    shortName: '混天',
+    level: SkillLevel.ADVANCED,
+    faction: Faction.BEGGAR,
+    trigger: TriggerTiming.TURN_START,
+    effect: (character: CharacterState): string => {
+      character.mp = Math.min(character.maxMp, character.mp + 2)
+      return `${character.name}的混天功发动，恢复2点内力`
+    },
+    description: '每回合恢复2点内力'
+  },
+  beggarHeart: {
+    id: 'beggarHeart',
+    name: '丐帮内功',
+    shortName: '丐帮',
+    level: SkillLevel.BEGINNER,
+    faction: Faction.BEGGAR,
+    trigger: TriggerTiming.ON_DAMAGE,
+    effect: (character: CharacterState, _damage: number): string | null => {
+      character.hp = Math.min(character.maxHp, character.hp + 3)
+      return `${character.name}的丐帮内功发动，恢复3点体力`
+    },
+    description: '造成伤害时恢复3点体力'
+  },
+
   // ========== 少林内功 ==========
   goldenBell: {
     id: 'goldenBell',
@@ -503,7 +773,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
     id: 'muscleChange',
     name: '易筋经',
     shortName: '易筋',
-    level: SkillLevel.ADVANCED,
+    level: SkillLevel.MASTER,
     faction: Faction.SHAOLIN,
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
@@ -512,14 +782,12 @@ export const passiveSkills: Record<string, PassiveSkill> = {
     },
     description: '每回合恢复3点内力'
   },
-
-  // ========== 明教内功 ==========
-  nineYang: {
-    id: 'nineYang',
+  nineYangShaolin: {
+    id: 'nineYangShaolin',
     name: '九阳神功',
     shortName: '九阳',
     level: SkillLevel.MASTER,
-    faction: Faction.MINGJIAO,
+    faction: Faction.SHAOLIN,
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       character.hp = Math.min(character.maxHp, character.hp + 4)
@@ -527,12 +795,14 @@ export const passiveSkills: Record<string, PassiveSkill> = {
     },
     description: '每回合恢复4点体力'
   },
+
+  // ========== 明教内功 ==========
   qiankun: {
     id: 'qiankun',
     name: '乾坤大挪移',
     shortName: '乾坤',
     level: SkillLevel.MASTER,
-    faction: Faction.MINGJIAO,
+    faction: Faction.MOZU,
     trigger: TriggerTiming.ON_TAKE_DAMAGE,
     effect: (character: CharacterState, damage: number): PassiveEffectResult | null => {
       if (Math.random() < 0.2) {
@@ -550,7 +820,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
     name: '北冥神功',
     shortName: '北冥',
     level: SkillLevel.MASTER,
-    faction: Faction.XINGSU,
+    faction: Faction.TIANSHAN,
     trigger: TriggerTiming.ON_DAMAGE,
     effect: (character: CharacterState, damage: number): string | null => {
       const recover = Math.floor(damage * 0.5)
@@ -561,6 +831,33 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   },
 
   // ========== 大理段氏内功 ==========
+  duanHeart: {
+    id: 'duanHeart',
+    name: '段氏内功',
+    shortName: '段氏',
+    level: SkillLevel.BEGINNER,
+    faction: Faction.DALI,
+    trigger: TriggerTiming.TURN_START,
+    effect: (character: CharacterState): string => {
+      character.agilityBonus = (character.agilityBonus || 0) + 1
+      return `${character.name}的段氏内功发动，轻功+1`
+    },
+    description: '每回合轻功+1'
+  },
+  kuRongPassive: {
+    id: 'kuRongPassive',
+    name: '枯荣禅功',
+    shortName: '枯荣',
+    level: SkillLevel.ADVANCED,
+    faction: Faction.DALI,
+    trigger: TriggerTiming.TURN_START,
+    effect: (character: CharacterState): string => {
+      character.hp = Math.min(character.maxHp, character.hp + 2)
+      character.mp = Math.min(character.maxMp, character.mp + 2)
+      return `${character.name}的枯荣禅功发动，恢复2点体力和2点内力`
+    },
+    description: '每回合恢复2点体力和2点内力'
+  },
   congenital: {
     id: 'congenital',
     name: '先天功',
@@ -637,11 +934,27 @@ export const passiveSkills: Record<string, PassiveSkill> = {
   },
 
   // ========== 华山内功 ==========
+  huashanHeart: {
+    id: 'huashanHeart',
+    name: '华山心法',
+    shortName: '华山',
+    level: SkillLevel.BEGINNER,
+    faction: Faction.HUASHAN,
+    trigger: TriggerTiming.ON_SKILL_USE,
+    effect: (character: CharacterState, _skill: MartialArtSkill, damage?: number): PassiveEffectResult | null => {
+      if (damage) {
+        const bonus = Math.floor(damage * 0.15)
+        return { bonusDamage: bonus, message: `${character.name}的华山心法发动，伤害+15%` }
+      }
+      return null
+    },
+    description: '武功招式伤害+15%'
+  },
   ziXia: {
     id: 'ziXia',
     name: '紫霞神功',
     shortName: '紫霞',
-    level: SkillLevel.BEGINNER,
+    level: SkillLevel.ADVANCED,
     faction: Faction.HUASHAN,
     trigger: TriggerTiming.ON_SKILL_USE,
     effect: (character: CharacterState, _skill: MartialArtSkill, damage?: number): PassiveEffectResult | null => {
@@ -703,6 +1016,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
     name: '龙象般若功',
     shortName: '龙象',
     level: SkillLevel.MASTER,
+    faction: Faction.SHAOLIN,
     trigger: TriggerTiming.ON_PLAY_CARD,
     effect: (character: CharacterState, card: { isBasicCard: boolean }, damage?: number): PassiveEffectResult | null => {
       if (card.isBasicCard && damage) {
@@ -757,6 +1071,7 @@ export const passiveSkills: Record<string, PassiveSkill> = {
     name: '蛤蟆功',
     shortName: '蛤蟆',
     level: SkillLevel.ADVANCED,
+    faction: Faction.MOZU,
     trigger: TriggerTiming.TURN_START,
     effect: (character: CharacterState): string => {
       character.shield += 4
@@ -768,6 +1083,123 @@ export const passiveSkills: Record<string, PassiveSkill> = {
 
 // ==================== 武功配置 ====================
 export const martialArts: Record<string, MartialArt> = {
+  // ========== 峨眉派武功配置 ==========
+  emeiSwordArt: {
+    id: 'emeiSwordArt',
+    name: '峨眉剑法',
+    skills: [martialArtSkills.emeiSword],
+    passive: null,
+    description: '峨眉剑法'
+  },
+  fourImagePalmArt: {
+    id: 'fourImagePalmArt',
+    name: '四象掌',
+    skills: [martialArtSkills.fourImagePalm],
+    passive: null,
+    description: '四象掌'
+  },
+  goldenTopPalmArt: {
+    id: 'goldenTopPalmArt',
+    name: '金顶绵掌',
+    skills: [martialArtSkills.goldenTopPalm],
+    passive: passiveSkills.emeiNineYangPassive,
+    description: '金顶绵掌'
+  },
+
+  // ========== 青城派武功配置 ==========
+  qingchengSwordArt: {
+    id: 'qingchengSwordArt',
+    name: '青城剑法',
+    skills: [martialArtSkills.qingchengSword],
+    passive: null,
+    description: '青城剑法'
+  },
+  pineWindSwordArt: {
+    id: 'pineWindSwordArt',
+    name: '松风剑法',
+    skills: [martialArtSkills.pineWindSword],
+    passive: null,
+    description: '松风剑法'
+  },
+  hiddenNeedleArt: {
+    id: 'hiddenNeedleArt',
+    name: '暗藏金针',
+    skills: [martialArtSkills.hiddenNeedle],
+    passive: passiveSkills.qingchengHeart,
+    description: '暗藏金针'
+  },
+  cuiXinPalmArt: {
+    id: 'cuiXinPalmArt',
+    name: '摧心掌',
+    skills: [martialArtSkills.cuiXinPalm],
+    passive: null,
+    description: '摧心掌'
+  },
+
+  // ========== 华山武功配置 ==========
+  huashanSwordArt: {
+    id: 'huashanSwordArt',
+    name: '华山剑法',
+    skills: [martialArtSkills.huashanSword],
+    passive: null,
+    description: '华山剑法'
+  },
+  taiYueSanQingArt: {
+    id: 'taiYueSanQingArt',
+    name: '太岳三青峰',
+    skills: [martialArtSkills.taiYueSanQing],
+    passive: passiveSkills.huashanHeart,
+    description: '太岳三青峰'
+  },
+  duoMingSanXianArt: {
+    id: 'duoMingSanXianArt',
+    name: '夺命三仙剑',
+    skills: [martialArtSkills.duoMingSanXian],
+    passive: passiveSkills.ziXia,
+    description: '夺命三仙剑'
+  },
+
+  // ========== 武当武功配置 ==========
+  softPalmArt: {
+    id: 'softPalmArt',
+    name: '绵掌',
+    skills: [martialArtSkills.softPalm],
+    passive: null,
+    description: '绵掌'
+  },
+  trueWuSwordArt: {
+    id: 'trueWuSwordArt',
+    name: '真武剑法',
+    skills: [martialArtSkills.trueWuSword],
+    passive: null,
+    description: '真武剑法'
+  },
+
+  // ========== 大理段氏武功配置 ==========
+  duanSwordArt: {
+    id: 'duanSwordArt',
+    name: '段家剑法',
+    skills: [martialArtSkills.duanSword],
+    passive: passiveSkills.kuRongPassive,
+    description: '段家剑法'
+  },
+
+  // ========== 丐帮武功配置 ==========
+  drunkStepArt: {
+    id: 'drunkStepArt',
+    name: '醉仙望月步',
+    skills: [martialArtSkills.drunkStep],
+    passive: passiveSkills.hunTian,
+    description: '醉仙望月步'
+  },
+  captureDragonArt: {
+    id: 'captureDragonArt',
+    name: '擒龙手',
+    skills: [martialArtSkills.captureDragon],
+    passive: passiveSkills.beggarHeart,
+    description: '擒龙手'
+  },
+
   // 乔峰武功
   dragonPalmArt: {
     id: 'dragonPalmArt',
@@ -925,13 +1357,6 @@ export const martialArts: Record<string, MartialArt> = {
     passive: passiveSkills.yuNuXin,
     description: '玉女心经'
   },
-  shuangJianArt: {
-    id: 'shuangJianArt',
-    name: '双剑合璧',
-    skills: [martialArtSkills.shuangJian],
-    passive: null,
-    description: '双剑合璧'
-  },
   // 金轮法王武功
   longXiangArt: {
     id: 'longXiangArt',
@@ -945,7 +1370,7 @@ export const martialArts: Record<string, MartialArt> = {
     id: 'nineYangArt',
     name: '九阳神功',
     skills: [],
-    passive: passiveSkills.nineYang,
+    passive: passiveSkills.nineYangShaolin,
     description: '九阳神功'
   },
   qiankunArt: {
@@ -1301,11 +1726,11 @@ export const characters: Record<string, CharacterConfig> = {
     id: 'xiaoLongNv',
     name: '小龙女',
     title: '古墓派传人',
-    description: '玉女剑法，双剑合璧',
+    description: '玉女剑法，玉女心经',
     hp: 50,
     mp: 24,
     agility: 13,
-    martialArts: ['yuNuJianArt', 'yuNuXinArt', 'shuangJianArt'],
+    martialArts: ['yuNuJianArt', 'yuNuXinArt'],
     deck: [
       'stab', 'stab', 'stab', 'stab', 'stab', 'stab', 'stab', 'stab',
       'slash', 'slash', 'slash', 'slash', 'slash', 'slash',

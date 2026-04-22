@@ -13,14 +13,12 @@ export enum Faction {
   WUDANG = '武当',
   EMEI = '峨眉',
   HUASHAN = '华山',
-  MINGJIAO = '明教',
+  MOZU = '魔教',
   GUMU = '古墓派',
-  XINGSU = '星宿派',
   TIANSHAN = '天山派',
   DALI = '大理段氏',
   XIAKE = '侠客岛',
   QINGCHENG = '青城派',
-  JINGUA = '金刀门',
   RIVERSIDE = '江湖散人'  // 无门派
 }
 
