@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 
 /**
  * 测试 AI.ts 决策逻辑
@@ -32,7 +32,7 @@ describe('AI 决策逻辑', () => {
     dots: [],
     isAlive: () => hp > 0,
     battlePosition: { team: 'enemy', position: 0 },
-    getAvailableCards: (currentAgility: number) => [],
+    getAvailableCards: (_currentAgility: number) => [],
     canUseSkill: () => false
   })
 
@@ -76,9 +76,7 @@ describe('AI 决策逻辑', () => {
         createMockCard('card3', 'stab', 8, 0, 2)
       ]
 
-      const targetShield = 5
-
-      // 高伤害优先
+      // 高伤害优先（目标有护盾时）
       const sorted = cards.filter(c => c.baseDamage > 0)
         .sort((a, b) => b.baseDamage - a.baseDamage)
       expect(sorted[0].baseDamage).toBe(10)
@@ -174,7 +172,7 @@ describe('AI 决策逻辑', () => {
       const skill = { mpCost: 5 }
 
       const mpRatio = actor.mp / actor.maxMp
-      const shouldUse = mpRatio >= 0.5
+      const shouldUse = mpRatio >= 0.5 && actor.mp >= skill.mpCost
       expect(shouldUse).toBe(true)
     })
 
@@ -184,7 +182,7 @@ describe('AI 决策逻辑', () => {
       const skill = { mpCost: 5 }
 
       const mpRatio = actor.mp / actor.maxMp
-      const shouldUse = mpRatio >= 0.5
+      const shouldUse = mpRatio >= 0.5 && actor.mp >= skill.mpCost
       expect(shouldUse).toBe(false)
     })
   })
@@ -226,8 +224,8 @@ describe('AI 决策逻辑', () => {
       const availableCards = []
       const aliveEnemies = [createMockCharacter('enemy', 50, 10, 5)]
 
-      const hasNoCards = availableCards.length === 0
-      expect(hasNoCards).toBe(true)
+      const canAct = availableCards.length > 0 && aliveEnemies.length > 0
+      expect(canAct).toBe(false)
     })
 
     it('test_no_action_when_no_enemies', () => {
@@ -235,8 +233,8 @@ describe('AI 决策逻辑', () => {
       const availableCards = [createMockCard('card1', 'fist', 5, 0, 2)]
       const aliveEnemies = []
 
-      const hasNoEnemies = aliveEnemies.length === 0
-      expect(hasNoEnemies).toBe(true)
+      const canAct = availableCards.length > 0 && aliveEnemies.length > 0
+      expect(canAct).toBe(false)
     })
 
     it('test_max_action_limit', () => {

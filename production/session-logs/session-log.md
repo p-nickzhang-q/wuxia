@@ -1852,3 +1852,30 @@ production/session-logs/session-log.md
 src/scenes/BattleScene.ts
 ---
 
+## Session End: 20260423_122022
+### Commits
+8e4a35a refactor(battle): 将战斗场景逻辑分离为独立处理器
+323afbf refactor(ui): 重构UI组件架构以改善模块组织结构
+ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维护性
+5da7b12 refactor(game): 重构角色配置系统并完善弟子属性
+### Uncommitted Changes
+src/scenes/BattleScene.ts
+tests/aiDecision.test.ts
+tests/characterDamage.test.ts
+tests/gameEffects.test.ts
+---
+
+## Session End: 20260423_130824
+### Commits
+8e4a35a refactor(battle): 将战斗场景逻辑分离为独立处理器
+323afbf refactor(ui): 重构UI组件架构以改善模块组织结构
+ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维护性
+5da7b12 refactor(game): 重构角色配置系统并完善弟子属性
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/scenes/BattleScene.ts
+tests/aiDecision.test.ts
+tests/characterDamage.test.ts
+tests/gameEffects.test.ts
+---
+

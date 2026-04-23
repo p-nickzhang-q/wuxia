@@ -24,6 +24,7 @@ export class BattleScene extends Scene {
   private enemyConfigs: CharacterState[] = []
 
   private game: ReturnType<typeof createGame> | null = null
+  // @ts-expect-error - 被 BattleAIHandler 通过 scene 引用使用
   private ai: AI | null = null
 
   // 处理器
@@ -45,13 +46,16 @@ export class BattleScene extends Scene {
   // 交互状态
   private selectedCard: CardRenderer | null = null
   private selectedSkill: MartialArtSkill | null = null
+  // @ts-expect-error - 被 BattleAIHandler 通过 scene 引用使用
   private isAIProcessing: boolean = false
   private isGameOver: boolean = false  // 防止重复处理游戏结束
 
   // 目标选择状态
   private targetableIds: string[] = []           // 可选目标ID列表
   private selectedTargetId: string | null = null // 已选中目标ID
+  // @ts-expect-error - 被 BattleInputHandler 通过 scene 引用使用
   private pendingSkillId: string | null = null   // 待执行的武功ID
+  // @ts-expect-error - 被 BattleInputHandler/BattleAIHandler 通过 scene 引用使用
   private pendingCardId: string | null = null    // 待执行的卡牌ID
 
   // 抽牌动画相关
@@ -879,7 +883,8 @@ export class BattleScene extends Scene {
     this.inputHandler?.handleCancel()
   }
 
-  // 进入目标选择模式
+  // 进入目标选择模式（供 BattleInputHandler 使用）
+  // @ts-expect-error - 被 BattleInputHandler 通过 scene 引用调用
   private enterTargetSelection(skillId: string | null, cardInstanceId: string): void {
     if (!this.game) return
 
@@ -942,34 +947,6 @@ export class BattleScene extends Scene {
     this.statusBar?.setPhase('选择目标')
   }
 
-  // 处理目标点击
-  private handleTargetClick(targetId: string): void {
-    if (this.game?.phase !== GamePhase.SELECTING_TARGET) return
-    if (!this.targetableIds.includes(targetId)) return
-
-    // 选中目标（等待确认）
-    this.selectedTargetId = targetId
-    this.updateTargetHighlights()
-  }
-
-  // 确认目标选择
-  private confirmTarget(): void {
-    if (!this.selectedTargetId) return
-
-    this.executeAction(this.pendingSkillId, this.pendingCardId, this.selectedTargetId)
-  }
-
-  // 执行动作
-  private executeAction(skillId: string | null, cardInstanceId: string | null, targetId: string): void {
-    if (skillId && cardInstanceId) {
-      this.useSkill(skillId, cardInstanceId, targetId)
-    } else if (cardInstanceId) {
-      this.useBasicCard(cardInstanceId, targetId)
-    }
-
-    this.clearTargetSelection()
-  }
-
   // 更新目标高亮显示
   private updateTargetHighlights(): void {
     this.characterRenderers.forEach((renderer, charId) => {
@@ -980,7 +957,7 @@ export class BattleScene extends Scene {
     })
   }
 
-  // 清除目标选择状态
+  // 清除目标选择状态（供 BattleInputHandler 使用）
   private clearTargetSelection(): void {
     this.targetableIds = []
     this.selectedTargetId = null
@@ -990,16 +967,6 @@ export class BattleScene extends Scene {
     this.clearSelection()
     if (this.game) {
       this.game.phase = GamePhase.SELECTING
-    }
-  }
-
-  // 处理取消
-  private handleCancel(): void {
-    if (this.game?.phase === GamePhase.SELECTING_TARGET) {
-      // 取消目标选择
-      this.clearTargetSelection()
-    } else {
-      this.clearSelection()
     }
   }
 
@@ -1020,7 +987,19 @@ export class BattleScene extends Scene {
     this.updateActionButtons()
   }
 
-  // 使用基础招式
+  // 执行动作（供 BattleInputHandler 使用）
+  // @ts-expect-error - 被 BattleInputHandler 通过 scene.executeAction 调用
+  private executeAction(skillId: string | null, cardInstanceId: string | null, targetId: string): void {
+    if (skillId && cardInstanceId) {
+      this.useSkill(skillId, cardInstanceId, targetId)
+    } else if (cardInstanceId) {
+      this.useBasicCard(cardInstanceId, targetId)
+    }
+
+    this.clearTargetSelection()
+  }
+
+  // 使用基础招式（供 BattleInputHandler 使用）
   private useBasicCard(cardInstanceId: string, targetId?: string): void {
     if (!this.game) return
 
@@ -1035,7 +1014,7 @@ export class BattleScene extends Scene {
     }
   }
 
-  // 使用武功招式
+  // 使用武功招式（供 BattleInputHandler 使用）
   private useSkill(skillId: string, cardInstanceId: string, targetId?: string): void {
     if (!this.game) return
 
@@ -1055,7 +1034,8 @@ export class BattleScene extends Scene {
     this.inputHandler?.handleEndTurn()
   }
 
-  // 处理回合切换逻辑
+  // 处理回合切换逻辑（供 BattleInputHandler 使用）
+  // @ts-expect-error - 被 BattleInputHandler.handleEndTurn 通过 scene.endTurn 调用
   private endTurn(): void {
     if (!this.game) return
 

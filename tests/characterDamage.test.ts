@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { TriggerTiming } from '../src/game/types'
 
 /**
@@ -22,7 +22,7 @@ describe('Character takeDamage 流程', () => {
       passives: options.passives ?? [],
       isAlive: () => (options.hp ?? 50) > 0,
       // 模拟 processDamagePassives
-      processDamagePassives: (damage: number, attacker: any | null) => {
+      processDamagePassives: (damage: number, _attacker: any | null) => {
         const messages: string[] = []
         let actualDamage = damage
         let dodged = false
@@ -161,16 +161,16 @@ describe('Character takeDamage 流程', () => {
       const reducePassive = {
         id: 'reducePassive',
         trigger: TriggerTiming.ON_TAKE_DAMAGE,
-        effect: (char: any, damage: number) => {
+        effect: (_char: any, damage: number) => {
           return { message: '内功减伤3点', reducedDamage: damage - 3 }
         }
       }
 
-      const char = createTestCharacter({ hp: 50, passives: [reducePassive] })
-      const result = char.takeDamage(10)
+      const testChar = createTestCharacter({ hp: 50, passives: [reducePassive] })
+      const result = testChar.takeDamage(10)
 
       expect(result.damage).toBe(7) // 10 - 3 = 7
-      expect(char.hp).toBe(43)
+      expect(testChar.hp).toBe(43)
     })
 
     it('test_passive_dodges_damage', () => {
@@ -178,17 +178,17 @@ describe('Character takeDamage 流程', () => {
       const dodgePassive = {
         id: 'dodgePassive',
         trigger: TriggerTiming.ON_TAKE_DAMAGE,
-        effect: (char: any, damage: number) => {
+        effect: (_char: any, _damage: number) => {
           return { message: '闪避成功！', dodged: true }
         }
       }
 
-      const char = createTestCharacter({ hp: 50, passives: [dodgePassive] })
-      const result = char.takeDamage(10)
+      const testChar = createTestCharacter({ hp: 50, passives: [dodgePassive] })
+      const result = testChar.takeDamage(10)
 
       expect(result.dodged).toBe(true)
       expect(result.damage).toBe(0)
-      expect(char.hp).toBe(50) // HP不变
+      expect(testChar.hp).toBe(50) // HP不变
     })
 
     it('test_passive_reflect_damage', () => {
@@ -196,14 +196,17 @@ describe('Character takeDamage 流程', () => {
       const reflectPassive = {
         id: 'reflectPassive',
         trigger: TriggerTiming.ON_TAKE_DAMAGE,
-        effect: (char: any, damage: number) => {
+        effect: (_char: any, _damage: number) => {
           return { message: '反弹3点伤害', dodged: true, reflectDamage: 3 }
         }
       }
 
       const attacker = { id: 'attacker', hp: 50, name: 'attacker' }
-      const char = createTestCharacter({ hp: 50, passives: [reflectPassive] })
-      const result = char.takeDamage(10, attacker)
+      const testChar = createTestCharacter({ hp: 50, passives: [reflectPassive] })
+      const result = testChar.takeDamage(10, attacker)
+
+      expect(result.dodged).toBe(true)
+      // 攻击者受到反弹伤害（在实际代码中实现）
 
       expect(result.dodged).toBe(true)
       // 攻击者受到反弹伤害（在实际代码中实现）
@@ -215,17 +218,17 @@ describe('Character takeDamage 流程', () => {
         {
           id: 'passive1',
           trigger: TriggerTiming.ON_TAKE_DAMAGE,
-          effect: (char: any, damage: number) => ({ reducedDamage: damage - 2 })
+          effect: (_char: any, damage: number) => ({ reducedDamage: damage - 2 })
         },
         {
           id: 'passive2',
           trigger: TriggerTiming.ON_TAKE_DAMAGE,
-          effect: (char: any, damage: number) => ({ reducedDamage: damage - 1 })
+          effect: (_char: any, damage: number) => ({ reducedDamage: damage - 1 })
         }
       ]
 
-      const char = createTestCharacter({ hp: 50, passives })
-      const passiveResult = char.processDamagePassives(10, null)
+      const testChar = createTestCharacter({ hp: 50, passives })
+      const passiveResult = testChar.processDamagePassives(10, null)
 
       // 第二个passive使用的是第一个passive处理后的damage值
       // 注意：实际实现中每个passive处理原始damage还是累计damage取决于代码逻辑
@@ -237,11 +240,11 @@ describe('Character takeDamage 流程', () => {
       const wrongTimingPassive = {
         id: 'wrongTimingPassive',
         trigger: TriggerTiming.TURN_START, // 错误时机
-        effect: (char: any) => '不应该触发'
+        effect: (_char: any) => '不应该触发'
       }
 
-      const char = createTestCharacter({ hp: 50, passives: [wrongTimingPassive] })
-      const result = char.processDamagePassives(10, null)
+      const testChar = createTestCharacter({ hp: 50, passives: [wrongTimingPassive] })
+      const result = testChar.processDamagePassives(10, null)
 
       expect(result.messages.length).toBe(0)
     })

@@ -1,6 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import type { CharacterState, MartialArtSkill, SkillEffect, Card } from '../src/game/types'
-import { CardType, TriggerTiming, SkillLevel } from '../src/game/types'
+import { describe, it, expect } from 'vitest'
+import type { CharacterState, SkillEffect } from '../src/game/types'
 
 /**
  * 测试 Game.ts 中 processEffect 的各种效果类型
@@ -56,7 +55,7 @@ describe('Game processEffect 效果处理', () => {
 
   // 模拟 Game 的 processEffect 相关方法
   const createMockGame = () => {
-    const processDamageEffect = (effect: SkillEffect, actor: CharacterState, target: CharacterState) => {
+    const processDamageEffect = (effect: SkillEffect, _actor: CharacterState, target: CharacterState) => {
       const damage = effect.value || 0
       const result = target.takeDamage(damage)
       return { actualDamage: result.damage }
@@ -64,7 +63,7 @@ describe('Game processEffect 效果处理', () => {
 
     const processShieldEffect = (effect: SkillEffect, actor: CharacterState) => {
       actor.shield += effect.value || 0
-      return { actualDamage: 0 }
+      return { actualDamage: 0, shieldAdded: effect.value || 0 }
     }
 
     const processDrainMpEffect = (effect: SkillEffect, actor: CharacterState, target: CharacterState) => {
@@ -74,11 +73,11 @@ describe('Game processEffect 效果处理', () => {
       return { actualDamage: 0 }
     }
 
-    const processRemoveMpEffect = (effect: SkillEffect, actor: CharacterState, target: CharacterState) => {
+    const processRemoveMpEffect = (effect: SkillEffect, _actor: CharacterState, target: CharacterState) => {
       const removeMp = Math.min(effect.value || 0, target.mp)
       target.mp -= removeMp
       target.takeDamage(removeMp)
-      return { actualDamage: 0 }
+      return { actualDamage: 0, mpRemoved: removeMp }
     }
 
     const processSelfDamageEffect = (effect: SkillEffect, actor: CharacterState) => {
@@ -231,8 +230,8 @@ describe('Game processEffect 效果处理', () => {
   describe('extraAction 效果', () => {
     it('test_extra_action_returns_flag', () => {
       // extraAction 效果应返回 extraAction: true
-      const effect: SkillEffect = { type: 'extraAction' }
-      const result = { actualDamage: 0, extraAction: true }
+      const effectType = 'extraAction'
+      const result = { actualDamage: 0, extraAction: effectType === 'extraAction' }
 
       expect(result.extraAction).toBe(true)
       expect(result.actualDamage).toBe(0)
@@ -241,8 +240,8 @@ describe('Game processEffect 效果处理', () => {
 
   describe('followUp 效果', () => {
     it('test_follow_up_returns_flag', () => {
-      const effect: SkillEffect = { type: 'followUp' }
-      const result = { actualDamage: 0, followUp: true }
+      const effectType = 'followUp'
+      const result = { actualDamage: 0, followUp: effectType === 'followUp' }
 
       expect(result.followUp).toBe(true)
       expect(result.actualDamage).toBe(0)
