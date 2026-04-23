@@ -2,8 +2,8 @@ import { Container, Graphics, Text, Sprite, Assets } from 'pixi.js'
 import { Scene } from './Scene'
 import { Renderer, Colors, TextStyles } from '../renderer/Renderer'
 import { Button } from '../renderer/UIComponents'
-import { characters, getCharacterMartialArts } from '../data/skills'
-import { CharacterConfig } from '../game/types'
+import { characters, getCharacterMartialArtDescription, getCharacterMartialArts } from '../data/skills'
+import { CharacterConfig } from '../game/CharacterConfig'
 import { LayoutConstants } from '../renderer/LayoutConstants'
 
 // 战斗配置
@@ -494,9 +494,9 @@ export class CharacterSelectScene extends Scene {
     divider.stroke({ color: Colors.TEXT_SECONDARY, alpha: 0.3, width: 1 })
     container.addChild(divider)
 
-    // 属性
+    // 属性（使用 CharacterConfig 类的方法）
     const statsY = title.y + LayoutConstants.fontCharacterTitle() + 20
-    const statsText = `体力: ${config.hp}  内力: ${config.mp}  轻功: ${config.agility}`
+    const statsText = config.getStatsText()
     const stats = new Text({
       text: statsText,
       style: {
@@ -510,8 +510,7 @@ export class CharacterSelectScene extends Scene {
     container.addChild(stats)
 
     // 武功
-    const martialArtsList = getCharacterMartialArts(id)
-    const artsText = martialArtsList.map(a => a.name).join('、')
+    const artsText = getCharacterMartialArtDescription(id)
     const arts = new Text({
       text: `武功: ${artsText}`,
       style: {
@@ -677,9 +676,9 @@ export class CharacterSelectScene extends Scene {
     divider.stroke({ color: Colors.TEXT_SECONDARY, alpha: 0.3, width: 1 })
     this.detailPanel.addChild(divider)
 
-    // 角色属性
+    // 角色属性（使用 CharacterConfig 类的方法）
     const statsY = title.y + LayoutConstants.fontCharacterTitle() + 20
-    const statsText = `体力: ${config.hp}  内力: ${config.mp}  轻功: ${config.agility}`
+    const statsText = config.getStatsText()
     const stats = new Text({
       text: statsText,
       style: {

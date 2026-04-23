@@ -149,6 +149,16 @@ export class BattleScene extends Scene {
     this.renderer.offResize(() => this.handleResize())
     // 移除事件监听器
     this.unregisterEventListeners()
+
+    // 清理资源
+    effectManager.destroy()
+    tweenManager.clear()
+
+    // 清理所有渲染器
+    this.characterRenderers.forEach(renderer => {
+      renderer.destroy()
+    })
+
     // 移除特效管理器
     this.removeChild(effectManager)
     this.clear()

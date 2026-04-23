@@ -182,8 +182,14 @@ export interface CharacterState {
   mp: number
   baseAgility: number
   agility: number
-  agilityBonus: number
+  agilityBonus: number // 身法属性值 (1-10)，用于计算轻功
   shield: number
+
+  // 弟子属性（战斗时可访问）
+  root: number       // 根骨 (1-10)
+  insight: number    // 悟性 (1-10)
+  will: number       // 定力 (1-10)
+  strength: number   // 臂力 (1-10)，用于伤害加成计算
 
   // 战斗位置
   battlePosition: BattlePosition | null
@@ -225,17 +231,10 @@ export interface CharacterState {
 }
 
 // ==================== 角色配置 ====================
-export interface CharacterConfig {
-  id: string
-  name: string
-  title: string
-  description: string
-  hp: number
-  mp: number
-  agility: number
-  martialArts: string[]
-  deck: string[]
-}
+// CharacterConfig 类已移至 CharacterConfig.ts
+// 重新导出以保持向后兼容
+export { CharacterConfig } from './CharacterConfig'
+export type { CharacterConfigData } from './CharacterConfig'
 
 // ==================== 战斗日志 ====================
 export interface BattleLogEntry {

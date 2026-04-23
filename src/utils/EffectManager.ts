@@ -86,6 +86,20 @@ export class EffectManager extends Container {
       requestAnimationFrame(animate)
     })
   }
+
+  /**
+   * 销毁特效管理器
+   */
+  destroy(): void {
+    // 清理所有动画中的 Text 对象
+    this.children.forEach(child => {
+      if (child instanceof Text) {
+        child.destroy()
+      }
+    })
+    // 移除所有子元素
+    this.removeChildren()
+  }
 }
 
 // 全局特效管理器实例

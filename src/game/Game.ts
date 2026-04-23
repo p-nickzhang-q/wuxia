@@ -1,6 +1,7 @@
 import { CharacterState, GameState, GamePhase, MartialArtSkill, SkillEffect, TriggerTiming, GameEventType, BattleMode } from './types'
 import { eventManager } from '../utils/EventManager'
 import { getTargetsInRange, assignSeats, calculateActualDistance } from './DistanceSystem'
+import { calculateStrengthBonus } from './Disciple'
 
 // 创建游戏状态
 export function createGame(): GameState {
@@ -273,7 +274,9 @@ export function createGame(): GameState {
       actor.playCard(cardInstanceId)
       actor.agility -= card.agilityCost
 
-      let totalDamage = card.baseDamage
+      // 计算臂力伤害加成
+      const strengthMultiplier = calculateStrengthBonus(actor.strength)
+      let totalDamage = Math.floor(card.baseDamage * strengthMultiplier)
       let totalShield = card.baseShield
       let actualDamage = 0
 
@@ -452,7 +455,11 @@ export function createGame(): GameState {
     // ==================== 效果处理 ====================
 
     processEffect(effect: SkillEffect, actor: CharacterState, target: CharacterState, skill: MartialArtSkill) {
-      let totalDamage = effect.value || 0
+      // 计算臂力伤害加成（仅对伤害类型效果）
+      const strengthMultiplier = calculateStrengthBonus(actor.strength)
+      let totalDamage = effect.type === 'damage' || effect.type === 'drainHp'
+        ? Math.floor((effect.value || 0) * strengthMultiplier)
+        : (effect.value || 0)
       let actualDamage = 0
 
       // 触发所有内功（武功招式伤害加成）

@@ -2,32 +2,40 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { createCharacter } from '../src/game/Character'
 import { createGame } from '../src/game/Game'
 import { CardType, TriggerTiming, SkillLevel } from '../src/game/types'
-import type { CharacterConfig, MartialArt, MartialArtSkill, PassiveSkill } from '../src/game/types'
+import { CharacterConfig } from '../src/game/CharacterConfig'
+import type { MartialArt, MartialArtSkill, PassiveSkill } from '../src/game/types'
 
-// 测试用角色配置
-const testCharacterConfig: CharacterConfig = {
+// 测试用角色配置（默认属性）
+const testCharacterConfig = new CharacterConfig({
   id: 'testHero',
   name: '测试角色',
   title: '测试称号',
   description: '测试描述',
-  hp: 60,
-  mp: 20,
-  agility: 10,
   martialArts: [],
   deck: ['fist', 'palm', 'stab', 'slash', 'sweep']
-}
+})
 
-const testEnemyConfig: CharacterConfig = {
+// 测试用角色配置（特定属性，用于验证属性计算）
+const specificAttributeConfig = new CharacterConfig({
+  id: 'specificHero',
+  name: '特定属性角色',
+  title: '特定称号',
+  description: '特定描述',
+  martialArts: [],
+  deck: ['fist', 'palm', 'stab', 'slash', 'sweep'],
+  root: 6,       // maxHp = 60
+  will: 7,       // maxMp = 21
+  agilityBonus: 5 // baseAgility = 10
+})
+
+const testEnemyConfig = new CharacterConfig({
   id: 'testEnemy',
   name: '测试敌人',
   title: '敌人称号',
   description: '敌人描述',
-  hp: 50,
-  mp: 15,
-  agility: 8,
   martialArts: [],
   deck: ['fist', 'fist', 'fist', 'fist', 'fist']
-}
+})
 
 // 测试用武功
 const testMartialArt: MartialArt = {
@@ -64,14 +72,14 @@ const testPassive: PassiveSkill = {
 
 describe('Character 工厂函数', () => {
   it('应该正确创建角色', () => {
-    const character = createCharacter(testCharacterConfig, [testMartialArt])
+    const character = createCharacter(specificAttributeConfig, [testMartialArt])
 
-    expect(character.id).toBe('testHero')
-    expect(character.name).toBe('测试角色')
+    expect(character.id).toBe('specificHero')
+    expect(character.name).toBe('特定属性角色')
     expect(character.maxHp).toBe(60)
     expect(character.hp).toBe(60)
-    expect(character.maxMp).toBe(20)
-    expect(character.mp).toBe(20)
+    expect(character.maxMp).toBe(21)
+    expect(character.mp).toBe(21)
     expect(character.baseAgility).toBe(10)
   })
 
@@ -96,10 +104,14 @@ describe('Character 工厂函数', () => {
 
   it('手牌上限应该为7张', () => {
     // 使用更大的牌组测试手牌上限
-    const bigDeckConfig: CharacterConfig = {
-      ...testCharacterConfig,
+    const bigDeckConfig = new CharacterConfig({
+      id: 'testHero',
+      name: '测试角色',
+      title: '测试称号',
+      description: '测试描述',
+      martialArts: [],
       deck: ['fist', 'palm', 'stab', 'slash', 'sweep', 'thrust', 'frontKick', 'sweepKick', 'parry', 'stance']
-    }
+    })
     const character = createCharacter(bigDeckConfig, [testMartialArt])
     character.initDeck()
     const drawn = character.drawCards(10)
@@ -111,36 +123,46 @@ describe('Character 工厂函数', () => {
   it('应该正确计算伤害和护盾吸收', () => {
     const character = createCharacter(testCharacterConfig, [testMartialArt])
 
+    // 默认属性：root=5 → HP=50, will=5 → MP=15
+    expect(character.maxHp).toBe(50)
+    expect(character.maxMp).toBe(15)
+
     // 无护盾直接扣血
     const result1 = character.takeDamage(10)
-    expect(character.hp).toBe(50)
+    expect(character.hp).toBe(40)
     expect(result1.damage).toBe(10)
 
     // 有护盾吸收
     character.shield = 5
     character.takeDamage(3)
     expect(character.shield).toBe(2)
-    expect(character.hp).toBe(50) // HP 不变
+    expect(character.hp).toBe(40) // HP 不变
 
     // 护盾不足
     character.takeDamage(5)
     expect(character.shield).toBe(0)
-    expect(character.hp).toBe(47)
+    expect(character.hp).toBe(37)
   })
 
   it('应该正确恢复HP和MP', () => {
     const character = createCharacter(testCharacterConfig, [testMartialArt])
+    // 默认属性：root=5 → HP=50, will=5 → MP=15
     character.hp = 30
-    character.mp = 10
+    character.mp = 5
 
     const healed = character.heal(20)
     expect(healed).toBe(20)
     expect(character.hp).toBe(50)
 
     // 不能超过最大值
-    const overHeal = character.heal(20)
-    expect(overHeal).toBe(10) // 只恢复了到满血的部分
-    expect(character.hp).toBe(60)
+    const overHeal = character.heal(10)
+    expect(overHeal).toBe(0) // 已满血
+    expect(character.hp).toBe(50)
+
+    // MP恢复测试
+    const recovered = character.recoverMp(10)
+    expect(recovered).toBe(10)
+    expect(character.mp).toBe(15)
   })
 
   it('应该正确判断存活状态', () => {
@@ -284,10 +306,10 @@ describe('内功系统', () => {
     const character = createCharacter(testCharacterConfig, [passiveMartialArt])
 
     character.initDeck()
-    character.hp = 50 // 不是满血
+    character.hp = 47 // 不是满血（maxHp=50）
 
     const messages = character.onTurnStart(null as any)
-    expect(character.hp).toBe(53) // 恢复3点
+    expect(character.hp).toBe(50) // 恢复3点，不超过maxHp
     expect(messages.length).toBe(1)
   })
 })

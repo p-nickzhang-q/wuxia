@@ -1,4 +1,5 @@
-import { CardType, TriggerTiming, MartialArtSkill, PassiveSkill, MartialArt, CharacterConfig, CharacterState, PassiveEffectResult, SkillLevel, Faction } from '../game/types'
+import { CardType, TriggerTiming, MartialArtSkill, PassiveSkill, MartialArt, CharacterState, PassiveEffectResult, SkillLevel, Faction } from '../game/types'
+import { CharacterConfig, CharacterConfigData } from '../game/CharacterConfig'
 
 // ==================== 武功招式数据 ====================
 export const martialArtSkills: Record<string, MartialArtSkill> = {
@@ -1535,7 +1536,8 @@ export const martialArts: Record<string, MartialArt> = {
 }
 
 // ==================== 角色配置 ====================
-export const characters: Record<string, CharacterConfig> = {
+// 原始数据定义（使用 CharacterConfigData 接口）
+const characterData: Record<string, CharacterConfigData> = {
   // 1. 乔峰 - 丐帮帮主
   qiaoFeng: {
     id: 'qiaoFeng',
@@ -1553,7 +1555,13 @@ export const characters: Record<string, CharacterConfig> = {
       'sweep', 'sweep', 'sweep', 'sweep',
       'thrust', 'thrust',
       'frontKick', 'frontKick'
-    ]
+    ],
+    // 弟子属性：刚猛型，臂力极高
+    root: 8,      // HP = 80
+    insight: 5,
+    will: 6,      // MP = 18
+    strength: 10, // 伤害倍率 = 1.5
+    agilityBonus: 6 // 轻功 = 12
   },
   // 2. 段誉 - 大理世子
   duanYu: {
@@ -1571,7 +1579,13 @@ export const characters: Record<string, CharacterConfig> = {
       'elbow', 'elbow', 'elbow', 'elbow',
       'frontKick', 'frontKick',
       'sweepKick', 'sweepKick'
-    ]
+    ],
+    // 弟子属性：灵巧型，悟性/身法极高
+    root: 4,      // HP = 40
+    insight: 10,
+    will: 7,      // MP = 21
+    strength: 4,  // 伤害倍率 = 1.2
+    agilityBonus: 10 // 轻功 = 20
   },
   // 3. 虚竹 - 灵鹫宫主
   xuZhu: {
@@ -1589,7 +1603,13 @@ export const characters: Record<string, CharacterConfig> = {
       'elbow', 'elbow', 'elbow', 'elbow',
       'frontKick', 'frontKick',
       'sweepKick', 'sweepKick'
-    ]
+    ],
+    // 弟子属性：成长型，根骨/定力高
+    root: 9,      // HP = 90
+    insight: 4,
+    will: 8,      // MP = 24
+    strength: 5,  // 伤害倍率 = 1.25
+    agilityBonus: 5 // 轻功 = 10
   },
   // 4. 郭靖 - 北侠
   guoJing: {
@@ -1607,7 +1627,13 @@ export const characters: Record<string, CharacterConfig> = {
       'elbow', 'elbow', 'elbow', 'elbow',
       'frontKick', 'frontKick', 'frontKick',
       'sweepKick', 'sweepKick', 'sweepKick'
-    ]
+    ],
+    // 弟子属性：稳健型，根骨/臂力高
+    root: 8,      // HP = 80
+    insight: 4,
+    will: 7,      // MP = 21
+    strength: 8,  // 伤害倍率 = 1.4
+    agilityBonus: 6 // 轻功 = 12
   },
   // 5. 黄蓉 - 丐帮帮主
   huangRong: {
@@ -1626,7 +1652,13 @@ export const characters: Record<string, CharacterConfig> = {
       'sweep', 'sweep', 'sweep', 'sweep', 'sweep',
       'thrust', 'thrust', 'thrust',
       'frontKick', 'frontKick'
-    ]
+    ],
+    // 弟子属性：机智型，悟性/身法高
+    root: 5,      // HP = 50
+    insight: 9,
+    will: 6,      // MP = 18
+    strength: 4,  // 伤害倍率 = 1.2
+    agilityBonus: 8 // 轻功 = 16
   },
   // 6. 洪七公 - 北丐
   hongQiGong: {
@@ -1644,7 +1676,13 @@ export const characters: Record<string, CharacterConfig> = {
       'elbow', 'elbow', 'elbow', 'elbow',
       'sweep', 'sweep', 'sweep', 'sweep',
       'thrust', 'thrust'
-    ]
+    ],
+    // 弟子属性：老练型，臂力高
+    root: 7,      // HP = 70
+    insight: 6,
+    will: 6,      // MP = 18
+    strength: 9,  // 伤害倍率 = 1.45
+    agilityBonus: 6 // 轻功 = 12
   },
   // 7. 欧阳锋 - 西毒
   ouYangFeng: {
@@ -1662,7 +1700,13 @@ export const characters: Record<string, CharacterConfig> = {
       'elbow', 'elbow', 'elbow', 'elbow', 'elbow', 'elbow',
       'frontKick', 'frontKick',
       'sweepKick', 'sweepKick'
-    ]
+    ],
+    // 弟子属性：阴狠型，臂力高
+    root: 6,      // HP = 60
+    insight: 7,
+    will: 5,      // MP = 15
+    strength: 9,  // 伤害倍率 = 1.45
+    agilityBonus: 6 // 轻功 = 12
   },
   // 8. 黄药师 - 东邪
   huangYaoShi: {
@@ -1682,7 +1726,13 @@ export const characters: Record<string, CharacterConfig> = {
       'slash', 'slash', 'slash',
       'frontKick', 'frontKick',
       'sweepKick'
-    ]
+    ],
+    // 弟子属性：全才型，悟性/身法高
+    root: 5,      // HP = 50
+    insight: 10,
+    will: 7,      // MP = 21
+    strength: 5,  // 伤害倍率 = 1.25
+    agilityBonus: 9 // 轻功 = 18
   },
   // 9. 一灯大师 - 南帝
   yiDeng: {
@@ -1700,7 +1750,13 @@ export const characters: Record<string, CharacterConfig> = {
       'elbow', 'elbow', 'elbow', 'elbow',
       'frontKick', 'frontKick',
       'sweepKick', 'sweepKick'
-    ]
+    ],
+    // 弟子属性：内功型，定力极高
+    root: 6,      // HP = 60
+    insight: 8,
+    will: 10,     // MP = 30
+    strength: 5,  // 伤害倍率 = 1.25
+    agilityBonus: 5 // 轻功 = 10
   },
   // 10. 杨过 - 神雕大侠
   yangGuo: {
@@ -1719,7 +1775,13 @@ export const characters: Record<string, CharacterConfig> = {
       'sweep', 'sweep', 'sweep', 'sweep',
       'thrust', 'thrust', 'thrust',
       'frontKick', 'frontKick'
-    ]
+    ],
+    // 弟子属性：独臂剑魔，臂力/身法高
+    root: 6,      // HP = 60
+    insight: 7,
+    will: 6,      // MP = 18
+    strength: 8,  // 伤害倍率 = 1.4
+    agilityBonus: 8 // 轻功 = 16
   },
   // 11. 小龙女 - 古墓派传人
   xiaoLongNv: {
@@ -1736,7 +1798,13 @@ export const characters: Record<string, CharacterConfig> = {
       'slash', 'slash', 'slash', 'slash', 'slash', 'slash',
       'parry', 'parry', 'parry', 'parry',
       'frontKick', 'frontKick'
-    ]
+    ],
+    // 弟子属性：冷艳型，身法极高
+    root: 5,      // HP = 50
+    insight: 8,
+    will: 7,      // MP = 21
+    strength: 4,  // 伤害倍率 = 1.2
+    agilityBonus: 10 // 轻功 = 20
   },
   // 12. 金轮法王 - 蒙古国师
   jinLun: {
@@ -1754,7 +1822,13 @@ export const characters: Record<string, CharacterConfig> = {
       'elbow', 'elbow', 'elbow', 'elbow', 'elbow', 'elbow',
       'frontKick', 'frontKick',
       'sweepKick', 'sweepKick'
-    ]
+    ],
+    // 弟子属性：力量型，臂力极高
+    root: 8,      // HP = 80
+    insight: 5,
+    will: 5,      // MP = 15
+    strength: 10, // 伤害倍率 = 1.5
+    agilityBonus: 5 // 轻功 = 10
   },
   // 13. 张无忌 - 明教教主
   zhangWuJi: {
@@ -1772,7 +1846,13 @@ export const characters: Record<string, CharacterConfig> = {
       'elbow', 'elbow', 'elbow', 'elbow',
       'frontKick', 'frontKick',
       'sweepKick', 'sweepKick'
-    ]
+    ],
+    // 弟子属性：综合型，定力高
+    root: 7,      // HP = 70
+    insight: 7,
+    will: 9,      // MP = 27
+    strength: 5,  // 伤害倍率 = 1.25
+    agilityBonus: 7 // 轻功 = 14
   },
   // 14. 张三丰 - 武当祖师
   zhangSanFeng: {
@@ -1791,7 +1871,13 @@ export const characters: Record<string, CharacterConfig> = {
       'stab', 'stab', 'stab', 'stab',
       'slash', 'slash',
       'frontKick', 'frontKick'
-    ]
+    ],
+    // 弟子属性：道宗，定力/悟性极高
+    root: 7,      // HP = 70
+    insight: 9,
+    will: 10,     // MP = 30
+    strength: 5,  // 伤害倍率 = 1.25
+    agilityBonus: 6 // 轻功 = 12
   },
   // 15. 谢逊 - 金毛狮王
   xieXun: {
@@ -1809,7 +1895,13 @@ export const characters: Record<string, CharacterConfig> = {
       'elbow', 'elbow', 'elbow', 'elbow', 'elbow',
       'frontKick', 'frontKick',
       'sweepKick', 'sweepKick'
-    ]
+    ],
+    // 弟子属性：狂暴型，臂力高
+    root: 7,      // HP = 70
+    insight: 5,
+    will: 5,      // MP = 15
+    strength: 9,  // 伤害倍率 = 1.45
+    agilityBonus: 6 // 轻功 = 12
   },
   // 16. 令狐冲 - 华山弟子
   lingHuChong: {
@@ -1827,7 +1919,13 @@ export const characters: Record<string, CharacterConfig> = {
       'parry', 'parry', 'parry', 'parry',
       'frontKick', 'frontKick',
       'sweepKick', 'sweepKick'
-    ]
+    ],
+    // 弟子属性：剑客，悟性/身法高
+    root: 5,      // HP = 50
+    insight: 9,
+    will: 5,      // MP = 15
+    strength: 6,  // 伤害倍率 = 1.3
+    agilityBonus: 9 // 轻功 = 18
   },
   // 17. 任我行 - 日月神教教主
   renWoXing: {
@@ -1847,7 +1945,13 @@ export const characters: Record<string, CharacterConfig> = {
       'slash', 'slash', 'slash',
       'frontKick', 'frontKick', 'frontKick',
       'sweepKick', 'sweepKick'
-    ]
+    ],
+    // 弟子属性：霸主型，均衡
+    root: 6,      // HP = 60
+    insight: 7,
+    will: 6,      // MP = 18
+    strength: 7,  // 伤害倍率 = 1.35
+    agilityBonus: 7 // 轻功 = 14
   },
   // 18. 东方不败 - 日月神教前教主
   dongFangBuBai: {
@@ -1864,7 +1968,13 @@ export const characters: Record<string, CharacterConfig> = {
       'slash', 'slash', 'slash', 'slash', 'slash', 'slash',
       'parry', 'parry', 'parry', 'parry',
       'frontKick', 'frontKick'
-    ]
+    ],
+    // 弟子属性：极速型，身法极高
+    root: 4,      // HP = 40
+    insight: 8,
+    will: 6,      // MP = 18
+    strength: 5,  // 伤害倍率 = 1.25
+    agilityBonus: 10 // 轻功 = 20
   },
   // 19. 风清扬 - 华山剑宗
   fengQingYang: {
@@ -1881,7 +1991,13 @@ export const characters: Record<string, CharacterConfig> = {
       'slash', 'slash', 'slash', 'slash', 'slash', 'slash',
       'parry', 'parry', 'parry', 'parry',
       'frontKick', 'frontKick'
-    ]
+    ],
+    // 弟子属性：剑宗，悟性极高
+    root: 5,      // HP = 50
+    insight: 10,
+    will: 7,      // MP = 21
+    strength: 5,  // 伤害倍率 = 1.25
+    agilityBonus: 8 // 轻功 = 16
   },
   // 20. 鸠摩智 - 吐蕃国师
   jiuMoZhi: {
@@ -1900,7 +2016,13 @@ export const characters: Record<string, CharacterConfig> = {
       'stab', 'stab',
       'slash', 'slash',
       'frontKick', 'frontKick'
-    ]
+    ],
+    // 弟子属性：精通型，均衡偏高
+    root: 6,      // HP = 60
+    insight: 8,
+    will: 7,      // MP = 21
+    strength: 6,  // 伤害倍率 = 1.3
+    agilityBonus: 7 // 轻功 = 14
   },
   // 21. 慕容复 - 姑苏慕容
   muRongFu: {
@@ -1921,7 +2043,13 @@ export const characters: Record<string, CharacterConfig> = {
       'sweep', 'sweep',
       'thrust', 'thrust',
       'frontKick', 'frontKick'
-    ]
+    ],
+    // 弟子属性：复国型，悟性/身法高
+    root: 5,      // HP = 50
+    insight: 8,
+    will: 6,      // MP = 18
+    strength: 6,  // 伤害倍率 = 1.3
+    agilityBonus: 8 // 轻功 = 16
   },
   // 22. 袁承志 - 金蛇王
   yuanChengZhi: {
@@ -1939,7 +2067,13 @@ export const characters: Record<string, CharacterConfig> = {
       'parry', 'parry', 'parry', 'parry',
       'frontKick', 'frontKick',
       'sweepKick', 'sweepKick'
-    ]
+    ],
+    // 弟子属性：剑侠型，均衡
+    root: 7,      // HP = 70
+    insight: 6,
+    will: 6,      // MP = 18
+    strength: 7,  // 伤害倍率 = 1.35
+    agilityBonus: 7 // 轻功 = 14
   },
   // 23. 狄云 - 连城诀主角
   diYun: {
@@ -1957,7 +2091,13 @@ export const characters: Record<string, CharacterConfig> = {
       'elbow', 'elbow', 'elbow', 'elbow', 'elbow',
       'frontKick', 'frontKick', 'frontKick',
       'sweepKick', 'sweepKick'
-    ]
+    ],
+    // 弟子属性：苦练型，根骨高
+    root: 8,      // HP = 80
+    insight: 4,
+    will: 6,      // MP = 18
+    strength: 7,  // 伤害倍率 = 1.35
+    agilityBonus: 6 // 轻功 = 12
   },
   // 24. 石破天 - 侠客行主角
   shiPoTian: {
@@ -1975,17 +2115,29 @@ export const characters: Record<string, CharacterConfig> = {
       'elbow', 'elbow', 'elbow', 'elbow',
       'frontKick', 'frontKick',
       'sweepKick', 'sweepKick'
-    ]
+    ],
+    // 弟子属性：纯朴型，根骨/定力极高
+    root: 10,     // HP = 100
+    insight: 3,
+    will: 9,      // MP = 27
+    strength: 6,  // 伤害倍率 = 1.3
+    agilityBonus: 6 // 轻功 = 12
   }
 }
 
+// 将原始数据转换为 CharacterConfig 实例并导出
+export const characters: Record<string, CharacterConfig> = Object.fromEntries(
+  Object.entries(characterData).map(([id, data]) => [id, new CharacterConfig(data)])
+)
+
 // 获取角色的所有武功
 export function getCharacterMartialArts(characterId: string): MartialArt[] {
-  const character = characters[characterId]
-  if (!character) return []
+  const config = characters[characterId]
+  if (!config) return []
 
-  return character.martialArts.map(artId => {
+  return config.martialArts.map(artId => {
     const art = martialArts[artId]
+    if (!art) return null
     return {
       id: artId,
       name: art.name,
@@ -1993,7 +2145,13 @@ export function getCharacterMartialArts(characterId: string): MartialArt[] {
       passive: art.passive,
       description: art.description
     }
-  })
+  }).filter(Boolean) as MartialArt[]
+}
+
+// 获取角色的武功描述文本
+export function getCharacterMartialArtDescription(characterId: string): string {
+  const arts = getCharacterMartialArts(characterId)
+  return arts.map(a => a.name).join('、')
 }
 
 // 重新导出类型

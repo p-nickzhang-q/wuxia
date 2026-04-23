@@ -1,9 +1,10 @@
-import { Card, CharacterState, CharacterConfig, MartialArtSkill, PassiveSkill, TriggerTiming, GameState, MartialArt, GameEventType } from './types'
+import { Card, CharacterState, MartialArtSkill, PassiveSkill, TriggerTiming, GameState, MartialArt, GameEventType } from './types'
+import { CharacterConfig } from './CharacterConfig'
 import { createBasicCard } from '../data/cards'
 import { eventManager } from '../utils/EventManager'
 
 // 创建角色
-export function createCharacter(characterConfig: CharacterConfig, martialArtsList: MartialArt[]): CharacterState {
+export function createCharacter(config: CharacterConfig, martialArtsList: MartialArt[]): CharacterState {
   // 收集所有武功招式和内功
   const skills: MartialArtSkill[] = []
   const passives: PassiveSkill[] = []
@@ -16,25 +17,36 @@ export function createCharacter(characterConfig: CharacterConfig, martialArtsLis
     if (art.passive) passives.push(art.passive)
   })
 
+  // 使用 CharacterConfig 类的方法获取计算后的属性
+  const maxHp = config.getMaxHp()
+  const maxMp = config.getMaxMp()
+  const baseAgility = config.getBaseAgility()
+
   const character: CharacterState = {
-    id: characterConfig.id,
-    name: characterConfig.name,
-    title: characterConfig.title,
-    description: characterConfig.description,
-    maxHp: characterConfig.hp,
-    hp: characterConfig.hp,
-    maxMp: characterConfig.mp,
-    mp: characterConfig.mp,
-    baseAgility: characterConfig.agility,
-    agility: characterConfig.agility,
-    agilityBonus: 0,
+    id: config.id,
+    name: config.name,
+    title: config.title,
+    description: config.description,
+    maxHp,
+    hp: maxHp,
+    maxMp,
+    mp: maxMp,
+    baseAgility,
+    agility: baseAgility,
+    agilityBonus: config.agilityBonus,
     shield: 0,
+
+    // 弟子属性
+    root: config.root,
+    insight: config.insight,
+    will: config.will,
+    strength: config.strength,
 
     skills: skills,
     passives: passives,
     martialArtsNames: martialArtsList.map(a => a.name),
 
-    deckTemplate: characterConfig.deck,
+    deckTemplate: config.deck,
     deck: [],
     hand: [],
     discardPile: [],
@@ -100,7 +112,7 @@ export function createCharacter(characterConfig: CharacterConfig, martialArtsLis
     },
 
     getCurrentAgility() {
-      return this.baseAgility + this.agilityBonus
+      return this.baseAgility  // baseAgility 已包含身法加成
     },
 
     resetForNewTurn() {

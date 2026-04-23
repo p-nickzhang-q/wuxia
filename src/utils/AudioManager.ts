@@ -145,6 +145,7 @@ class AudioManager {
   private sfxVolume: number = 0.7
   private isMuted: boolean = false
   private isInitialized: boolean = false
+  private eventHandlers: Map<GameEventType, (event: any) => void> = new Map()
 
   /**
    * 初始化音频系统
@@ -170,19 +171,24 @@ class AudioManager {
    * 订阅游戏事件
    */
   private subscribeToEvents(): void {
-    eventManager.on(GameEventType.CARD_PLAYED, () => this.playSfx('card_play'))
-    eventManager.on(GameEventType.SKILL_USED, () => this.playSfx('skill_use'))
-    eventManager.on(GameEventType.CHARACTER_DAMAGED, (event) => {
+    this.addEventHandler(GameEventType.CARD_PLAYED, () => this.playSfx('card_play'))
+    this.addEventHandler(GameEventType.SKILL_USED, () => this.playSfx('skill_use'))
+    this.addEventHandler(GameEventType.CHARACTER_DAMAGED, (event) => {
       if (!event.data?.absorbed) this.playSfx('damage')
     })
-    eventManager.on(GameEventType.CHARACTER_SHIELD, () => this.playSfx('shield'))
-    eventManager.on(GameEventType.CHARACTER_HEALED, () => this.playSfx('heal'))
-    eventManager.on(GameEventType.PASSIVE_TRIGGERED, () => this.playSfx('passive'))
-    eventManager.on(GameEventType.CARD_DRAWN, () => this.playSfx('card_draw'))
-    eventManager.on(GameEventType.TURN_START, () => this.playSfx('turn_start'))
-    eventManager.on(GameEventType.GAME_END, (event) => {
+    this.addEventHandler(GameEventType.CHARACTER_SHIELD, () => this.playSfx('shield'))
+    this.addEventHandler(GameEventType.CHARACTER_HEALED, () => this.playSfx('heal'))
+    this.addEventHandler(GameEventType.PASSIVE_TRIGGERED, () => this.playSfx('passive'))
+    this.addEventHandler(GameEventType.CARD_DRAWN, () => this.playSfx('card_draw'))
+    this.addEventHandler(GameEventType.TURN_START, () => this.playSfx('turn_start'))
+    this.addEventHandler(GameEventType.GAME_END, (event) => {
       this.playSfx(event.data?.playerWon ? 'victory' : 'defeat')
     })
+  }
+
+  private addEventHandler(type: GameEventType, handler: (event: any) => void): void {
+    eventManager.on(type, handler)
+    this.eventHandlers.set(type, handler)
   }
 
   /**
@@ -291,6 +297,12 @@ class AudioManager {
    * 销毁
    */
   destroy(): void {
+    // 取消所有事件订阅
+    this.eventHandlers.forEach((handler, type) => {
+      eventManager.off(type, handler)
+    })
+    this.eventHandlers.clear()
+
     if (this.audioContext) {
       this.audioContext.close()
       this.audioContext = null

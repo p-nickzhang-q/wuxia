@@ -4,6 +4,17 @@ import { DiscipleState, DiscipleRealm } from './types'
 export type { DiscipleState }
 import { discipleTemplates, realmConfig } from '../data/disciples'
 
+// ==================== 弟子属性战斗加成公式 ====================
+
+/**
+ * 计算臂力伤害加成倍率
+ * 公式：1 + strength * 0.05（每点臂力 +5% 伤害）
+ * strength=5 → 1.25倍，strength=10 → 1.5倍
+ */
+export function calculateStrengthBonus(strength: number): number {
+  return 1 + strength * 0.05
+}
+
 // ==================== 属性成长公式 ====================
 
 /**
