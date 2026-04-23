@@ -328,7 +328,7 @@ export class BattleUIManager {
                          this.scene.game.phase !== GamePhase.GAME_OVER
       cardRenderer.setPlayable(isAvailable)
 
-      cardRenderer.setOnClick(() => this.handleCardClick(cardRenderer))
+      cardRenderer.setOnClick(() => this.scene.handleCardClick(cardRenderer))
 
       this.container.addChild(cardRenderer)
       this.cardRenderers.push(cardRenderer)
@@ -348,17 +348,9 @@ export class BattleUIManager {
   }
 
   /**
-   * 处理卡牌点击（委托给 scene）
-   */
-  private handleCardClick(_cardRenderer: CardRenderer): void {
-    // 这里需要通过 scene 的 inputHandler 处理，暂时保留在 BattleScene
-    // 后续可以添加 scene.handleCardClick 方法到接口
-  }
-
-  /**
    * 更新技能按钮
    */
-  private updateSkillButtons(): void {
+  updateSkillButtons(): void {
     this.clearOldSkillButtons()
 
     const context = this.prepareSkillUpdateContext()
@@ -437,7 +429,7 @@ export class BattleUIManager {
         btn.setSelected(true)
       }
 
-      btn.setOnClick((skillId: string) => this.handleSkillClick(skillId))
+      btn.setOnClick((skillId: string) => this.scene.handleSkillClick(skillId))
 
       this.container.addChild(btn)
       this.skillButtons.push(btn)
@@ -445,16 +437,9 @@ export class BattleUIManager {
   }
 
   /**
-   * 处理技能点击（委托给 scene）
-   */
-  private handleSkillClick(_skillId: string): void {
-    // 需要通过 scene 处理，暂时保留在 BattleScene
-  }
-
-  /**
    * 更新动作按钮状态
    */
-  private updateActionButtons(): void {
+  updateActionButtons(): void {
     const currentActor = this.scene.game?.currentActor
     const isPlayerTurn = currentActor &&
                          this.scene.isPlayerControlled(currentActor) &&
@@ -500,6 +485,20 @@ export class BattleUIManager {
    */
   getBattleLog(): BattleLog | null {
     return this.battleLog
+  }
+
+  /**
+   * 获取状态栏组件
+   */
+  getStatusBar(): StatusBar | null {
+    return this.statusBar
+  }
+
+  /**
+   * 获取轻功轴组件
+   */
+  getAgilityAxis(): VerticalAgilityAxis | null {
+    return this.agilityAxis
   }
 
   /**

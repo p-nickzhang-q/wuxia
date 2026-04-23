@@ -103,6 +103,14 @@ export interface BattleSceneInterface {
   /** 结束当前回合 */
   endTurn: () => void
 
+  // ==================== 点击处理方法 ====================
+
+  /** 处理卡牌点击 */
+  handleCardClick: (cardRenderer: CardRenderer) => void
+
+  /** 处理技能点击 */
+  handleSkillClick: (skillId: string) => void
+
   // ==================== 日志和事件 ====================
 
   /** 添加战斗日志 */

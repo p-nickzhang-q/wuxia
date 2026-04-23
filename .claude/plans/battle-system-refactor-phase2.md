@@ -1,13 +1,13 @@
 # 战斗系统重构计划 - 第二阶段
 
-## 当前进度 (2026-04-23 16:51)
+## 当前进度 (2026-04-23 17:26)
 
 ### 任务完成情况
 
 | 任务 | 状态 | 详情 |
 |------|------|------|
 | 任务2: Scene 接口类型 | ✅ 完成 | BattleSceneInterface.ts 创建，7处 @ts-expect-error 移除 |
-| 任务1: BattleUIManager | 🔄 进行中 | 代码已创建(500行)，测试已创建(44个)，编译错误已修复，待集成到BattleScene |
+| 任务1: BattleUIManager | ✅ 完成 | 已创建(530行)并集成到 BattleScene，删除旧 UI 方法 |
 | 任务3: 事件解绑 | ⏳ 待开始 | - |
 | 任务4: 帧率独立 | ⏳ 待开始 | - |
 | 任务5: UI拆分 | ⏳ 待开始 | - |
@@ -18,55 +18,42 @@
 ```
 Test Files  12 passed (12)
 Tests       293 passed (293)
-Duration    1.22s
-Build       成功
+Duration    1.34s
+Build       成功 (7.46s)
 ```
 
-### 已修复的 Bug
+### 任务1 完成详情
 
-- **回合数疯涨问题**: BattleAIHandler.finishAITurn 现在正确判断 shouldSwitchActor 和 endTurn 逻辑
-  - 修改前：AI 每次行动后都调用 endTurn()
-  - 修改后：检查新行动者 agility <= 0 才调用 endTurn()
-
-### 任务2 完成详情
-
-**新建文件**:
-- `src/scenes/types/BattleSceneInterface.ts` (66行)
-
-**修改文件**:
-- `src/scenes/BattleInputHandler.ts` - 使用 BattleSceneInterface
-- `src/scenes/BattleAIHandler.ts` - 使用 BattleSceneInterface，修复 finishAITurn
-- `src/scenes/BattleScene.ts` - 实现 BattleSceneInterface，14个成员改为 public
-
-**移除的问题代码**:
-- 7处 `@ts-expect-error` 注释
-- `this as any` 类型转换
-
-**新增测试**:
-- `tests/battleSceneInterface.test.ts` (33个测试)
-- `tests/battleUIManager.test.ts` (44个测试)
-- `tests/battleAIHandler.test.ts` (19个测试)
-
-### 任务1 进度详情
-
-**BattleUIManager.ts** 已创建 (500行)，包含:
-- createUI(): 创建完整 UI
+**BattleUIManager.ts** (530行):
+- createUI(): 创建状态栏、战斗日志、轻功轴、动作按钮
 - updateUI(): 更新所有 UI 状态
-- updateHandCards(): 手牌显示（拆分为3个子方法）
-- updateSkillButtons(): 技能按钮（拆分为2个子方法）
+- updateHandCards(): 手牌显示（拆分为 prepareHandUpdateContext + clearOldCards + renderNewCards + restoreSelectionState）
+- updateSkillButtons(): 技能按钮（拆分为 clearOldSkillButtons + prepareSkillUpdateContext + renderSkillButtons）
 - updateActionButtons(): 动作按钮状态
 - updateStatusBar(): 状态栏
 - updateAgilityAxis(): 轻功轴
 - syncBattleLog(): 战斗日志同步
 
-**编译错误已修复**:
-1. CardType 类型导入和使用
-2. SkillLevel 属性添加
-3. isBasicCard 属性添加
-4. GameState 类型导入
-5. 未使用变量清理
+**BattleScene.ts 修改**:
+- 添加 uiManager 成员
+- statusBar, battleLog, agilityAxis 改为 getter 属性（从 uiManager 获取）
+- cardRenderers, skillButtons 改为 getter 属性
+- createUI() 委托给 uiManager.createUI() + createCharacterPanels()
+- updateUI() 委托给 uiManager.updateUI() + 角色面板更新
+- updateActionButtons(), updateSkillButtons() 委托给 uiManager
+- 删除旧的私有方法：handleCardClick, handleSkillClick, handleConfirm, handleCancel, handleEndTurn, getPhaseText
+- 删除旧的成员变量：isFirstHandUpdate, pendingDrawAnimations, confirmButton, cancelButton, endTurnButton
 
-**待完成**: 集成 BattleUIManager 到 BattleScene.ts
+**BattleSceneInterface.ts 更新**:
+- 无变化（接口已满足 uiManager 需要）
+
+### BattleScene 行数变化
+
+| 指标 | 修改前 | 修改后 |
+|------|--------|--------|
+| BattleScene.ts 行数 | ~955 | ~630 |
+| 最大方法行数 | 82 | <40 |
+| UI 相关方法 | 7个 | 0个（全部委托）|
 
 ---
 

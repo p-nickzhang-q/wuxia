@@ -3,7 +3,7 @@ import { Renderer, Colors } from '../renderer/Renderer'
 import { CardRenderer, getCardDimensions } from '../renderer/CardRenderer'
 import { CharacterRenderer } from '../renderer/CharacterRenderer'
 import { MiniCharacterRenderer } from '../renderer/MiniCharacterRenderer'
-import { Button, SkillButton, BattleLog, StatusBar, VerticalAgilityAxis } from '../renderer/UIComponents'
+import { SkillButton, BattleLog, StatusBar, VerticalAgilityAxis } from '../renderer/UIComponents'
 import { createGame } from '../game/Game'
 import { createCharacter } from '../game/Character'
 import { AI } from '../game/AI'
@@ -17,6 +17,7 @@ import { Text, TextStyle } from 'pixi.js'
 import { BattleInputHandler } from './BattleInputHandler'
 import { BattleAIHandler } from './BattleAIHandler'
 import { BattleLayoutManager } from './BattleLayoutManager'
+import { BattleUIManager } from './BattleUIManager'
 import { BattleSceneInterface } from './types/BattleSceneInterface'
 
 // 战斗场景
@@ -32,18 +33,19 @@ export class BattleScene extends Scene implements BattleSceneInterface {
   private inputHandler: BattleInputHandler | null = null
   private aiHandler: BattleAIHandler | null = null
   private layoutManager: BattleLayoutManager | null = null
+  private uiManager: BattleUIManager | null = null
 
   // 渲染组件 - 多人支持
   public characterRenderers: Map<string, CharacterRenderer | MiniCharacterRenderer> = new Map()
 
-  private cardRenderers: CardRenderer[] = []
-  private skillButtons: SkillButton[] = []
-  public battleLog: BattleLog | null = null
-  public statusBar: StatusBar | null = null
-  public agilityAxis: VerticalAgilityAxis | null = null
-  private endTurnButton: Button | null = null
-  private confirmButton: Button | null = null
-  private cancelButton: Button | null = null
+  // UI 组件通过 uiManager 管理，这里提供 getter 供接口使用
+  public get statusBar(): StatusBar | null { return this.uiManager?.getStatusBar() ?? null }
+  public get battleLog(): BattleLog | null { return this.uiManager?.getBattleLog() ?? null }
+  public get agilityAxis(): VerticalAgilityAxis | null { return this.uiManager?.getAgilityAxis() ?? null }
+
+  // 卡牌和技能渲染器（供外部访问）
+  public get cardRenderers(): CardRenderer[] { return this.uiManager?.getCardRenderers() ?? [] }
+  public get skillButtons(): SkillButton[] { return this.uiManager?.getSkillButtons() ?? [] }
 
   // 交互状态
   public selectedCard: CardRenderer | null = null
@@ -56,10 +58,6 @@ export class BattleScene extends Scene implements BattleSceneInterface {
   public selectedTargetId: string | null = null // 已选中目标ID
   public pendingSkillId: string | null = null   // 待执行的武功ID
   public pendingCardId: string | null = null    // 待执行的卡牌ID
-
-  // 抽牌动画相关
-  private isFirstHandUpdate: boolean = true // 是否是首次更新手牌
-  private pendingDrawAnimations: string[] = [] // 待动画的新牌ID
 
   // 内功特效队列（用于延迟显示第一回合的内功特效）
   private pendingPassiveHighlights: Array<{characterId: string, passiveId: string}> = []
@@ -86,8 +84,6 @@ export class BattleScene extends Scene implements BattleSceneInterface {
     this.selectedCard = null
     this.selectedSkill = null
     this.isGameOver = false
-    this.isFirstHandUpdate = true
-    this.pendingDrawAnimations = []
     this.pendingPassiveHighlights = []
     this.playerControlledId = playerControlledId || playerIds[0]  // 默认第一个是玩家控制
 
@@ -136,8 +132,15 @@ export class BattleScene extends Scene implements BattleSceneInterface {
     this.selectedCard = null
     this.selectedSkill = null
     this.isGameOver = false
-    this.createUI()
-    this.updateUI()
+
+    // 创建 UI（委托给 uiManager）
+    this.uiManager?.createUI()
+
+    // 创建角色面板
+    this.createCharacterPanels()
+
+    // 更新 UI 状态
+    this.uiManager?.updateUI()
 
     // 注册resize回调
     this.renderer.onResize(() => this.handleResize())
@@ -160,6 +163,9 @@ export class BattleScene extends Scene implements BattleSceneInterface {
    * 初始化处理器
    */
   private initHandlers(): void {
+    // 创建 UI 管理器 - 传入 this 作为 scene 引用
+    this.uiManager = new BattleUIManager(this, this.renderer, this)
+
     // 创建布局管理器
     this.layoutManager = new BattleLayoutManager(this.renderer, this, this.characterRenderers)
 
@@ -210,8 +216,9 @@ export class BattleScene extends Scene implements BattleSceneInterface {
   private handleResize(): void {
     // 重新创建UI
     this.clear()
-    this.createUI()
-    this.updateUI()
+    this.uiManager?.createUI()
+    this.createCharacterPanels()
+    this.uiManager?.updateUI()
   }
 
   update(_delta: number): void {
@@ -305,9 +312,9 @@ export class BattleScene extends Scene implements BattleSceneInterface {
     const isPlayerTeam = this.playerConfigs.some(p => p === character)
     if (!isPlayerTeam || !cards) return
 
-    // 记录需要动画的新牌ID
+    // 记录需要动画的新牌ID（委托给 uiManager）
     cards.forEach(card => {
-      this.pendingDrawAnimations.push(card.instanceId)
+      this.uiManager?.addPendingDrawAnimation(card.instanceId)
     })
   }
 
@@ -360,75 +367,15 @@ export class BattleScene extends Scene implements BattleSceneInterface {
     }, 800)
   }
 
-  // 创建 UI
-  private createUI(): void {
-    const size = this.renderer.getSize()
+  // 创建角色面板
+  private createCharacterPanels(): void {
+    if (!this.game || !this.layoutManager) return
+
     const cardDims = getCardDimensions()
     const skillBtnHeight = LayoutConstants.skillBtnHeight()
     const buttonHeight = LayoutConstants.buttonHeight()
-
-    // 右侧边栏宽度
     const sidebarWidth = LayoutConstants.sidebarWidth()
-
-    // 计算底部操作区域高度
     const bottomAreaHeight = cardDims.height + skillBtnHeight + buttonHeight + 50
-
-    // 状态栏 - 顶部居中（避开右侧边栏）
-    const statusWidth = LayoutConstants.statusWidth()
-    this.statusBar = new StatusBar(this.renderer)
-    this.statusBar.x = (size.width - sidebarWidth) / 2 - statusWidth / 2
-    this.statusBar.y = size.height * 0.02
-    this.addChild(this.statusBar)
-
-    // 右侧边栏 - 战斗日志 + 竖向轻功轴
-    const sidebarX = size.width - sidebarWidth
-
-    // 战斗日志 - 右侧边栏上半部分
-    const logWidth = LayoutConstants.logWidth()
-    const logHeight = LayoutConstants.logHeight()
-    this.battleLog = new BattleLog(this.renderer)
-    this.battleLog.x = sidebarX + (sidebarWidth - logWidth) / 2
-    this.battleLog.y = size.height * 0.02
-    this.addChild(this.battleLog)
-
-    // 竖向轻功轴 - 右侧边栏下半部分（战斗日志下方）
-    const axisWidth = LayoutConstants.agilityAxisWidth()
-    this.agilityAxis = new VerticalAgilityAxis(this.renderer)
-    this.agilityAxis.x = sidebarX + (sidebarWidth - axisWidth) / 2
-    this.agilityAxis.y = size.height * 0.02 + logHeight + 15
-    this.addChild(this.agilityAxis)
-
-    // 创建角色面板 - 左侧区域
-    this.createCharacterPanels(bottomAreaHeight, sidebarWidth)
-
-    // 结束回合按钮 - 右下角（边栏下方）
-    const panelMarginH = size.width * 0.02
-    const endTurnBtnWidth = LayoutConstants.scaleValue(130)
-    this.endTurnButton = new Button('结束回合', endTurnBtnWidth, buttonHeight, this.renderer)
-    this.endTurnButton.x = size.width - sidebarWidth - endTurnBtnWidth - panelMarginH
-    this.endTurnButton.y = size.height - buttonHeight - 15
-    this.endTurnButton.setOnClick(() => this.handleEndTurn())
-    this.addChild(this.endTurnButton)
-
-    // 确认按钮 - 底部中央偏左
-    const actionBtnWidth = LayoutConstants.scaleValue(100)
-    this.confirmButton = new Button('确认', actionBtnWidth, buttonHeight, this.renderer)
-    this.confirmButton.x = (size.width - sidebarWidth) / 2 - actionBtnWidth - 10
-    this.confirmButton.y = size.height - buttonHeight - 15
-    this.confirmButton.setOnClick(() => this.handleConfirm())
-    this.addChild(this.confirmButton)
-
-    // 取消按钮 - 底部中央偏右
-    this.cancelButton = new Button('取消', actionBtnWidth, buttonHeight, this.renderer)
-    this.cancelButton.x = (size.width - sidebarWidth) / 2 + 10
-    this.cancelButton.y = size.height - buttonHeight - 15
-    this.cancelButton.setOnClick(() => this.handleCancel())
-    this.addChild(this.cancelButton)
-  }
-
-  // 创建角色面板（左右布局）
-  private createCharacterPanels(bottomAreaHeight: number, sidebarWidth: number): void {
-    if (!this.game || !this.layoutManager) return
 
     const allChars = this.game.getAllCharacters()
     const totalSeats = this.game.totalSeats
@@ -440,7 +387,7 @@ export class BattleScene extends Scene implements BattleSceneInterface {
       sidebarWidth,
       isMultiBattle,
       this.isPlayerTeam.bind(this),
-      (charId: string, _renderer: Renderer) => this.handleCharacterClick(charId)
+      (charId: string) => this.handleCharacterClick(charId)
     )
   }
 
@@ -451,14 +398,19 @@ export class BattleScene extends Scene implements BattleSceneInterface {
     }
   }
 
+  // 处理卡牌点击（供 BattleUIManager 使用）
+  public handleCardClick(cardRenderer: CardRenderer): void {
+    this.inputHandler?.handleCardClick(cardRenderer)
+  }
+
+  // 处理技能点击（供 BattleUIManager 使用）
+  public handleSkillClick(skillId: string): void {
+    this.inputHandler?.handleSkillClick(skillId)
+  }
+
+  // 更新角色面板（不包含在 uiManager 中）
   public updateUI(): void {
     if (!this.game) return
-
-    // console.log('[updateUI] 开始, currentActor:', this.game.currentActor?.name, 'phase:', this.game.phase)
-
-    // 更新状态栏
-    this.statusBar?.setTurn(this.game.currentTurn)
-    this.statusBar?.setPhase(this.getPhaseText())
 
     // 更新所有角色面板
     this.characterRenderers.forEach((renderer, charId) => {
@@ -468,47 +420,8 @@ export class BattleScene extends Scene implements BattleSceneInterface {
       }
     })
 
-    // 更新轻功轴（多人模式下简化显示）
-    this.updateAgilityAxis()
-
-    // 同步战斗日志到UI
-    this.syncBattleLog()
-
-    // 更新手牌（只显示当前行动玩家队伍的手牌）
-    this.updateHandCards()
-
-    // 更新技能按钮
-    this.updateSkillButtons()
-
-    // 更新确认/取消按钮状态
-    this.updateActionButtons()
-
-    // 检查游戏结束
-    if (this.game.phase === GamePhase.GAME_OVER) {
-      this.handleGameOver()
-    }
-  }
-
-  // 更新轻功轴（竖向显示所有角色）
-  private updateAgilityAxis(): void {
-    if (!this.agilityAxis || !this.game) return
-
-    // 获取所有存活角色
-    const allChars = this.game.getAllCharacters()
-    const currentActor = this.game.currentActor
-
-    // 准备角色数据
-    const charData = allChars
-      .filter(c => c.isAlive())
-      .map(c => ({
-        id: c.id,
-        name: c.name,
-        agility: c.agility,
-        isPlayer: this.isPlayerTeam(c),
-        isAlive: c.isAlive()
-      }))
-
-    this.agilityAxis.update(charData, currentActor?.id || null)
+    // 更新 UI（委托给 uiManager）
+    this.uiManager?.updateUI()
   }
 
   // 判断角色是否属于玩家队伍
@@ -522,205 +435,14 @@ export class BattleScene extends Scene implements BattleSceneInterface {
     return this.playerConfigs.some(p => p.id === char.id)
   }
 
-  // 更新确认/取消按钮状态
+  // 更新动作按钮状态 - 委托给 uiManager
   public updateActionButtons(): void {
-    const currentActor = this.game?.currentActor
-    const isPlayerTurn = currentActor && this.isPlayerControlled(currentActor) &&
-                         this.game?.phase !== GamePhase.GAME_OVER
-
-    // 确认按钮：只有选中手牌时才可用
-    const canConfirm = isPlayerTurn && this.selectedCard !== null
-    this.confirmButton?.setDisabled(!canConfirm)
-
-    // 取消按钮：有选中状态时才可用
-    const canCancel = isPlayerTurn && (this.selectedCard !== null || this.selectedSkill !== null)
-    this.cancelButton?.setDisabled(!canCancel)
+    this.uiManager?.updateActionButtons()
   }
 
-  // 同步战斗日志
-  private syncBattleLog(): void {
-    if (!this.game || !this.battleLog) return
-
-    // 获取最新的几条日志
-    const logs = this.game.battleLog
-    const uiLogs = this.battleLog.getLogCount()
-
-    // 如果有新日志，添加到UI
-    if (logs.length > uiLogs) {
-      for (let i = uiLogs; i < logs.length; i++) {
-        this.battleLog.syncLog(logs[i].text)
-      }
-    }
-  }
-
-  // 更新手牌显示
-  private updateHandCards(): void {
-    // 保存当前选中的卡牌ID
-    const selectedCardId = this.selectedCard?.getCard().instanceId
-
-    // 清除旧的手牌
-    this.cardRenderers.forEach(card => this.removeChild(card))
-    this.cardRenderers = []
-
-    if (!this.game) return
-
-    // 只显示当前行动角色的手牌（如果是玩家控制的角色）
-    const currentActor = this.game.currentActor
-    if (!currentActor || !this.isPlayerControlled(currentActor)) return
-
-    const size = this.renderer.getSize()
-    const cardDims = getCardDimensions()
-    const hand = currentActor.hand
-    const availableCards = currentActor.getAvailableCards(currentActor.agility)
-    const availableIds = availableCards.map(c => c.instanceId)
-
-    // 右侧边栏宽度
-    const sidebarWidth = LayoutConstants.sidebarWidth()
-    const availableWidth = size.width - sidebarWidth
-
-    // 手牌在底部中央（避开右侧边栏）
-    const cardSpacing = cardDims.width + LayoutConstants.cardSpacing()
-    const totalWidth = hand.length * cardSpacing - LayoutConstants.cardSpacing()
-    const startX = availableWidth / 2 - totalWidth / 2
-    const y = size.height - cardDims.height - LayoutConstants.buttonHeight() - 25
-
-    // 牌堆位置（屏幕中央，避开边栏）
-    const deckX = availableWidth / 2
-    const deckY = size.height / 2
-
-    hand.forEach((card, index) => {
-      const cardRenderer = new CardRenderer(card, this.renderer)
-      const cardX = startX + index * cardSpacing
-      const cardY = y
-
-      // 检查是否需要抽牌动画（首次更新或待动画列表中的牌）
-      const needsAnimation = this.isFirstHandUpdate || this.pendingDrawAnimations.includes(card.instanceId)
-
-      if (needsAnimation) {
-        // 从牌堆位置开始
-        cardRenderer.x = deckX
-        cardRenderer.y = deckY
-        cardRenderer.alpha = 0
-
-        // 延迟动画，让每张牌依次飞入
-        const delay = index * 100 // 张牌延迟100ms
-        setTimeout(() => {
-          tweenManager.create(cardRenderer, { x: cardX, y: cardY, alpha: 1 }, 300, Easing.easeOutQuad)
-        }, delay)
-      } else {
-        cardRenderer.x = cardX
-        cardRenderer.y = cardY
-      }
-
-      cardRenderer.setBaseY(cardY)  // 设置基础Y位置
-
-      // 设置是否可用
-      const isAvailable = availableIds.includes(card.instanceId) &&
-                         this.isPlayerControlled(currentActor) &&
-                         this.game!.phase !== GamePhase.GAME_OVER
-      cardRenderer.setPlayable(isAvailable)
-
-      // 恢复选中状态
-      if (card.instanceId === selectedCardId) {
-        cardRenderer.setSelected(true)
-        this.selectedCard = cardRenderer
-      }
-
-      // 设置点击回调
-      cardRenderer.setOnClick(() => this.handleCardClick(cardRenderer))
-
-      this.addChild(cardRenderer)
-      this.cardRenderers.push(cardRenderer)
-    })
-
-    // 清空待动画列表，标记首次更新完成
-    this.pendingDrawAnimations = []
-    this.isFirstHandUpdate = false
-  }
-
-  // 更新技能按钮
+  // 更新技能按钮状态 - 委托给 uiManager
   public updateSkillButtons(): void {
-    // 清除旧的技能按钮
-    this.skillButtons.forEach(btn => this.removeChild(btn))
-    this.skillButtons = []
-
-    if (!this.game) return
-
-    // 只显示当前行动角色的技能（如果是玩家控制的角色）
-    const currentActor = this.game.currentActor
-    if (!currentActor || !this.isPlayerControlled(currentActor)) return
-
-    const skills = currentActor.skills
-    const size = this.renderer.getSize()
-    const cardDims = getCardDimensions()
-    const skillBtnWidth = LayoutConstants.skillBtnWidth()
-    const skillBtnHeight = LayoutConstants.skillBtnHeight()
-
-    // 右侧边栏宽度
-    const sidebarWidth = LayoutConstants.sidebarWidth()
-    const availableWidth = size.width - sidebarWidth
-
-    // 技能按钮在底部手牌上方，居中显示（避开右侧边栏）
-    const btnSpacing = skillBtnWidth + 10
-    const totalWidth = skills.length * btnSpacing - 10
-    const startX = availableWidth / 2 - totalWidth / 2
-    const y = size.height - cardDims.height - skillBtnHeight - LayoutConstants.buttonHeight() - 40
-
-    skills.forEach((skill, index) => {
-      const btn = new SkillButton(
-        skill.id,
-        skill.name,
-        skill.mpCost,
-        skill.agilityCost,
-        skill.description,
-        this.renderer
-      )
-      btn.x = startX + index * btnSpacing
-      btn.y = y
-
-      // 判断技能是否可用
-      const isPlayerTurn = this.isPlayerControlled(currentActor) &&
-                          this.game!.phase !== GamePhase.GAME_OVER
-      const hasEnoughMp = currentActor.mp >= skill.mpCost
-      const hasEnoughAgility = currentActor.agility >= skill.agilityCost
-      const hasMatchingCard = currentActor.hand.some(card =>
-        skill.requiredCardType === 'any' || card.type === skill.requiredCardType
-      )
-      const isAvailable = isPlayerTurn && hasEnoughMp && hasEnoughAgility && hasMatchingCard
-
-      btn.setAvailable(isAvailable)
-
-      // 设置选中状态
-      if (this.selectedSkill && this.selectedSkill.id === skill.id) {
-        btn.setSelected(true)
-      }
-
-      // 设置点击回调（即使不可用也可以点击选中）
-      btn.setOnClick((skillId) => this.handleSkillClick(skillId))
-
-      this.addChild(btn)
-      this.skillButtons.push(btn)
-    })
-  }
-
-  // 处理卡牌点击
-  private handleCardClick(cardRenderer: CardRenderer): void {
-    this.inputHandler?.handleCardClick(cardRenderer)
-  }
-
-  // 处理技能点击
-  private handleSkillClick(skillId: string): void {
-    this.inputHandler?.handleSkillClick(skillId)
-  }
-
-  // 处理确认
-  private handleConfirm(): void {
-    this.inputHandler?.handleConfirm()
-  }
-
-  // 处理取消
-  private handleCancel(): void {
-    this.inputHandler?.handleCancel()
+    this.uiManager?.updateSkillButtons()
   }
 
   // 进入目标选择模式（供 BattleInputHandler 使用）
@@ -844,7 +566,7 @@ export class BattleScene extends Scene implements BattleSceneInterface {
     const result = this.game.useBasicCard(cardInstanceId, targetId)
 
     if (result.success) {
-      this.updateUI()
+      this.uiManager?.updateUI()
 
       if (result.gameOver) {
         this.handleGameOver()
@@ -859,17 +581,12 @@ export class BattleScene extends Scene implements BattleSceneInterface {
     const result = this.game.useSkill(skillId, cardInstanceId, targetId)
 
     if (result.success) {
-      this.updateUI()
+      this.uiManager?.updateUI()
 
       if (result.gameOver) {
         this.handleGameOver()
       }
     }
-  }
-
-  // 处理结束回合
-  private handleEndTurn(): void {
-    this.inputHandler?.handleEndTurn()
   }
 
   // 处理回合切换逻辑（供 BattleInputHandler 使用）
@@ -895,7 +612,7 @@ export class BattleScene extends Scene implements BattleSceneInterface {
       this.game.endTurn()
     }
 
-    this.updateUI()
+    this.uiManager?.updateUI()
   }
 
   // 处理游戏结束
@@ -922,23 +639,6 @@ export class BattleScene extends Scene implements BattleSceneInterface {
     this.battleLog?.addLog(message)
     if (this.game) {
       this.game.addLog(message)
-    }
-  }
-
-  // 获取阶段文本
-  private getPhaseText(): string {
-    if (!this.game) return ''
-
-    if (this.game.phase === GamePhase.SETUP) return '准备中'
-    if (this.game.phase === GamePhase.GAME_OVER) return '战斗结束'
-
-    const currentActor = this.game.currentActor
-    if (currentActor && this.isPlayerControlled(currentActor)) {
-      return `${currentActor.name}的回合`
-    } else if (currentActor) {
-      return `${currentActor.name}行动中`
-    } else {
-      return ''
     }
   }
 
