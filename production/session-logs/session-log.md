@@ -1725,3 +1725,11 @@ src/scenes/CharacterSelectScene.ts
 tests/game.test.ts
 ---
 
+## Session End: 20260423_100003
+### Commits
+ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维护性
+5da7b12 refactor(game): 重构角色配置系统并完善弟子属性
+### Uncommitted Changes
+src/renderer/UIComponents.ts
+---
+
