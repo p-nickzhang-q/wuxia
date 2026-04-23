@@ -1,34 +1,17 @@
 import { CardRenderer } from '../renderer/CardRenderer'
-import { CharacterState, GamePhase, MartialArtSkill } from '../game/types'
+import { GamePhase, MartialArtSkill } from '../game/types'
+import { BattleSceneInterface } from './types/BattleSceneInterface'
 
 /**
  * 战斗输入处理器
  * 处理玩家交互逻辑
  *
- * 直接依赖 BattleScene 的成员和方法
+ * 通过 BattleSceneInterface 与 BattleScene 通信
  */
 export class BattleInputHandler {
-  private scene: {
-    game: ReturnType<typeof import('../game/Game').createGame> | null
-    selectedCard: CardRenderer | null
-    selectedSkill: MartialArtSkill | null
-    targetableIds: string[]
-    selectedTargetId: string | null
-    pendingSkillId: string | null
-    pendingCardId: string | null
-    isPlayerControlled: (char: CharacterState) => boolean
-    updateTargetHighlights: () => void
-    updateActionButtons: () => void
-    updateSkillButtons: () => void
-    addLog: (message: string) => void
-    enterTargetSelection: (skillId: string | null, cardInstanceId: string) => void
-    clearTargetSelection: () => void
-    clearSelection: () => void
-    executeAction: (skillId: string | null, cardInstanceId: string | null, targetId: string) => void
-    endTurn: () => void
-  }
+  private scene: BattleSceneInterface
 
-  constructor(scene: typeof BattleInputHandler.prototype.scene) {
+  constructor(scene: BattleSceneInterface) {
     this.scene = scene
   }
 
@@ -90,7 +73,7 @@ export class BattleInputHandler {
     const currentActor = this.scene.game.currentActor
     if (!currentActor || !this.scene.isPlayerControlled(currentActor)) return
 
-    const skill = currentActor.skills.find(s => s.id === skillId)
+    const skill = currentActor.skills.find((s: MartialArtSkill) => s.id === skillId)
     if (!skill) return
 
     // 如果在目标选择阶段，点击技能取消目标选择

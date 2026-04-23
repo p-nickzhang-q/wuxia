@@ -17,16 +17,16 @@ import { Text, TextStyle } from 'pixi.js'
 import { BattleInputHandler } from './BattleInputHandler'
 import { BattleAIHandler } from './BattleAIHandler'
 import { BattleLayoutManager } from './BattleLayoutManager'
+import { BattleSceneInterface } from './types/BattleSceneInterface'
 
 // 战斗场景
-export class BattleScene extends Scene {
+export class BattleScene extends Scene implements BattleSceneInterface {
   // 多人战斗配置
-  private playerConfigs: CharacterState[] = []
+  public playerConfigs: CharacterState[] = []
   private enemyConfigs: CharacterState[] = []
 
-  private game: ReturnType<typeof createGame> | null = null
-  // @ts-expect-error - 被 BattleAIHandler 通过 scene 引用使用
-  private ai: AI | null = null
+  public game: ReturnType<typeof createGame> | null = null
+  public ai: AI | null = null
 
   // 处理器
   private inputHandler: BattleInputHandler | null = null
@@ -34,31 +34,28 @@ export class BattleScene extends Scene {
   private layoutManager: BattleLayoutManager | null = null
 
   // 渲染组件 - 多人支持
-  private characterRenderers: Map<string, CharacterRenderer | MiniCharacterRenderer> = new Map()
+  public characterRenderers: Map<string, CharacterRenderer | MiniCharacterRenderer> = new Map()
 
   private cardRenderers: CardRenderer[] = []
   private skillButtons: SkillButton[] = []
-  private battleLog: BattleLog | null = null
-  private statusBar: StatusBar | null = null
-  private agilityAxis: VerticalAgilityAxis | null = null
+  public battleLog: BattleLog | null = null
+  public statusBar: StatusBar | null = null
+  public agilityAxis: VerticalAgilityAxis | null = null
   private endTurnButton: Button | null = null
   private confirmButton: Button | null = null
   private cancelButton: Button | null = null
 
   // 交互状态
-  private selectedCard: CardRenderer | null = null
-  private selectedSkill: MartialArtSkill | null = null
-  // @ts-expect-error - 被 BattleAIHandler 通过 scene 引用使用
-  private isAIProcessing: boolean = false
+  public selectedCard: CardRenderer | null = null
+  public selectedSkill: MartialArtSkill | null = null
+  public isAIProcessing: boolean = false
   private isGameOver: boolean = false  // 防止重复处理游戏结束
 
   // 目标选择状态
-  private targetableIds: string[] = []           // 可选目标ID列表
-  private selectedTargetId: string | null = null // 已选中目标ID
-  // @ts-expect-error - 被 BattleInputHandler 通过 scene 引用使用
-  private pendingSkillId: string | null = null   // 待执行的武功ID
-  // @ts-expect-error - 被 BattleInputHandler/BattleAIHandler 通过 scene 引用使用
-  private pendingCardId: string | null = null    // 待执行的卡牌ID
+  public targetableIds: string[] = []           // 可选目标ID列表
+  public selectedTargetId: string | null = null // 已选中目标ID
+  public pendingSkillId: string | null = null   // 待执行的武功ID
+  public pendingCardId: string | null = null    // 待执行的卡牌ID
 
   // 抽牌动画相关
   private isFirstHandUpdate: boolean = true // 是否是首次更新手牌
@@ -167,10 +164,10 @@ export class BattleScene extends Scene {
     this.layoutManager = new BattleLayoutManager(this.renderer, this, this.characterRenderers)
 
     // 创建输入处理器 - 传入 this 作为 scene 引用
-    this.inputHandler = new BattleInputHandler(this as any)
+    this.inputHandler = new BattleInputHandler(this)
 
     // 创建 AI 处理器 - 传入 this 作为 scene 引用
-    this.aiHandler = new BattleAIHandler(this as any)
+    this.aiHandler = new BattleAIHandler(this)
   }
 
   onExit(): void {
@@ -454,7 +451,7 @@ export class BattleScene extends Scene {
     }
   }
 
-  private updateUI(): void {
+  public updateUI(): void {
     if (!this.game) return
 
     // console.log('[updateUI] 开始, currentActor:', this.game.currentActor?.name, 'phase:', this.game.phase)
@@ -516,17 +513,17 @@ export class BattleScene extends Scene {
 
   // 判断角色是否属于玩家队伍
   // 判断角色是否由玩家控制
-  private isPlayerControlled(char: CharacterState): boolean {
+  public isPlayerControlled(char: CharacterState): boolean {
     return this.playerControlledId === char.id
   }
 
   // 判断角色是否属于玩家队伍（用于显示布局）
-  private isPlayerTeam(char: CharacterState): boolean {
+  public isPlayerTeam(char: CharacterState): boolean {
     return this.playerConfigs.some(p => p.id === char.id)
   }
 
   // 更新确认/取消按钮状态
-  private updateActionButtons(): void {
+  public updateActionButtons(): void {
     const currentActor = this.game?.currentActor
     const isPlayerTurn = currentActor && this.isPlayerControlled(currentActor) &&
                          this.game?.phase !== GamePhase.GAME_OVER
@@ -642,7 +639,7 @@ export class BattleScene extends Scene {
   }
 
   // 更新技能按钮
-  private updateSkillButtons(): void {
+  public updateSkillButtons(): void {
     // 清除旧的技能按钮
     this.skillButtons.forEach(btn => this.removeChild(btn))
     this.skillButtons = []
@@ -727,8 +724,7 @@ export class BattleScene extends Scene {
   }
 
   // 进入目标选择模式（供 BattleInputHandler 使用）
-  // @ts-expect-error - 被 BattleInputHandler 通过 scene 引用调用
-  private enterTargetSelection(skillId: string | null, cardInstanceId: string): void {
+  public enterTargetSelection(skillId: string | null, cardInstanceId: string): void {
     if (!this.game) return
 
     const currentActor = this.game.currentActor
@@ -791,7 +787,7 @@ export class BattleScene extends Scene {
   }
 
   // 更新目标高亮显示
-  private updateTargetHighlights(): void {
+  public updateTargetHighlights(): void {
     this.characterRenderers.forEach((renderer, charId) => {
       const isTargetable = this.targetableIds.includes(charId)
       const isTargeted = this.selectedTargetId === charId
@@ -801,7 +797,7 @@ export class BattleScene extends Scene {
   }
 
   // 清除目标选择状态（供 BattleInputHandler 使用）
-  private clearTargetSelection(): void {
+  public clearTargetSelection(): void {
     this.targetableIds = []
     this.selectedTargetId = null
     this.pendingSkillId = null
@@ -814,7 +810,7 @@ export class BattleScene extends Scene {
   }
 
   // 清空选择状态
-  private clearSelection(): void {
+  public clearSelection(): void {
     if (this.selectedCard) {
       this.selectedCard.setSelected(false)
       this.selectedCard = null
@@ -831,8 +827,7 @@ export class BattleScene extends Scene {
   }
 
   // 执行动作（供 BattleInputHandler 使用）
-  // @ts-expect-error - 被 BattleInputHandler 通过 scene.executeAction 调用
-  private executeAction(skillId: string | null, cardInstanceId: string | null, targetId: string): void {
+  public executeAction(skillId: string | null, cardInstanceId: string | null, targetId: string): void {
     if (skillId && cardInstanceId) {
       this.useSkill(skillId, cardInstanceId, targetId)
     } else if (cardInstanceId) {
@@ -878,8 +873,7 @@ export class BattleScene extends Scene {
   }
 
   // 处理回合切换逻辑（供 BattleInputHandler 使用）
-  // @ts-expect-error - 被 BattleInputHandler.handleEndTurn 通过 scene.endTurn 调用
-  private endTurn(): void {
+  public endTurn(): void {
     if (!this.game) return
 
     const currentActor = this.game.currentActor
@@ -905,7 +899,7 @@ export class BattleScene extends Scene {
   }
 
   // 处理游戏结束
-  private handleGameOver(): void {
+  public handleGameOver(): void {
     if (this.isGameOver) return  // 防止重复调用
     this.isGameOver = true
 
@@ -924,7 +918,7 @@ export class BattleScene extends Scene {
   }
 
   // 添加日志
-  private addLog(message: string): void {
+  public addLog(message: string): void {
     this.battleLog?.addLog(message)
     if (this.game) {
       this.game.addLog(message)

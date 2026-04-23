@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import type { CharacterState, GamePhase } from '../src/game/types'
+import { GamePhase } from '../src/game/types'
+import type { CharacterState } from '../src/game/types'
 
 /**
  * 测试 BattleAIHandler 回合结束逻辑
@@ -237,15 +238,15 @@ describe('BattleAIHandler 回合结束逻辑', () => {
     ): { action: 'switch' | 'endTurn' | 'continue'; newPhase: GamePhase } => {
       if (shouldSwitchActor) {
         if (switchedActorAgility <= 0) {
-          return { action: 'endTurn', newPhase: 'SELECTING' }
+          return { action: 'endTurn', newPhase: GamePhase.SELECTING }
         } else {
-          return { action: 'switch', newPhase: 'SELECTING' }
+          return { action: 'switch', newPhase: GamePhase.SELECTING }
         }
       } else {
         if (currentActorAgility <= 0) {
-          return { action: 'endTurn', newPhase: 'SELECTING' }
+          return { action: 'endTurn', newPhase: GamePhase.SELECTING }
         } else {
-          return { action: 'continue', newPhase: 'SELECTING' }
+          return { action: 'continue', newPhase: GamePhase.SELECTING }
         }
       }
     }
@@ -255,7 +256,7 @@ describe('BattleAIHandler 回合结束逻辑', () => {
       const result = simulateFinishAITurn(true, 5, 0)
 
       expect(result.action).toBe('switch')
-      expect(result.newPhase).toBe('SELECTING')
+      expect(result.newPhase).toBe(GamePhase.SELECTING)
     })
 
     it('test_finish_ai_turn_switch_with_zero_agility', () => {

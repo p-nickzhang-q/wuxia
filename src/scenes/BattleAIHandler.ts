@@ -1,28 +1,16 @@
-import { AI } from '../game/AI'
-import { CharacterState, GamePhase } from '../game/types'
+import { GamePhase } from '../game/types'
+import { BattleSceneInterface } from './types/BattleSceneInterface'
 
 /**
  * 战斗 AI 处理器
  * 管理 AI 角色的行动逻辑
  *
- * 直接依赖 BattleScene 的成员和方法
+ * 通过 BattleSceneInterface 与 BattleScene 通信
  */
 export class BattleAIHandler {
-  private scene: {
-    game: ReturnType<typeof import('../game/Game').createGame> | null
-    ai: AI | null
-    isAIProcessing: boolean
-    playerConfigs: CharacterState[]
-    isPlayerControlled: (char: CharacterState) => boolean
-    pendingCardId: string | null
-    updateUI: () => void
-    handleGameOver: () => void
-    addLog: (message: string) => void
-    statusBar: { setPhase: (phase: string) => void } | null
-    clearSelection: () => void
-  }
+  private scene: BattleSceneInterface
 
-  constructor(scene: typeof BattleAIHandler.prototype.scene) {
+  constructor(scene: BattleSceneInterface) {
     this.scene = scene
   }
 
