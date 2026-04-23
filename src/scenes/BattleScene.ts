@@ -14,6 +14,8 @@ import { effectManager } from '../utils/EffectManager'
 import { eventManager } from '../utils/EventManager'
 import { tweenManager, Easing } from '../utils/TweenManager'
 import { Text, TextStyle } from 'pixi.js'
+import { BattleInputHandler } from './BattleInputHandler'
+import { BattleAIHandler } from './BattleAIHandler'
 
 // 战斗场景
 export class BattleScene extends Scene {
@@ -23,6 +25,10 @@ export class BattleScene extends Scene {
 
   private game: ReturnType<typeof createGame> | null = null
   private ai: AI | null = null
+
+  // 处理器
+  private inputHandler: BattleInputHandler | null = null
+  private aiHandler: BattleAIHandler | null = null
 
   // 渲染组件 - 多人支持
   private characterRenderers: Map<string, CharacterRenderer | MiniCharacterRenderer> = new Map()
@@ -120,6 +126,9 @@ export class BattleScene extends Scene {
       return
     }
 
+    // 初始化处理器
+    this.initHandlers()
+
     this.isAIProcessing = false
     this.selectedCard = null
     this.selectedSkill = null
@@ -142,6 +151,17 @@ export class BattleScene extends Scene {
 
     // 检查是否轮到 AI 行动
     this.checkAITurn()
+  }
+
+  /**
+   * 初始化处理器
+   */
+  private initHandlers(): void {
+    // 创建输入处理器 - 传入 this 作为 scene 引用
+    this.inputHandler = new BattleInputHandler(this as any)
+
+    // 创建 AI 处理器 - 传入 this 作为 scene 引用
+    this.aiHandler = new BattleAIHandler(this as any)
   }
 
   onExit(): void {
@@ -195,24 +215,7 @@ export class BattleScene extends Scene {
 
   // 检查是否轮到 AI 行动
   private checkAITurn(): void {
-    if (!this.game) return
-    if (this.isAIProcessing) return
-
-    // 如果玩家有待确认的动作，不触发AI
-    if (this.pendingCardId) return
-
-    const currentActor = this.game.currentActor
-
-    // 判断当前行动者是否由玩家控制
-    // 玩家只控制选择的角色，其他角色（包括队友）都由AI控制
-    if (!currentActor) return
-    if (this.isPlayerControlled(currentActor)) return
-    if (this.game.phase !== GamePhase.SELECTING) return
-
-    // === 调试日志：只在触发AI时打印 ===
-    // console.log('[AI接管]', currentActor.name, 'playerControlledId:', this.playerControlledId, 'actorId:', currentActor.id)
-
-    this.handleAITurn()
+    this.aiHandler?.checkAITurn()
   }
 
   // 注册事件监听器
@@ -853,122 +856,27 @@ export class BattleScene extends Scene {
 
   // 处理卡牌点击
   private handleCardClick(cardRenderer: CardRenderer): void {
-    if (!this.game) return
-
-    const currentActor = this.game.currentActor
-    if (!currentActor || !this.isPlayerControlled(currentActor)) return
-
-    // 如果在目标选择阶段，点击卡牌取消目标选择
-    if (this.game.phase === GamePhase.SELECTING_TARGET) {
-      this.clearTargetSelection()
-    }
-
-    // 如果已经选中这张卡，取消选中
-    if (this.selectedCard === cardRenderer) {
-      cardRenderer.setSelected(false)
-      this.selectedCard = null
-      // 清除目标选择状态
-      this.targetableIds = []
-      this.selectedTargetId = null
-      this.pendingSkillId = null
-      this.pendingCardId = null
-      this.updateTargetHighlights()
-    } else {
-      // 取消之前的选择
-      if (this.selectedCard) {
-        this.selectedCard.setSelected(false)
-      }
-      // 选中新卡牌
-      cardRenderer.setSelected(true)
-      this.selectedCard = cardRenderer
-
-      // 选中后直接进入目标选择模式
-      const card = cardRenderer.getCard()
-      if (this.selectedSkill) {
-        // 使用武功招式 - 进入目标选择
-        const typeMatch = this.selectedSkill.requiredCardType === 'any' || card.type === this.selectedSkill.requiredCardType
-        if (typeMatch) {
-          this.enterTargetSelection(this.selectedSkill.id, card.instanceId)
-        }
-      } else {
-        // 使用基础招式 - 进入目标选择
-        this.enterTargetSelection(null, card.instanceId)
-      }
-    }
-
-    this.updateActionButtons()
+    this.inputHandler?.handleCardClick(cardRenderer)
   }
 
   // 处理技能点击
   private handleSkillClick(skillId: string): void {
-    if (!this.game) return
-
-    const currentActor = this.game.currentActor
-    if (!currentActor || !this.isPlayerControlled(currentActor)) return
-
-    const skill = currentActor.skills.find(s => s.id === skillId)
-    if (!skill) return
-
-    // 如果在目标选择阶段，点击技能取消目标选择
-    if (this.game.phase === GamePhase.SELECTING_TARGET) {
-      this.clearTargetSelection()
-    }
-
-    // 如果已经选中这个技能，取消选中
-    if (this.selectedSkill && this.selectedSkill.id === skillId) {
-      this.selectedSkill = null
-    } else {
-      // 选中新技能
-      this.selectedSkill = skill
-
-      // 如果已有选中的手牌，直接进入目标选择
-      if (this.selectedCard) {
-        const card = this.selectedCard.getCard()
-        const typeMatch = skill.requiredCardType === 'any' || card.type === skill.requiredCardType
-        if (typeMatch) {
-          this.enterTargetSelection(skill.id, card.instanceId)
-        }
-      }
-    }
-
-    this.updateSkillButtons()
-    this.updateActionButtons()
+    this.inputHandler?.handleSkillClick(skillId)
   }
 
   // 处理确认
   private handleConfirm(): void {
-    if (!this.game) return
+    this.inputHandler?.handleConfirm()
+  }
 
-    // console.log('[handleConfirm] 被调用, phase:', this.game.phase, 'pendingCardId:', this.pendingCardId, 'selectedTargetId:', this.selectedTargetId)
-    // console.trace('[handleConfirm] 调用堆栈')
+  // 处理目标点击
+  private handleTargetClick(targetId: string): void {
+    this.inputHandler?.handleTargetClick(targetId)
+  }
 
-    // 如果在目标选择阶段，确认目标
-    if (this.game.phase === GamePhase.SELECTING_TARGET) {
-      this.confirmTarget()
-      return
-    }
-
-    // 如果已有待执行的动作（1v1模式，选中手牌后设置了pendingCardId）
-    if (this.pendingCardId && this.selectedTargetId) {
-      this.executeAction(this.pendingSkillId, this.pendingCardId, this.selectedTargetId)
-      return
-    }
-
-    // 兼容旧流程：如果没有 pendingCardId，进入目标选择
-    if (!this.selectedCard) return
-
-    const card = this.selectedCard.getCard()
-
-    if (this.selectedSkill) {
-      // 使用武功招式 - 进入目标选择
-      const typeMatch = this.selectedSkill.requiredCardType === 'any' || card.type === this.selectedSkill.requiredCardType
-      if (typeMatch) {
-        this.enterTargetSelection(this.selectedSkill.id, card.instanceId)
-      }
-    } else {
-      // 使用基础招式
-      this.enterTargetSelection(null, card.instanceId)
-    }
+  // 处理取消
+  private handleCancel(): void {
+    this.inputHandler?.handleCancel()
   }
 
   // 进入目标选择模式
@@ -1144,6 +1052,11 @@ export class BattleScene extends Scene {
 
   // 处理结束回合
   private handleEndTurn(): void {
+    this.inputHandler?.handleEndTurn()
+  }
+
+  // 处理回合切换逻辑
+  private endTurn(): void {
     if (!this.game) return
 
     const currentActor = this.game.currentActor
@@ -1166,124 +1079,6 @@ export class BattleScene extends Scene {
     }
 
     this.updateUI()
-  }
-
-  // 处理 AI 回合
-  private handleAITurn(): void {
-    if (!this.ai || !this.game || this.isAIProcessing) return
-
-    this.isAIProcessing = true
-    this.statusBar?.setPhase('敌方行动中...')
-
-    // 使用 setTimeout 避免异步问题
-    this.runAI()
-  }
-
-  private runAI(): void {
-    if (!this.ai || !this.game) return
-
-    // === 关键修复：检查 isAIProcessing ===
-    if (!this.isAIProcessing) {
-      // console.log('[runAI] isAIProcessing=false, 跳过执行')
-      return
-    }
-
-    const currentActor = this.game.currentActor!
-
-    // === 调试日志 ===
-    // console.log('[runAI] 开始执行, currentActor:', currentActor.name, 'id:', currentActor.id)
-
-    // 检查是否可以继续行动
-    if (currentActor.agility <= 0 || !currentActor.isAlive()) {
-      this.finishAITurn()
-      return
-    }
-
-    // 获取存活的敌人（玩家队伍）
-    const alivePlayerTeam = this.playerConfigs.filter(c => c.isAlive())
-    if (alivePlayerTeam.length === 0) {
-      // 玩家队伍全灭，游戏结束
-      this.game.checkGameEnd()
-      this.isAIProcessing = false
-      this.handleGameOver()
-      return
-    }
-
-    // 获取可用行动
-    const action = this.ai.decideAction()
-
-    if (!action) {
-      this.game.addLog(`${currentActor.name}没有可用的招式`)
-      // 没有可用行动，强制结束本轮行动
-      currentActor.agility = 0
-      this.finishAITurn()
-      return
-    }
-
-    // 执行行动
-    // console.log('[runAI] 执行行动:', action, 'actor:', currentActor.name)
-    if (action.type === 'skill' && action.skillId) {
-      this.game.useSkill(action.skillId, action.cardId, action.targetId)
-    } else {
-      this.game.useBasicCard(action.cardId, action.targetId)
-    }
-
-    // 更新 UI
-    this.updateUI()
-
-    // 检查游戏结束
-    if (this.game.phase === GamePhase.GAME_OVER) {
-      this.isAIProcessing = false
-      this.handleGameOver()
-      return
-    }
-
-    // 检查是否切换行动方
-    if (this.game.shouldSwitchActor()) {
-      this.finishAITurn()
-      return
-    }
-
-    // === 修复：在继续下一个行动前，检查当前行动者是否还是同一个角色 ===
-    // 如果行动者已切换，需要通过 finishAITurn 正确处理
-    if (this.game.currentActor !== currentActor) {
-      // console.log('[runAI] 行动者已切换:', this.game.currentActor?.name, '检查是否需要 AI')
-      this.finishAITurn()
-      return
-    }
-
-    // 继续下一个行动
-    setTimeout(() => this.runAI(), 600)
-  }
-
-  private finishAITurn(): void {
-    if (!this.game) return
-
-    // console.log('[finishAITurn] 开始, phase:', this.game.phase, 'isAIProcessing:', this.isAIProcessing)
-
-    if (this.game.phase !== GamePhase.GAME_OVER) {
-      if (this.game.shouldSwitchActor()) {
-        this.game.switchActor()
-        const newActor = this.game.currentActor!
-        // console.log('[finishAITurn] 切换到:', newActor.name, 'id:', newActor.id, '玩家控制:', this.isPlayerControlled(newActor))
-        this.game.addLog(`轮到${newActor.name}行动`)
-        this.game.phase = GamePhase.SELECTING
-        // 清除之前的选择状态
-        this.clearSelection()
-      } else {
-        // console.log('[finishAITurn] 调用 endTurn')
-        this.game.endTurn()
-        // console.log('[finishAITurn] endTurn 返回, currentActor:', this.game.currentActor?.name, 'phase:', this.game.phase)
-      }
-    }
-
-    this.isAIProcessing = false
-    // console.log('[finishAITurn] 设置 isAIProcessing = false')
-    this.updateUI()
-
-    if (this.game.phase === GamePhase.GAME_OVER) {
-      this.handleGameOver()
-    }
   }
 
   // 处理游戏结束

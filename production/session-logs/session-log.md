@@ -1733,3 +1733,122 @@ ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维�
 src/renderer/UIComponents.ts
 ---
 
+## Session End: 20260423_103044
+### Commits
+323afbf refactor(ui): 重构UI组件架构以改善模块组织结构
+ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维护性
+5da7b12 refactor(game): 重构角色配置系统并完善弟子属性
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260423_103301
+### Commits
+323afbf refactor(ui): 重构UI组件架构以改善模块组织结构
+ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维护性
+5da7b12 refactor(game): 重构角色配置系统并完善弟子属性
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260423_104012
+### Commits
+323afbf refactor(ui): 重构UI组件架构以改善模块组织结构
+ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维护性
+5da7b12 refactor(game): 重构角色配置系统并完善弟子属性
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260423_104714
+### Commits
+323afbf refactor(ui): 重构UI组件架构以改善模块组织结构
+ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维护性
+5da7b12 refactor(game): 重构角色配置系统并完善弟子属性
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260423_105311
+### Commits
+323afbf refactor(ui): 重构UI组件架构以改善模块组织结构
+ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维护性
+5da7b12 refactor(game): 重构角色配置系统并完善弟子属性
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260423_105740
+### Commits
+323afbf refactor(ui): 重构UI组件架构以改善模块组织结构
+ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维护性
+5da7b12 refactor(game): 重构角色配置系统并完善弟子属性
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260423_110213
+### Commits
+323afbf refactor(ui): 重构UI组件架构以改善模块组织结构
+ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维护性
+5da7b12 refactor(game): 重构角色配置系统并完善弟子属性
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260423_112602
+### Commits
+323afbf refactor(ui): 重构UI组件架构以改善模块组织结构
+ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维护性
+5da7b12 refactor(game): 重构角色配置系统并完善弟子属性
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260423_114750
+### Commits
+323afbf refactor(ui): 重构UI组件架构以改善模块组织结构
+ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维护性
+5da7b12 refactor(game): 重构角色配置系统并完善弟子属性
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260423_114905
+### Commits
+323afbf refactor(ui): 重构UI组件架构以改善模块组织结构
+ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维护性
+5da7b12 refactor(game): 重构角色配置系统并完善弟子属性
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260423_115840
+### Commits
+323afbf refactor(ui): 重构UI组件架构以改善模块组织结构
+ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维护性
+5da7b12 refactor(game): 重构角色配置系统并完善弟子属性
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/scenes/BattleScene.ts
+---
+
