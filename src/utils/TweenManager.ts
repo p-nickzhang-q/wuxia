@@ -128,8 +128,12 @@ export class TweenManager {
   // 销毁：清除所有 tween 并禁止后续创建
   destroy(): void {
     this.clear()
-    this.tweens = null
+    this.tweens = []
+    this.isDestroyed = true
   }
+
+  // 检查是否已销毁
+  isDestroyed: boolean = false
 
   // 预设动画：淡入
   fadeIn(target: Container, duration: number = 300): Promise<void> {

@@ -1,4 +1,4 @@
-import { CharacterState, GameState, GamePhase, MartialArtSkill, SkillEffect, TriggerTiming, GameEventType, BattleMode } from './types'
+import { CharacterState, GameState, GamePhase, MartialArtSkill, SkillEffect, TriggerTiming, GameEventType, BattleMode, Card } from './types'
 import { eventManager } from '../utils/EventManager'
 import { getTargetsInRange, assignSeats, calculateActualDistance } from './DistanceSystem'
 import { calculateStrengthBonus } from './Disciple'
@@ -231,10 +231,34 @@ export function createGame(): GameState {
     // ==================== 卡牌使用 ====================
 
     useBasicCard(cardInstanceId: string, targetId?: string) {
-      const actor = this.currentActor!
-      // console.log('[useBasicCard] actor:', actor.name, 'id:', actor.id, 'card:', cardInstanceId)
-      // console.trace('[useBasicCard] 调用堆栈')
+      const validation = this.validateBasicCardUse(cardInstanceId, targetId)
+      if (!validation.success) return validation
 
+      this.consumeBasicCardResources(validation.card!, validation.actor!)
+
+      const effectResult = this.applyBasicCardEffects(
+        validation.actor!,
+        validation.target!,
+        validation.card!
+      )
+
+      this.finalizeBasicCardUse(
+        validation.actor!,
+        validation.target!,
+        validation.card!,
+        effectResult
+      )
+
+      if (this.checkGameEnd()) {
+        return { success: true, gameOver: true }
+      }
+
+      this.checkTurnEnd()
+      return { success: true }
+    },
+
+    validateBasicCardUse(cardInstanceId: string, targetId?: string) {
+      const actor = this.currentActor!
       const card = actor.hand.find(c => c.instanceId === cardInstanceId)
 
       if (!card) {
@@ -245,7 +269,6 @@ export function createGame(): GameState {
         return { success: false, message: '轻功不足' }
       }
 
-      // 确定目标
       let target: CharacterState
       if (targetId) {
         const foundTarget = this.getAllCharacters().find(c => c.id === targetId)
@@ -256,14 +279,11 @@ export function createGame(): GameState {
       } else if (this.selectedTarget) {
         target = this.selectedTarget
       } else if (card.baseShield > 0 && card.baseDamage === 0) {
-        // 纯防御卡牌（如格挡），目标是自己
         target = actor
       } else {
-        // 向后兼容：默认攻击敌人
         target = actor === this.player ? this.enemy! : this.player!
       }
 
-      // 检查攻击距离（纯防御卡牌不需要检查）
       if (card.baseDamage > 0 && target.id !== actor.id) {
         const distance = this.getActualDistance(actor, target)
         if (distance > card.range) {
@@ -271,16 +291,20 @@ export function createGame(): GameState {
         }
       }
 
-      actor.playCard(cardInstanceId)
-      actor.agility -= card.agilityCost
+      return { success: true, actor, target, card }
+    },
 
-      // 计算臂力伤害加成
+    consumeBasicCardResources(card: Card, actor: CharacterState) {
+      actor.playCard(card.instanceId)
+      actor.agility -= card.agilityCost
+    },
+
+    applyBasicCardEffects(actor: CharacterState, target: CharacterState, card: Card) {
       const strengthMultiplier = calculateStrengthBonus(actor.strength)
       let totalDamage = Math.floor(card.baseDamage * strengthMultiplier)
-      let totalShield = card.baseShield
+      const totalShield = card.baseShield
       let actualDamage = 0
 
-      // 触发所有内功（基础招式加成）
       actor.passives.forEach(passive => {
         if (passive.trigger === TriggerTiming.ON_PLAY_CARD) {
           const result = passive.effect(actor, card, totalDamage)
@@ -304,7 +328,6 @@ export function createGame(): GameState {
         const result = target.takeDamage(totalDamage, actor, this)
         actualDamage = result.damage
 
-        // 触发所有内功（造成伤害）
         actor.passives.forEach(passive => {
           if (passive.trigger === TriggerTiming.ON_DAMAGE) {
             const msg = passive.effect(actor, result.damage)
@@ -321,39 +344,60 @@ export function createGame(): GameState {
         })
       }
 
-      // 统一日志格式
+      return { actualDamage, totalShield }
+    },
+
+    finalizeBasicCardUse(actor: CharacterState, target: CharacterState, card: Card, effectResult: { actualDamage: number; totalShield: number }) {
       let logMsg = `${actor.name}使用【${card.name}】`
-      if (actualDamage > 0) {
-        logMsg += `，对${target.name}造成${actualDamage}点伤害`
+      if (effectResult.actualDamage > 0) {
+        logMsg += `，对${target.name}造成${effectResult.actualDamage}点伤害`
       }
-      if (totalShield > 0) {
-        actor.shield += totalShield
-        logMsg += `，获得${totalShield}点护盾`
-        eventManager.emit(GameEventType.CHARACTER_SHIELD, { character: actor, amount: totalShield })
+      if (effectResult.totalShield > 0) {
+        actor.shield += effectResult.totalShield
+        logMsg += `，获得${effectResult.totalShield}点护盾`
+        eventManager.emit(GameEventType.CHARACTER_SHIELD, { character: actor, amount: effectResult.totalShield })
       }
       if (card.selfDamage) {
         actor.hp -= card.selfDamage
         logMsg += `，自身受到${card.selfDamage}点反伤`
       }
       this.addLog(logMsg)
+    },
 
-      // 检查游戏结束
+    // ==================== 武功招式 ====================
+
+    useSkill(skillId: string, cardInstanceId: string, targetId?: string) {
+      const validation = this.validateSkillUse(skillId, cardInstanceId, targetId)
+      if (!validation.success) return validation
+
+      const skillCopy = this.consumeSkillResources(validation.actor!, validation.card!, validation.skill!)
+
+      const effectResult = this.processSkillEffects(validation.actor!, validation.target!, skillCopy)
+
+      this.finalizeSkillUse(validation.actor!, validation.target!, skillCopy, effectResult)
+
       if (this.checkGameEnd()) {
         return { success: true, gameOver: true }
+      }
+
+      if (effectResult.extraAction) {
+        this.extraAction = true
+        this.addLog(`${validation.actor!.name}可以再行动一次`)
+        return { success: true, extraAction: true }
+      }
+
+      if (effectResult.followUp) {
+        this.followUp = true
+        return { success: true, followUp: true }
       }
 
       this.checkTurnEnd()
       return { success: true }
     },
 
-    // ==================== 武功招式 ====================
-
-    useSkill(skillId: string, cardInstanceId: string, targetId?: string) {
+    validateSkillUse(skillId: string, cardInstanceId: string, targetId?: string) {
       const actor = this.currentActor!
-      // console.log('[useSkill] actor:', actor.name, 'id:', actor.id, 'skill:', skillId)
-      // console.trace('[useSkill] 调用堆栈')
 
-      // 确定目标
       let target: CharacterState
       if (targetId) {
         const foundTarget = this.getAllCharacters().find(c => c.id === targetId)
@@ -364,13 +408,10 @@ export function createGame(): GameState {
       } else if (this.selectedTarget) {
         target = this.selectedTarget
       } else {
-        // 向后兼容：默认攻击敌人
         target = actor === this.player ? this.enemy! : this.player!
       }
 
       const card = actor.hand.find(c => c.instanceId === cardInstanceId)
-
-      // 查找指定的武功招式
       const skill = actor.skills?.find(s => s.id === skillId)
       if (!card || !skill) {
         return { success: false, message: '无法使用武功招式' }
@@ -380,7 +421,6 @@ export function createGame(): GameState {
         return { success: false, message: '条件不足' }
       }
 
-      // 检查攻击距离（武功招式的效果可能包含伤害）
       const hasDamageEffect = skill.effects.some(e => e.type === 'damage' || e.type === 'drainHp' || e.type === 'dot')
       if (hasDamageEffect && target.id !== actor.id) {
         const distance = this.getActualDistance(actor, target)
@@ -389,9 +429,12 @@ export function createGame(): GameState {
         }
       }
 
+      return { success: true, actor, target, card, skill }
+    },
+
+    consumeSkillResources(actor: CharacterState, card: Card, skill: MartialArtSkill): MartialArtSkill {
       const skillCopy = { ...skill }
 
-      // 触发所有内功（武功招式消耗减免）
       actor.passives.forEach(passive => {
         if (passive.trigger === TriggerTiming.ON_SKILL_USE) {
           const msg = passive.effect(actor, skillCopy)
@@ -408,175 +451,190 @@ export function createGame(): GameState {
         }
       })
 
-      actor.playCard(cardInstanceId)
+      actor.playCard(card.instanceId)
       actor.useMp(skillCopy.mpCost - (skillCopy.mpCostReduction || 0))
       actor.agility -= skillCopy.agilityCost
 
       this.lastUsedSkill = skillCopy
+      return skillCopy
+    },
 
+    processSkillEffects(actor: CharacterState, target: CharacterState, skill: MartialArtSkill) {
       let extraAction = false
       let followUp = false
       let actualDamage = 0
 
-      for (const effect of skillCopy.effects) {
-        const result = this.processEffect(effect, actor, target, skillCopy)
+      for (const effect of skill.effects) {
+        const result = this.processEffect(effect, actor, target, skill)
         if (result.actualDamage) actualDamage += result.actualDamage
         if (result.extraAction) extraAction = true
         if (result.followUp) followUp = true
       }
 
-      // 统一日志格式
-      let logMsg = `${actor.name}使用武功【${skillCopy.name}】`
-      if (actualDamage > 0) {
-        logMsg += `，对${target.name}造成${actualDamage}点伤害`
+      return { actualDamage, extraAction, followUp }
+    },
+
+    finalizeSkillUse(actor: CharacterState, target: CharacterState, skill: MartialArtSkill, effectResult: { actualDamage: number; extraAction: boolean; followUp: boolean }) {
+      let logMsg = `${actor.name}使用武功【${skill.name}】`
+      if (effectResult.actualDamage > 0) {
+        logMsg += `，对${target.name}造成${effectResult.actualDamage}点伤害`
       }
       this.addLog(logMsg)
-
-      // 检查游戏结束
-      if (this.checkGameEnd()) {
-        return { success: true, gameOver: true }
-      }
-
-      if (extraAction) {
-        this.extraAction = true
-        this.addLog(`${actor.name}可以再行动一次`)
-        return { success: true, extraAction: true }
-      }
-
-      if (followUp) {
-        this.followUp = true
-        return { success: true, followUp: true }
-      }
-
-      this.checkTurnEnd()
-      return { success: true }
     },
 
     // ==================== 效果处理 ====================
 
     processEffect(effect: SkillEffect, actor: CharacterState, target: CharacterState, skill: MartialArtSkill) {
-      // 计算臂力伤害加成（仅对伤害类型效果）
+      const baseDamage = this.calculateEffectBaseDamage(effect, actor, skill)
+
+      switch (effect.type) {
+        case 'damage':
+          return this.processDamageEffect(effect, actor, target, baseDamage)
+        case 'shield':
+          return this.processShieldEffect(effect, actor)
+        case 'selfDamage':
+          return this.processSelfDamageEffect(effect, actor)
+        case 'drainMp':
+          return this.processDrainMpEffect(effect, actor, target)
+        case 'removeMp':
+          return this.processRemoveMpEffect(effect, actor, target)
+        case 'drainHp':
+          return this.processDrainHpEffect(effect, actor, target)
+        case 'dot':
+          return this.processDotEffect(effect, target)
+        case 'debuffAgility':
+          return this.processDebuffEffect(effect, target)
+        case 'disableCardType':
+          return this.processDisableCardTypeEffect(effect, target)
+        case 'extraAction':
+          return { actualDamage: 0, extraAction: true }
+        case 'followUp':
+          return { actualDamage: 0, followUp: true }
+        case 'mimic':
+          return this.processMimicEffect(actor, target)
+        default:
+          return { actualDamage: 0 }
+      }
+    },
+
+    calculateEffectBaseDamage(effect: SkillEffect, actor: CharacterState, skill: MartialArtSkill): number {
       const strengthMultiplier = calculateStrengthBonus(actor.strength)
       let totalDamage = effect.type === 'damage' || effect.type === 'drainHp'
         ? Math.floor((effect.value || 0) * strengthMultiplier)
         : (effect.value || 0)
+
+      if (effect.type === 'damage') {
+        actor.passives.forEach(passive => {
+          if (passive.trigger === TriggerTiming.ON_SKILL_USE) {
+            const result = passive.effect(actor, skill, totalDamage)
+            if (result) {
+              const effectResult = typeof result === 'string' ? {} : result
+              if (effectResult.bonusDamage) totalDamage += effectResult.bonusDamage
+              if (effectResult.message) {
+                eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
+                  character: actor,
+                  passiveId: passive.id,
+                  passiveName: passive.name,
+                  trigger: TriggerTiming.ON_SKILL_USE,
+                  effectResult
+                })
+              }
+            }
+          }
+        })
+      }
+
+      return totalDamage
+    },
+
+    processDamageEffect(effect: SkillEffect, actor: CharacterState, target: CharacterState, baseDamage: number) {
       let actualDamage = 0
 
-      // 触发所有内功（武功招式伤害加成）
+      if (effect.ignoreShield) {
+        target.hp -= baseDamage
+        actualDamage = baseDamage
+        eventManager.emit(GameEventType.CHARACTER_DAMAGED, { character: target, damage: actualDamage })
+        this.triggerOnDamagePassives(actor, actualDamage)
+      } else {
+        const result = target.takeDamage(baseDamage, actor, this)
+        actualDamage = result.damage
+        this.triggerOnDamagePassives(actor, result.damage)
+      }
+
+      return { actualDamage }
+    },
+
+    triggerOnDamagePassives(actor: CharacterState, damage: number) {
       actor.passives.forEach(passive => {
-        if (passive.trigger === TriggerTiming.ON_SKILL_USE && effect.type === 'damage') {
-          const result = passive.effect(actor, skill, totalDamage)
-          if (result) {
-            const effectResult = typeof result === 'string' ? {} : result
-            if (effectResult.bonusDamage) totalDamage += effectResult.bonusDamage
-            if (effectResult.message) {
-              eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
-                character: actor,
-                passiveId: passive.id,
-                passiveName: passive.name,
-                trigger: TriggerTiming.ON_SKILL_USE,
-                effectResult
-              })
-            }
+        if (passive.trigger === TriggerTiming.ON_DAMAGE) {
+          const msg = passive.effect(actor, damage)
+          if (msg) {
+            eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
+              character: actor,
+              passiveId: passive.id,
+              passiveName: passive.name,
+              trigger: TriggerTiming.ON_DAMAGE
+            })
           }
         }
       })
+    },
 
-      switch (effect.type) {
-        case 'damage':
-          if (effect.ignoreShield) {
-            target.hp -= totalDamage
-            actualDamage = totalDamage
-            eventManager.emit(GameEventType.CHARACTER_DAMAGED, { character: target, damage: actualDamage })
+    processShieldEffect(effect: SkillEffect, actor: CharacterState) {
+      actor.shield += effect.value!
+      eventManager.emit(GameEventType.CHARACTER_SHIELD, { character: actor, amount: effect.value! })
+      return { actualDamage: 0 }
+    },
 
-            actor.passives.forEach(passive => {
-              if (passive.trigger === TriggerTiming.ON_DAMAGE) {
-                const msg = passive.effect(actor, actualDamage)
-                if (msg) {
-                  eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
-                    character: actor,
-                    passiveId: passive.id,
-                    passiveName: passive.name,
-                    trigger: TriggerTiming.ON_DAMAGE
-                  })
-                }
-              }
-            })
-          } else {
-            const result = target.takeDamage(totalDamage, actor, this)
-            actualDamage = result.damage
+    processSelfDamageEffect(effect: SkillEffect, actor: CharacterState) {
+      actor.hp -= effect.value!
+      return { actualDamage: 0 }
+    },
 
-            actor.passives.forEach(passive => {
-              if (passive.trigger === TriggerTiming.ON_DAMAGE) {
-                const msg = passive.effect(actor, result.damage)
-                if (msg) {
-                  eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
-                    character: actor,
-                    passiveId: passive.id,
-                    passiveName: passive.name,
-                    trigger: TriggerTiming.ON_DAMAGE
-                  })
-                }
-              }
-            })
-          }
-          break
+    processDrainMpEffect(effect: SkillEffect, actor: CharacterState, target: CharacterState) {
+      const drainMp = Math.min(effect.value!, target.mp)
+      target.mp -= drainMp
+      actor.recoverMp(drainMp)
+      return { actualDamage: 0 }
+    },
 
-        case 'shield':
-          actor.shield += effect.value!
-          eventManager.emit(GameEventType.CHARACTER_SHIELD, { character: actor, amount: effect.value! })
-          break
+    processRemoveMpEffect(effect: SkillEffect, actor: CharacterState, target: CharacterState) {
+      const removeMp = Math.min(effect.value!, target.mp)
+      target.mp -= removeMp
+      target.takeDamage(removeMp, actor, this)
+      return { actualDamage: 0 }
+    },
 
-        case 'selfDamage':
-          actor.hp -= effect.value!
-          break
+    processDrainHpEffect(effect: SkillEffect, actor: CharacterState, target: CharacterState) {
+      const drainHp = Math.min(effect.value!, target.hp)
+      target.hp -= drainHp
+      actor.heal(drainHp)
+      return { actualDamage: drainHp }
+    },
 
-        case 'drainMp':
-          const drainMp = Math.min(effect.value!, target.mp)
-          target.mp -= drainMp
-          actor.recoverMp(drainMp)
-          break
+    processDotEffect(effect: SkillEffect, target: CharacterState) {
+      target.addDot(effect.value!, effect.duration!)
+      return { actualDamage: 0 }
+    },
 
-        case 'removeMp':
-          const removeMp = Math.min(effect.value!, target.mp)
-          target.mp -= removeMp
-          target.takeDamage(removeMp, actor, this)
-          break
+    processDebuffEffect(effect: SkillEffect, target: CharacterState) {
+      target.addDebuff('agility', effect.value!, effect.duration!)
+      return { actualDamage: 0 }
+    },
 
-        case 'drainHp':
-          const drainHp = Math.min(effect.value!, target.hp)
-          target.hp -= drainHp
-          actor.heal(drainHp)
-          break
+    processDisableCardTypeEffect(effect: SkillEffect, target: CharacterState) {
+      target.addDebuff('disableCardType', effect.cardType!, effect.duration!)
+      return { actualDamage: 0 }
+    },
 
-        case 'dot':
-          target.addDot(effect.value!, effect.duration!)
-          break
-
-        case 'debuffAgility':
-          target.addDebuff('agility', effect.value!, effect.duration!)
-          break
-
-        case 'disableCardType':
-          target.addDebuff('disableCardType', effect.cardType!, effect.duration!)
-          break
-
-        case 'extraAction':
-          return { actualDamage, extraAction: true }
-
-        case 'followUp':
-          return { actualDamage, followUp: true }
-
-        case 'mimic':
-          if (this.lastUsedSkill && this.lastUsedSkill.id !== 'littleFormless') {
-            for (const e of this.lastUsedSkill.effects) {
-              const r = this.processEffect(e, actor, target, this.lastUsedSkill)
-              if (r.actualDamage) actualDamage += r.actualDamage
-            }
-          }
-          break
+    processMimicEffect(actor: CharacterState, target: CharacterState) {
+      let actualDamage = 0
+      if (this.lastUsedSkill && this.lastUsedSkill.id !== 'littleFormless') {
+        for (const e of this.lastUsedSkill.effects) {
+          const r = this.processEffect(e, actor, target, this.lastUsedSkill)
+          if (r.actualDamage) actualDamage += r.actualDamage
+        }
       }
-
       return { actualDamage }
     },
 

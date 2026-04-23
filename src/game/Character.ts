@@ -179,10 +179,23 @@ export function createCharacter(config: CharacterConfig, martialArtsList: Martia
     },
 
     takeDamage(damage: number, attacker: CharacterState | null = null, _game: GameState | null = null) {
+      const passiveResult = this.processDamagePassives(damage, attacker)
+      if (passiveResult.dodged) {
+        return { damage: 0, messages: passiveResult.messages }
+      }
+
+      const shieldResult = this.applyShieldAbsorption(passiveResult.actualDamage)
+      const finalMessages = [...passiveResult.messages, ...shieldResult.messages]
+
+      this.applyFinalDamage(shieldResult.remainingDamage, finalMessages)
+
+      return { damage: shieldResult.remainingDamage, messages: finalMessages }
+    },
+
+    processDamagePassives(damage: number, attacker: CharacterState | null): { dodged: boolean; actualDamage: number; messages: string[] } {
       const messages: string[] = []
       let actualDamage = damage
 
-      // 触发所有内功（伤害减免/闪避）
       for (const passive of this.passives) {
         if (passive.trigger === TriggerTiming.ON_TAKE_DAMAGE) {
           const result = passive.effect(this, damage)
@@ -190,7 +203,6 @@ export function createCharacter(config: CharacterConfig, martialArtsList: Martia
             const effectResult = typeof result === 'string' ? { message: result } : result
             if (effectResult.message) {
               messages.push(effectResult.message)
-              // 发出内功触发事件
               eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
                 character: this,
                 passiveId: passive.id,
@@ -204,8 +216,7 @@ export function createCharacter(config: CharacterConfig, martialArtsList: Martia
                 attacker.hp -= effectResult.reflectDamage
                 messages.push(`${attacker.name}受到反弹伤害${effectResult.reflectDamage}点`)
               }
-              actualDamage = 0
-              return { damage: 0, messages }
+              return { dodged: true, actualDamage: 0, messages }
             }
             if (effectResult.reducedDamage !== undefined) {
               actualDamage = effectResult.reducedDamage
@@ -214,34 +225,36 @@ export function createCharacter(config: CharacterConfig, martialArtsList: Martia
         }
       }
 
-      if (actualDamage === 0) {
-        return { damage: 0, messages }
-      }
+      return { dodged: false, actualDamage, messages }
+    },
 
-      // 护盾吸收
-      if (this.shield > 0) {
-        if (this.shield >= actualDamage) {
-          this.shield -= actualDamage
-          messages.push(`${this.name}的护盾吸收了${actualDamage}点伤害`)
-          // 护盾吸收也触发事件，显示被吸收的伤害
-          eventManager.emit(GameEventType.CHARACTER_DAMAGED, { character: this, damage: actualDamage, absorbed: true })
-          actualDamage = 0
+    applyShieldAbsorption(damage: number): { remainingDamage: number; messages: string[] } {
+      const messages: string[] = []
+      let remainingDamage = damage
+
+      if (this.shield > 0 && remainingDamage > 0) {
+        if (this.shield >= remainingDamage) {
+          this.shield -= remainingDamage
+          messages.push(`${this.name}的护盾吸收了${remainingDamage}点伤害`)
+          eventManager.emit(GameEventType.CHARACTER_DAMAGED, { character: this, damage: remainingDamage, absorbed: true })
+          remainingDamage = 0
         } else {
           const absorbed = this.shield
-          actualDamage -= this.shield
+          remainingDamage -= this.shield
           this.shield = 0
           messages.push(`${this.name}的护盾吸收了${absorbed}点伤害`)
         }
       }
 
-      this.hp = Math.max(0, this.hp - actualDamage)
-      if (actualDamage > 0) {
-        messages.push(`${this.name}受到${actualDamage}点伤害`)
-        // 发出受伤事件
-        eventManager.emit(GameEventType.CHARACTER_DAMAGED, { character: this, damage: actualDamage })
-      }
+      return { remainingDamage, messages }
+    },
 
-      return { damage: actualDamage, messages }
+    applyFinalDamage(damage: number, messages: string[]) {
+      if (damage > 0) {
+        this.hp = Math.max(0, this.hp - damage)
+        messages.push(`${this.name}受到${damage}点伤害`)
+        eventManager.emit(GameEventType.CHARACTER_DAMAGED, { character: this, damage })
+      }
     },
 
     heal(amount: number) {

@@ -20,39 +20,35 @@ export class AI {
 
     await this.delay(800)
 
+    const actionResult = await this.executeActionLoop(currentActor, enemies)
+
+    this.finalizeAITurn(currentActor, actionResult)
+  }
+
+  private async executeActionLoop(actor: CharacterState, enemies: CharacterState[]): Promise<{ hadAction: boolean }> {
     let hadAction = false
     let actionCount = 0
-    const maxActions = 10 // 防止无限循环
+    const maxActions = 10
 
-    while (currentActor.agility > 0 && currentActor.isAlive() && actionCount < maxActions) {
-      // 检查是否还有存活的敌人
+    while (actor.agility > 0 && actor.isAlive() && actionCount < maxActions) {
       const aliveEnemies = enemies.filter(e => e.isAlive())
       if (aliveEnemies.length === 0) break
 
-      console.log('AI deciding action, agility:', currentActor.agility)
+      console.log('AI deciding action, agility:', actor.agility)
       const action = this.decideAction()
       console.log('AI action:', action)
 
       if (!action) {
-        this.game.addLog(`${currentActor.name}没有可用的招式`)
+        this.game.addLog(`${actor.name}没有可用的招式`)
         break
       }
 
       hadAction = true
       actionCount++
 
-      if (action.type === 'skill' && action.skillId) {
-        const result = this.game.useSkill(action.skillId, action.cardId, action.targetId)
-        if (result.extraAction || result.followUp) {
-          await this.delay(500)
-          continue
-        }
-      } else {
-        this.game.useBasicCard(action.cardId, action.targetId)
-      }
-
+      await this.executeSingleAction(action)
       if (this.game.phase === GamePhase.GAME_OVER) {
-        return
+        return { hadAction }
       }
 
       if (this.game.shouldSwitchActor()) {
@@ -63,16 +59,87 @@ export class AI {
     }
 
     console.log('AI turn ended, hadAction:', hadAction)
+    return { hadAction }
+  }
 
+  private async executeSingleAction(action: { type: 'skill' | 'basic'; skillId?: string; cardId: string; targetId?: string }): Promise<void> {
+    if (action.type === 'skill' && action.skillId) {
+      const result = this.game.useSkill(action.skillId, action.cardId, action.targetId)
+      if (result.extraAction || result.followUp) {
+        await this.delay(500)
+      }
+    } else {
+      this.game.useBasicCard(action.cardId, action.targetId)
+    }
+  }
+
+  private finalizeAITurn(actor: CharacterState, actionResult: { hadAction: boolean }): void {
     if (this.game.phase !== GamePhase.GAME_OVER) {
       if (this.game.shouldSwitchActor()) {
         this.game.switchActor()
         this.game.addLog(`轮到${this.game.currentActor!.name}行动`)
         this.game.phase = GamePhase.SELECTING
-      } else if (currentActor.agility <= 0 || !hadAction) {
+      } else if (actor.agility <= 0 || !actionResult.hadAction) {
         this.game.endTurn()
       }
     }
+  }
+
+  // 决定行动
+  decideAction(): { type: 'skill' | 'basic'; skillId?: string; cardId: string; targetId?: string } | null {
+    const context = this.buildDecisionContext()
+    if (!context.availableCards.length || !context.aliveEnemies.length) {
+      return null
+    }
+
+    const target = this.selectBestTarget(context.actor, context.aliveEnemies)
+    if (!target) return null
+
+    const skillAction = this.trySkillAction(context.actor, target, context.currentAgility)
+    if (skillAction) {
+      return { ...skillAction, targetId: target.id }
+    }
+
+    const defendAction = this.tryDefendAction(context.actor, context.aliveEnemies, context.availableCards)
+    if (defendAction) {
+      return { ...defendAction, targetId: target.id }
+    }
+
+    return this.getDefaultAction(context.actor, context.availableCards, target)
+  }
+
+  private buildDecisionContext(): { actor: CharacterState; currentAgility: number; availableCards: Card[]; aliveEnemies: CharacterState[] } {
+    const actor = this.game.currentActor!
+    const currentAgility = actor.agility
+    const availableCards = actor.getAvailableCards(currentAgility)
+    const enemies = this.getEnemies(actor)
+    const aliveEnemies = enemies.filter(e => e.isAlive())
+
+    return { actor, currentAgility, availableCards, aliveEnemies }
+  }
+
+  private trySkillAction(actor: CharacterState, target: CharacterState, currentAgility: number): { type: 'skill'; skillId: string; cardId: string } | null {
+    return this.tryUseSkill(actor, target, currentAgility)
+  }
+
+  private tryDefendAction(actor: CharacterState, aliveEnemies: CharacterState[], availableCards: Card[]): { type: 'basic'; cardId: string } | null {
+    if (this.shouldDefend(actor, aliveEnemies)) {
+      const defendCard = this.selectDefendCard(availableCards)
+      if (defendCard) {
+        return { type: 'basic', cardId: defendCard.instanceId }
+      }
+    }
+    return null
+  }
+
+  private getDefaultAction(actor: CharacterState, availableCards: Card[], target: CharacterState): { type: 'basic'; cardId: string; targetId: string } | null {
+    const attackCard = this.selectAttackCard(availableCards, actor, target)
+    if (attackCard) {
+      return { type: 'basic', cardId: attackCard.instanceId, targetId: target.id }
+    }
+
+    const card = this.selectLowestCostCard(availableCards)
+    return card ? { type: 'basic', cardId: card.instanceId, targetId: target.id } : null
   }
 
   // 获取敌人列表
@@ -86,54 +153,6 @@ export class AI {
       if (this.game.battleMode === 'freeforall') return true
       return actorTeam !== charTeam
     })
-  }
-
-  // 决定行动
-  decideAction(): { type: 'skill' | 'basic'; skillId?: string; cardId: string; targetId?: string } | null {
-    const currentActor = this.game.currentActor!
-    const currentAgility = currentActor.agility
-
-    const availableCards = currentActor.getAvailableCards(currentAgility)
-    if (availableCards.length === 0) {
-      return null
-    }
-
-    // 获取可攻击的敌人
-    const enemies = this.getEnemies(currentActor)
-    const aliveEnemies = enemies.filter(e => e.isAlive())
-    if (aliveEnemies.length === 0) {
-      return null
-    }
-
-    // 选择最佳目标（优先血量低、在范围内的）
-    const target = this.selectBestTarget(currentActor, aliveEnemies)
-    if (!target) {
-      return null
-    }
-
-    // 检查是否可以使用武功招式
-    const skillAction = this.tryUseSkill(currentActor, target, currentAgility)
-    if (skillAction) {
-      return { ...skillAction, targetId: target.id }
-    }
-
-    // 检查是否需要防御
-    if (this.shouldDefend(currentActor, aliveEnemies)) {
-      const defendCard = this.selectDefendCard(availableCards)
-      if (defendCard) {
-        return { type: 'basic', cardId: defendCard.instanceId, targetId: target.id }
-      }
-    }
-
-    // 选择攻击卡牌
-    const attackCard = this.selectAttackCard(availableCards, currentActor, target)
-    if (attackCard) {
-      return { type: 'basic', cardId: attackCard.instanceId, targetId: target.id }
-    }
-
-    // 默认使用最低消耗的卡牌
-    const card = this.selectLowestCostCard(availableCards)
-    return card ? { type: 'basic', cardId: card.instanceId, targetId: target.id } : null
   }
 
   // 选择最佳目标

@@ -228,6 +228,11 @@ export interface CharacterState {
   getSkillCards(skill: MartialArtSkill, currentAgility: number): Card[]
   getAvailableSkills(currentAgility: number): MartialArtSkill[]
   getDistanceTo(target: CharacterState, totalSeats: number): number
+
+  // 内部实现方法（拆分后的子方法）
+  processDamagePassives(damage: number, attacker: CharacterState | null): { dodged: boolean; actualDamage: number; messages: string[] }
+  applyShieldAbsorption(damage: number): { remainingDamage: number; messages: string[] }
+  applyFinalDamage(damage: number, messages: string[]): void
 }
 
 // ==================== 角色配置 ====================
@@ -292,6 +297,28 @@ export interface GameState {
   getTargetsInRange(actor: CharacterState, range: number): CharacterState[]
   getActualDistance(actor: CharacterState, target: CharacterState): number
   selectTarget(target: CharacterState | null): void
+
+  // 内部实现方法（拆分后的子方法）
+  validateBasicCardUse(cardInstanceId: string, targetId?: string): { success: boolean; message?: string; actor?: CharacterState; target?: CharacterState; card?: Card }
+  consumeBasicCardResources(card: Card, actor: CharacterState): void
+  applyBasicCardEffects(actor: CharacterState, target: CharacterState, card: Card): { actualDamage: number; totalShield: number }
+  finalizeBasicCardUse(actor: CharacterState, target: CharacterState, card: Card, effectResult: { actualDamage: number; totalShield: number }): void
+  validateSkillUse(skillId: string, cardInstanceId: string, targetId?: string): { success: boolean; message?: string; actor?: CharacterState; target?: CharacterState; card?: Card; skill?: MartialArtSkill }
+  consumeSkillResources(actor: CharacterState, card: Card, skill: MartialArtSkill): MartialArtSkill
+  processSkillEffects(actor: CharacterState, target: CharacterState, skill: MartialArtSkill): { actualDamage: number; extraAction: boolean; followUp: boolean }
+  finalizeSkillUse(actor: CharacterState, target: CharacterState, skill: MartialArtSkill, effectResult: { actualDamage: number; extraAction: boolean; followUp: boolean }): void
+  calculateEffectBaseDamage(effect: SkillEffect, actor: CharacterState, skill: MartialArtSkill): number
+  processDamageEffect(effect: SkillEffect, actor: CharacterState, target: CharacterState, baseDamage: number): { actualDamage: number }
+  triggerOnDamagePassives(actor: CharacterState, damage: number): void
+  processShieldEffect(effect: SkillEffect, actor: CharacterState): { actualDamage: number }
+  processSelfDamageEffect(effect: SkillEffect, actor: CharacterState): { actualDamage: number }
+  processDrainMpEffect(effect: SkillEffect, actor: CharacterState, target: CharacterState): { actualDamage: number }
+  processRemoveMpEffect(effect: SkillEffect, actor: CharacterState, target: CharacterState): { actualDamage: number }
+  processDrainHpEffect(effect: SkillEffect, actor: CharacterState, target: CharacterState): { actualDamage: number }
+  processDotEffect(effect: SkillEffect, target: CharacterState): { actualDamage: number }
+  processDebuffEffect(effect: SkillEffect, target: CharacterState): { actualDamage: number }
+  processDisableCardTypeEffect(effect: SkillEffect, target: CharacterState): { actualDamage: number }
+  processMimicEffect(actor: CharacterState, target: CharacterState): { actualDamage: number }
 }
 
 // ==================== 基础卡牌模板 ====================
