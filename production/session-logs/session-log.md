@@ -1879,3 +1879,44 @@ tests/characterDamage.test.ts
 tests/gameEffects.test.ts
 ---
 
+## Session End: 20260423_132039
+### Commits
+b46f1a1 refactor(tests): 优化测试代码并新增渲染组件测试
+8e4a35a refactor(battle): 将战斗场景逻辑分离为独立处理器
+323afbf refactor(ui): 重构UI组件架构以改善模块组织结构
+ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维护性
+5da7b12 refactor(game): 重构角色配置系统并完善弟子属性
+### Uncommitted Changes
+src/scenes/BattleLayoutManager.ts
+---
+
+## Session End: 20260423_133451
+### Commits
+b46f1a1 refactor(tests): 优化测试代码并新增渲染组件测试
+8e4a35a refactor(battle): 将战斗场景逻辑分离为独立处理器
+323afbf refactor(ui): 重构UI组件架构以改善模块组织结构
+ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维护性
+5da7b12 refactor(game): 重构角色配置系统并完善弟子属性
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/scenes/BattleAIHandler.ts
+src/scenes/BattleLayoutManager.ts
+src/scenes/BattleScene.ts
+---
+
+## Session End: 20260423_133715
+### Commits
+b46f1a1 refactor(tests): 优化测试代码并新增渲染组件测试
+8e4a35a refactor(battle): 将战斗场景逻辑分离为独立处理器
+323afbf refactor(ui): 重构UI组件架构以改善模块组织结构
+ad9f022 refactor(game): 重构游戏核心逻辑以提升代码结构和可维护性
+5da7b12 refactor(game): 重构角色配置系统并完善弟子属性
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/scenes/BattleAIHandler.ts
+src/scenes/BattleLayoutManager.ts
+src/scenes/BattleScene.ts
+---
+

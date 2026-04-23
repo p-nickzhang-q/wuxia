@@ -139,12 +139,21 @@ export class BattleAIHandler {
       if (this.scene.game.shouldSwitchActor()) {
         this.scene.game.switchActor()
         const newActor = this.scene.game.currentActor!
-        this.scene.game.addLog(`轮到${newActor.name}行动`)
-        this.scene.game.phase = GamePhase.SELECTING
-        // 清除之前的选择状态
-        this.scene.clearSelection()
+
+        // 检查新行动者轻功是否为0
+        if (newActor.agility <= 0) {
+          this.scene.game.endTurn()
+        } else {
+          this.scene.game.addLog(`轮到${newActor.name}行动`)
+          this.scene.game.phase = GamePhase.SELECTING
+          this.scene.clearSelection()
+        }
       } else {
-        this.scene.game.endTurn()
+        // 当前行动者仍是最高轻功，检查是否轻功耗尽
+        const currentActor = this.scene.game.currentActor
+        if (currentActor && currentActor.agility <= 0) {
+          this.scene.game.endTurn()
+        }
       }
     }
 

@@ -16,6 +16,7 @@ import { tweenManager, Easing } from '../utils/TweenManager'
 import { Text, TextStyle } from 'pixi.js'
 import { BattleInputHandler } from './BattleInputHandler'
 import { BattleAIHandler } from './BattleAIHandler'
+import { BattleLayoutManager } from './BattleLayoutManager'
 
 // 战斗场景
 export class BattleScene extends Scene {
@@ -30,6 +31,7 @@ export class BattleScene extends Scene {
   // 处理器
   private inputHandler: BattleInputHandler | null = null
   private aiHandler: BattleAIHandler | null = null
+  private layoutManager: BattleLayoutManager | null = null
 
   // 渲染组件 - 多人支持
   private characterRenderers: Map<string, CharacterRenderer | MiniCharacterRenderer> = new Map()
@@ -161,6 +163,9 @@ export class BattleScene extends Scene {
    * 初始化处理器
    */
   private initHandlers(): void {
+    // 创建布局管理器
+    this.layoutManager = new BattleLayoutManager(this.renderer, this, this.characterRenderers)
+
     // 创建输入处理器 - 传入 this 作为 scene 引用
     this.inputHandler = new BattleInputHandler(this as any)
 
@@ -426,186 +431,29 @@ export class BattleScene extends Scene {
 
   // 创建角色面板（左右布局）
   private createCharacterPanels(bottomAreaHeight: number, sidebarWidth: number): void {
-    if (!this.game) return
+    if (!this.game || !this.layoutManager) return
 
+    const allChars = this.game.getAllCharacters()
     const totalSeats = this.game.totalSeats
     const isMultiBattle = totalSeats > 2
 
-    if (isMultiBattle) {
-      // 多人战斗：使用迷你面板
-      this.createMultiPlayerLayout(bottomAreaHeight, sidebarWidth)
-    } else {
-      // 1v1：使用普通面板
-      this.createTraditionalLayout(bottomAreaHeight, sidebarWidth)
+    this.layoutManager.createCharacterPanels(
+      allChars,
+      bottomAreaHeight,
+      sidebarWidth,
+      isMultiBattle,
+      this.isPlayerTeam.bind(this),
+      (charId: string, _renderer: Renderer) => this.handleCharacterClick(charId)
+    )
+  }
+
+  // 处理角色面板点击
+  private handleCharacterClick(charId: string): void {
+    if (this.game?.phase === GamePhase.SELECTING_TARGET) {
+      this.inputHandler?.handleTargetClick(charId)
     }
   }
 
-  // 多人战斗左右布局（迷你面板）
-  private createMultiPlayerLayout(bottomAreaHeight: number, sidebarWidth: number): void {
-    if (!this.game) return
-
-    const size = this.renderer.getSize()
-    const allChars = this.game.getAllCharacters()
-    const availableWidth = size.width - sidebarWidth
-
-    // 迷你面板尺寸
-    const panelWidth = LayoutConstants.miniPanelWidth()
-    const panelHeight = LayoutConstants.miniPanelHeight()
-    const panelMarginH = availableWidth * 0.03
-    const panelSpacing = 8
-
-    if (this.game.battleMode === 'freeforall') {
-      // 混战模式：按座位顺序交错分布在左右两边
-      // 座位0-(N/2-1)在左，座位N/2-(N-1)在右（模拟圆形布局）
-      const sortedChars = [...allChars].sort((a, b) =>
-        (a.battlePosition?.seatIndex || 0) - (b.battlePosition?.seatIndex || 0)
-      )
-
-      const totalSeats = sortedChars.length
-      const leftCount = Math.ceil(totalSeats / 2)  // 左边人数
-      const rightCount = totalSeats - leftCount    // 右边人数
-
-      const leftHeight = leftCount * panelHeight + (leftCount - 1) * panelSpacing
-      const rightHeight = rightCount * panelHeight + (rightCount - 1) * panelSpacing
-      const maxHeight = Math.max(leftHeight, rightHeight)
-
-      const baseY = (size.height - bottomAreaHeight - maxHeight) / 2
-
-      let leftIndex = 0
-      let rightIndex = 0
-
-      sortedChars.forEach((char) => {
-        const seatIndex = char.battlePosition!.seatIndex
-        const isEnemy = !this.isPlayerTeam(char)
-        const renderer = new MiniCharacterRenderer(char, isEnemy, this.renderer)
-
-        // 座位0到一半在左边，其余在右边（模拟圆形布局的左右分布）
-        if (seatIndex < leftCount) {
-          // 左边（从上到下按座位顺序）
-          renderer.x = panelMarginH
-          renderer.y = baseY + seatIndex * (panelHeight + panelSpacing)
-          leftIndex++
-        } else {
-          // 右边（从上到下按座位顺序）
-          renderer.x = availableWidth - panelWidth - panelMarginH
-          renderer.y = baseY + (seatIndex - leftCount) * (panelHeight + panelSpacing)
-          rightIndex++
-        }
-
-        this.setupMiniPanelClick(renderer, char.id)
-        this.addChild(renderer)
-        this.characterRenderers.set(char.id, renderer)
-      })
-    } else {
-      // 阵营对战：玩家在左边，敌人在右边
-      const playerTeam = allChars.filter(c => this.isPlayerTeam(c))
-      const enemyTeam = allChars.filter(c => !this.isPlayerTeam(c))
-
-      const playerTeamHeight = playerTeam.length * panelHeight + (playerTeam.length - 1) * panelSpacing
-      const enemyTeamHeight = enemyTeam.length * panelHeight + (enemyTeam.length - 1) * panelSpacing
-      const maxTeamHeight = Math.max(playerTeamHeight, enemyTeamHeight)
-
-      const baseY = (size.height - bottomAreaHeight - maxTeamHeight) / 2
-
-      // 放置玩家队伍（左边）
-      playerTeam.forEach((char, index) => {
-        const isEnemy = false
-        const renderer = new MiniCharacterRenderer(char, isEnemy, this.renderer)
-
-        renderer.x = panelMarginH
-        renderer.y = baseY + index * (panelHeight + panelSpacing)
-
-        this.setupMiniPanelClick(renderer, char.id)
-        this.addChild(renderer)
-        this.characterRenderers.set(char.id, renderer)
-      })
-
-      // 放置敌人队伍（右边）
-      enemyTeam.forEach((char, index) => {
-        const isEnemy = true
-        const renderer = new MiniCharacterRenderer(char, isEnemy, this.renderer)
-
-        renderer.x = availableWidth - panelWidth - panelMarginH
-        renderer.y = baseY + index * (panelHeight + panelSpacing)
-
-        this.setupMiniPanelClick(renderer, char.id)
-        this.addChild(renderer)
-        this.characterRenderers.set(char.id, renderer)
-      })
-    }
-  }
-
-  // 设置迷你面板点击事件
-  private setupMiniPanelClick(renderer: MiniCharacterRenderer, charId: string): void {
-    renderer.eventMode = 'static'
-    renderer.cursor = 'pointer'
-    renderer.on('pointerdown', () => {
-      if (this.game?.phase === GamePhase.SELECTING_TARGET) {
-        this.handleTargetClick(charId)
-      }
-    })
-  }
-
-  // 传统 1v1 左右布局（普通面板）
-  private createTraditionalLayout(bottomAreaHeight: number, sidebarWidth: number): void {
-    if (!this.game) return
-
-    const size = this.renderer.getSize()
-    const allChars = this.game.getAllCharacters()
-    const availableWidth = size.width - sidebarWidth
-
-    // 玩家在左边，敌人在右边
-    const player = this.playerConfigs[0]
-    const enemy = this.enemyConfigs[0]
-
-    const panelMarginH = availableWidth * 0.05
-
-    // 先创建所有渲染器，获取尺寸
-    const renderers: Map<string, { renderer: CharacterRenderer; char: CharacterState }> = new Map()
-    let maxPanelHeight = 0
-
-    allChars.forEach(char => {
-      const isEnemy = char.battlePosition?.team === 'enemy'
-      const renderer = new CharacterRenderer(char, isEnemy, this.renderer, false)
-      const panelSize = renderer.getSize()
-      maxPanelHeight = Math.max(maxPanelHeight, panelSize.height)
-      renderers.set(char.id, { renderer, char })
-    })
-
-    // 使用最大高度计算统一的 Y 坐标（底部对齐）
-    const baseY = size.height - maxPanelHeight - bottomAreaHeight - 20
-
-    renderers.forEach(({ renderer, char }) => {
-      const panelSize = renderer.getSize()
-
-      if (char === player) {
-        // 玩家在左边
-        renderer.x = panelMarginH
-        renderer.y = baseY
-      } else if (char === enemy) {
-        // 敌人在右边（边栏左侧）
-        renderer.x = availableWidth - panelSize.width - panelMarginH
-        renderer.y = baseY
-      }
-
-      this.setupCharacterRendererClick(renderer, char.id)
-      this.addChild(renderer)
-      this.characterRenderers.set(char.id, renderer)
-    })
-  }
-
-  // 设置角色面板点击事件
-  private setupCharacterRendererClick(renderer: CharacterRenderer, charId: string): void {
-    renderer.eventMode = 'static'
-    renderer.cursor = 'pointer'
-    renderer.on('pointerdown', () => {
-      if (this.game?.phase === GamePhase.SELECTING_TARGET) {
-        this.handleTargetClick(charId)
-      }
-    })
-  }
-
-  // 更新 UI
   private updateUI(): void {
     if (!this.game) return
 
@@ -871,11 +719,6 @@ export class BattleScene extends Scene {
   // 处理确认
   private handleConfirm(): void {
     this.inputHandler?.handleConfirm()
-  }
-
-  // 处理目标点击
-  private handleTargetClick(targetId: string): void {
-    this.inputHandler?.handleTargetClick(targetId)
   }
 
   // 处理取消
