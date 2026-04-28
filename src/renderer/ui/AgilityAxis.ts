@@ -210,4 +210,23 @@ export class AgilityAxis extends Container {
       this.turnArrow.addChild(turnText)
     }
   }
+
+  /**
+   * 销毁轻功轴，清理所有子对象
+   */
+  destroy(): void {
+    this.animating = false
+
+    this.background.destroy()
+    this.axisLine.destroy()
+    this.playerMarker.destroy()
+    this.enemyMarker.destroy()
+    this.playerNameText.destroy()
+    this.enemyNameText.destroy()
+    this.playerAgilityText.destroy()
+    this.enemyAgilityText.destroy()
+    this.turnArrow.destroy()
+
+    super.destroy()
+  }
 }

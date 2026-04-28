@@ -172,6 +172,9 @@ export interface Dot {
 
 // ==================== 角色状态接口 ====================
 export interface CharacterState {
+  // 内部事件管理器引用（可选，用于依赖注入）
+  _events?: any
+
   id: string
   name: string
   title: string
@@ -250,6 +253,9 @@ export interface BattleLogEntry {
 
 // ==================== 游戏状态接口 ====================
 export interface GameState {
+  // 内部事件管理器引用（可选，用于依赖注入）
+  _events?: any
+
   // 1v1 模式（向后兼容）
   player: CharacterState | null
   enemy: CharacterState | null
@@ -302,6 +308,8 @@ export interface GameState {
   validateBasicCardUse(cardInstanceId: string, targetId?: string): { success: boolean; message?: string; actor?: CharacterState; target?: CharacterState; card?: Card }
   consumeBasicCardResources(card: Card, actor: CharacterState): void
   applyBasicCardEffects(actor: CharacterState, target: CharacterState, card: Card): { actualDamage: number; totalShield: number }
+  triggerOnPlayCardPassives(actor: CharacterState, card: Card, baseDamage: number): number
+  applyDamageWithPassives(actor: CharacterState, target: CharacterState, damage: number): number
   finalizeBasicCardUse(actor: CharacterState, target: CharacterState, card: Card, effectResult: { actualDamage: number; totalShield: number }): void
   validateSkillUse(skillId: string, cardInstanceId: string, targetId?: string): { success: boolean; message?: string; actor?: CharacterState; target?: CharacterState; card?: Card; skill?: MartialArtSkill }
   consumeSkillResources(actor: CharacterState, card: Card, skill: MartialArtSkill): MartialArtSkill

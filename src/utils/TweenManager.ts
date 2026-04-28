@@ -128,7 +128,6 @@ export class TweenManager {
   // 销毁：清除所有 tween 并禁止后续创建
   destroy(): void {
     this.clear()
-    this.tweens = []
     this.isDestroyed = true
   }
 
@@ -157,10 +156,35 @@ export class TweenManager {
     })
   }
 
-  // 预设动画：缩放到
+  // 预设动画：缩放到（PixiJS v8 使用 scale.x/scale.y）
   scaleTo(target: Container, scale: number, duration: number = 300): Promise<void> {
     return new Promise(resolve => {
-      this.create(target, { scaleX: scale, scaleY: scale }, duration, Easing.easeOutBack, resolve)
+      // PixiJS v8: scale 是一个 { x, y } 对象
+      const startScaleX = target.scale.x
+      const startScaleY = target.scale.y
+      const startTime = Date.now()
+
+      const animate = () => {
+        if (this.isDestroyed) {
+          resolve()
+          return
+        }
+
+        const elapsed = Date.now() - startTime
+        const progress = Math.min(elapsed / duration, 1)
+        const easedProgress = Easing.easeOutBack(progress)
+
+        target.scale.x = startScaleX + (scale - startScaleX) * easedProgress
+        target.scale.y = startScaleY + (scale - startScaleY) * easedProgress
+
+        if (progress < 1) {
+          requestAnimationFrame(animate)
+        } else {
+          resolve()
+        }
+      }
+
+      requestAnimationFrame(animate)
     })
   }
 

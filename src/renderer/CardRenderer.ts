@@ -318,6 +318,29 @@ export class CardRenderer extends Container {
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
+
+  /**
+   * 销毁卡牌渲染器，清理所有子对象和事件监听
+   */
+  destroy(): void {
+    // 移除事件监听
+    this.off('pointerdown')
+    this.off('pointerover')
+    this.off('pointerout')
+
+    // 销毁子对象
+    this.background.destroy()
+    this.nameText.destroy()
+    this.typeText.destroy()
+    this.statsText.destroy()
+    this.costText.destroy()
+
+    // 清理回调引用
+    this.onCardClick = undefined
+
+    // 调用父类销毁
+    super.destroy()
+  }
 }
 
 // 导出获取卡牌尺寸的函数（供外部使用）

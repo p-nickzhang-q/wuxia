@@ -506,4 +506,38 @@ export class MiniCharacterRenderer extends Container {
       height: LayoutConstants.miniPanelHeight()
     }
   }
+
+  /**
+   * 销毁迷你角色渲染器，清理所有子对象
+   */
+  destroy(): void {
+    // 清理主要图形对象
+    this.background.destroy()
+    this.hpBar.destroy()
+    this.mpBar.destroy()
+
+    // 清理文本
+    this.nameText.destroy()
+    this.statsText.destroy()
+
+    // 清理头像容器和遮罩
+    this.avatarContainer.destroy()
+    if (this.avatarMask) {
+      this.avatarMask.destroy()
+    }
+
+    // 清理标签容器
+    this.tagsContainer.destroy()
+    if (this.tagsScrollContainer) {
+      this.tagsScrollContainer.destroy()
+    }
+
+    // 清理详情弹窗
+    if (this.detailPopup) {
+      this.detailPopup.destroy()
+      this.detailPopup = null
+    }
+
+    super.destroy()
+  }
 }

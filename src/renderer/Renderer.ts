@@ -23,130 +23,154 @@ export const Colors = {
   BUTTON_DISABLED: 0x444444
 }
 
-// 文字样式 - 动态生成，基于当前scale
+// 文字样式 - 动态生成，基于当前scale（带缓存）
 export class TextStyles {
+  private static _cachedStyles: Map<string, TextStyle> = new Map()
+  private static _lastScale: number = 0
+
+  /** 清除缓存（scale 变化时调用） */
+  static clearCache(): void {
+    this._cachedStyles.forEach(style => style.destroy())
+    this._cachedStyles.clear()
+    this._lastScale = LayoutConstants.scale
+  }
+
+  /** 检查并更新缓存 */
+  private static checkScale(): void {
+    if (LayoutConstants.scale !== this._lastScale) {
+      this.clearCache()
+    }
+  }
+
+  private static getOrCreate(key: string, factory: () => TextStyle): TextStyle {
+    this.checkScale()
+    if (!this._cachedStyles.has(key)) {
+      this._cachedStyles.set(key, factory())
+    }
+    return this._cachedStyles.get(key)!
+  }
 
   static get TITLE(): TextStyle {
-    return new TextStyle({
+    return this.getOrCreate('TITLE', () => new TextStyle({
       fontFamily: 'Arial, sans-serif',
       fontSize: LayoutConstants.fontTitle(),
       fill: Colors.TEXT_GOLD,
       fontWeight: 'bold',
       dropShadow: { color: 0x000000, blur: 4, distance: 2 }
-    })
+    }))
   }
 
   static get SUBTITLE(): TextStyle {
-    return new TextStyle({
+    return this.getOrCreate('SUBTITLE', () => new TextStyle({
       fontFamily: 'Arial, sans-serif',
       fontSize: LayoutConstants.fontSubtitle(),
       fill: Colors.TEXT_SECONDARY
-    })
+    }))
   }
 
   static get CARD_NAME(): TextStyle {
-    return new TextStyle({
+    return this.getOrCreate('CARD_NAME', () => new TextStyle({
       fontFamily: 'Arial, sans-serif',
       fontSize: LayoutConstants.fontCardName(),
       fill: Colors.TEXT_PRIMARY,
       fontWeight: 'bold'
-    })
+    }))
   }
 
   static get CARD_TYPE(): TextStyle {
-    return new TextStyle({
+    return this.getOrCreate('CARD_TYPE', () => new TextStyle({
       fontFamily: 'Arial, sans-serif',
       fontSize: LayoutConstants.fontCardType(),
       fill: Colors.TEXT_SECONDARY
-    })
+    }))
   }
 
   static get CARD_STATS(): TextStyle {
-    return new TextStyle({
+    return this.getOrCreate('CARD_STATS', () => new TextStyle({
       fontFamily: 'Arial, sans-serif',
       fontSize: LayoutConstants.fontCardStats(),
       fill: Colors.TEXT_GOLD
-    })
+    }))
   }
 
   static get CHARACTER_NAME(): TextStyle {
-    return new TextStyle({
+    return this.getOrCreate('CHARACTER_NAME', () => new TextStyle({
       fontFamily: 'Arial, sans-serif',
       fontSize: LayoutConstants.fontCharacterName(),
       fill: Colors.TEXT_GOLD,
       fontWeight: 'bold'
-    })
+    }))
   }
 
   static get CHARACTER_TITLE(): TextStyle {
-    return new TextStyle({
+    return this.getOrCreate('CHARACTER_TITLE', () => new TextStyle({
       fontFamily: 'Arial, sans-serif',
       fontSize: LayoutConstants.fontCharacterTitle(),
       fill: Colors.TEXT_SECONDARY
-    })
+    }))
   }
 
   static get STATS(): TextStyle {
-    return new TextStyle({
+    return this.getOrCreate('STATS', () => new TextStyle({
       fontFamily: 'Arial, sans-serif',
       fontSize: LayoutConstants.fontStats(),
       fill: Colors.TEXT_PRIMARY
-    })
+    }))
   }
 
   static get BUTTON(): TextStyle {
-    return new TextStyle({
+    return this.getOrCreate('BUTTON', () => new TextStyle({
       fontFamily: 'Arial, sans-serif',
       fontSize: LayoutConstants.fontButton(),
       fill: Colors.TEXT_PRIMARY,
       fontWeight: 'bold'
-    })
+    }))
   }
 
   static get LOG(): TextStyle {
-    return new TextStyle({
+    return this.getOrCreate('LOG', () => new TextStyle({
       fontFamily: 'Arial, sans-serif',
       fontSize: LayoutConstants.fontLog(),
       fill: Colors.TEXT_SECONDARY,
       wordWrap: true,
       wordWrapWidth: LayoutConstants.logWidth() - 40
-    })
+    }))
   }
 
   static get SKILL_NAME(): TextStyle {
-    return new TextStyle({
+    return this.getOrCreate('SKILL_NAME', () => new TextStyle({
       fontFamily: 'Arial, sans-serif',
       fontSize: LayoutConstants.fontSkillName(),
       fill: Colors.TEXT_RED,
       fontWeight: 'bold'
-    })
+    }))
   }
 
   static get SELECT_NAME(): TextStyle {
-    return new TextStyle({
+    return this.getOrCreate('SELECT_NAME', () => new TextStyle({
       fontFamily: 'Arial, sans-serif',
       fontSize: LayoutConstants.fontCharacterName(),
       fill: Colors.TEXT_GOLD,
       fontWeight: 'bold'
-    })
+    }))
   }
 
   static get SELECT_TITLE(): TextStyle {
-    return new TextStyle({
+    return this.getOrCreate('SELECT_TITLE', () => new TextStyle({
       fontFamily: 'Arial, sans-serif',
       fontSize: LayoutConstants.fontCharacterTitle(),
       fill: Colors.TEXT_SECONDARY
-    })
+    }))
   }
 
   static get SELECT_DESC(): TextStyle {
-    return new TextStyle({
+    return this.getOrCreate('SELECT_DESC', () => new TextStyle({
       fontFamily: 'Arial, sans-serif',
       fontSize: LayoutConstants.fontCardType(),
       fill: Colors.TEXT_SECONDARY,
       wordWrap: true,
       wordWrapWidth: LayoutConstants.scaleValue(160)
-    })
+    }))
   }
 }
 

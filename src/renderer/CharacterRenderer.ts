@@ -933,4 +933,45 @@ export class CharacterRenderer extends Container {
   private redrawBackground(): void {
     this.drawBackground(this.currentPanelHeight)
   }
+
+  /**
+   * 销毁角色渲染器，清理所有子对象和动画状态
+   */
+  destroy(): void {
+    // 停止动画
+    this.hpMpAnimating = false
+
+    // 清理主要图形对象
+    this.background.destroy()
+    this.hpBar.destroy()
+    this.mpBar.destroy()
+
+    // 清理精灵
+    if (this.portrait) {
+      this.portrait.destroy()
+    }
+
+    // 清理文本对象
+    this.nameText.destroy()
+    this.titleText.destroy()
+    this.hpText.destroy()
+    this.mpText.destroy()
+    this.shieldText.destroy()
+    this.agilityText.destroy()
+    this.martialArtsText.destroy()
+
+    // 清理内功容器和文本
+    this.passiveTexts.forEach(text => text.destroy())
+    this.passiveTexts.clear()
+    this.passiveContainer.destroy()
+
+    // 清理详情弹窗
+    if (this.detailPopup) {
+      this.detailPopup.destroy()
+      this.detailPopup = null
+    }
+
+    // 调用父类销毁
+    super.destroy()
+  }
 }

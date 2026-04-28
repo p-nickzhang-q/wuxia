@@ -1,10 +1,17 @@
 import { Card, CharacterState, MartialArtSkill, PassiveSkill, TriggerTiming, GameState, MartialArt, GameEventType } from './types'
 import { CharacterConfig } from './CharacterConfig'
 import { createBasicCard } from '../data/cards'
-import { eventManager } from '../utils/EventManager'
+import { eventManager, EventManager } from '../utils/EventManager'
 
-// 创建角色
-export function createCharacter(config: CharacterConfig, martialArtsList: MartialArt[]): CharacterState {
+/**
+ * 创建角色状态实例
+ * @param config 角色配置
+ * @param martialArtsList 武功列表
+ * @param customEventManager 可选的自定义事件管理器，用于测试注入
+ * @returns CharacterState 角色状态对象
+ */
+export function createCharacter(config: CharacterConfig, martialArtsList: MartialArt[], customEventManager?: EventManager): CharacterState {
+  const emitter = customEventManager || eventManager
   // 收集所有武功招式和内功
   const skills: MartialArtSkill[] = []
   const passives: PassiveSkill[] = []
@@ -23,6 +30,7 @@ export function createCharacter(config: CharacterConfig, martialArtsList: Martia
   const baseAgility = config.getBaseAgility()
 
   const character: CharacterState = {
+    _events: emitter,
     id: config.id,
     name: config.name,
     title: config.title,
@@ -96,7 +104,7 @@ export function createCharacter(config: CharacterConfig, martialArtsList: Martia
       }
       // 发出抽牌事件
       if (drawn.length > 0) {
-        eventManager.emit(GameEventType.CARD_DRAWN, { character: this, cards: drawn })
+        this._events.emit(GameEventType.CARD_DRAWN, { character: this, cards: drawn })
       }
       return drawn
     },
@@ -143,7 +151,7 @@ export function createCharacter(config: CharacterConfig, martialArtsList: Martia
           if (msg) {
             messages.push(typeof msg === 'string' ? msg : msg.message || '')
             // 发出内功触发事件
-            eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
+            this._events.emit(GameEventType.PASSIVE_TRIGGERED, {
               character: this,
               passiveId: passive.id,
               passiveName: passive.name,
@@ -165,7 +173,7 @@ export function createCharacter(config: CharacterConfig, martialArtsList: Martia
           if (msg) {
             messages.push(typeof msg === 'string' ? msg : msg.message || '')
             // 发出内功触发事件
-            eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
+            this._events.emit(GameEventType.PASSIVE_TRIGGERED, {
               character: this,
               passiveId: passive.id,
               passiveName: passive.name,
@@ -203,7 +211,7 @@ export function createCharacter(config: CharacterConfig, martialArtsList: Martia
             const effectResult = typeof result === 'string' ? { message: result } : result
             if (effectResult.message) {
               messages.push(effectResult.message)
-              eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
+              this._events.emit(GameEventType.PASSIVE_TRIGGERED, {
                 character: this,
                 passiveId: passive.id,
                 passiveName: passive.name,
@@ -236,7 +244,7 @@ export function createCharacter(config: CharacterConfig, martialArtsList: Martia
         if (this.shield >= remainingDamage) {
           this.shield -= remainingDamage
           messages.push(`${this.name}的护盾吸收了${remainingDamage}点伤害`)
-          eventManager.emit(GameEventType.CHARACTER_DAMAGED, { character: this, damage: remainingDamage, absorbed: true })
+          this._events.emit(GameEventType.CHARACTER_DAMAGED, { character: this, damage: remainingDamage, absorbed: true })
           remainingDamage = 0
         } else {
           const absorbed = this.shield
@@ -253,7 +261,7 @@ export function createCharacter(config: CharacterConfig, martialArtsList: Martia
       if (damage > 0) {
         this.hp = Math.max(0, this.hp - damage)
         messages.push(`${this.name}受到${damage}点伤害`)
-        eventManager.emit(GameEventType.CHARACTER_DAMAGED, { character: this, damage })
+        this._events.emit(GameEventType.CHARACTER_DAMAGED, { character: this, damage })
       }
     },
 

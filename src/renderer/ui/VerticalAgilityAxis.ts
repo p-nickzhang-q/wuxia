@@ -106,4 +106,26 @@ export class VerticalAgilityAxis extends Container {
       this.markers.push({ marker, nameText, agilityText, charId: char.id })
     })
   }
+
+  /**
+   * 销毁垂直轻功轴，清理所有子对象和标记
+   */
+  destroy(): void {
+    // 清理所有标记
+    this.markers.forEach(m => {
+      m.marker.destroy()
+      m.nameText.destroy()
+      m.agilityText.destroy()
+    })
+    this.markers = []
+
+    // 清理主要组件
+    this.background.destroy()
+    this.axisLine.destroy()
+
+    // 清理所有子对象（包括 drawStaticElements 创建的文本）
+    this.removeChildren()
+
+    super.destroy()
+  }
 }

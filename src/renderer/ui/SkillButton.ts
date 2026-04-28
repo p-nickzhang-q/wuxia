@@ -121,4 +121,21 @@ export class SkillButton extends Container {
   getSkillId(): string {
     return this.skillId
   }
+
+  /**
+   * 销毁技能按钮，清理所有子对象和事件监听
+   */
+  destroy(): void {
+    this.off('pointerdown')
+    this.off('pointerover')
+    this.off('pointerout')
+
+    this.background.destroy()
+    this.nameLabel.destroy()
+    this.costLabel.destroy()
+    this.descLabel.destroy()
+
+    this.onClick = undefined
+    super.destroy()
+  }
 }

@@ -91,4 +91,19 @@ export class Button extends Container {
   setText(text: string): void {
     this.labelText.text = text
   }
+
+  /**
+   * 销毁按钮，清理所有子对象和事件监听
+   */
+  destroy(): void {
+    this.off('pointerdown')
+    this.off('pointerover')
+    this.off('pointerout')
+
+    this.background.destroy()
+    this.labelText.destroy()
+
+    this.onClick = undefined
+    super.destroy()
+  }
 }

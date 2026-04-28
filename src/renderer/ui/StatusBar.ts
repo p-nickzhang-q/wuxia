@@ -58,4 +58,14 @@ export class StatusBar extends Container {
     this.barWidth = LayoutConstants.statusWidth()
     this.drawBackground()
   }
+
+  /**
+   * 销毁状态栏，清理所有子对象
+   */
+  destroy(): void {
+    this.background.destroy()
+    this.turnText.destroy()
+    this.phaseText.destroy()
+    super.destroy()
+  }
 }

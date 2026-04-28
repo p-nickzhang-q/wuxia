@@ -50,4 +50,13 @@ export class Tooltip extends Container {
   hide(): void {
     this.visible = false
   }
+
+  /**
+   * 销毁提示框，清理所有子对象
+   */
+  destroy(): void {
+    this.background.destroy()
+    this.text.destroy()
+    super.destroy()
+  }
 }

@@ -2036,3 +2036,250 @@ src/scenes/BattleUIManager.ts
 src/scenes/types/BattleSceneInterface.ts
 ---
 
+## Session End: 20260428_105054
+### Uncommitted Changes
+.claude/plans/battle-system-refactor-phase2.md
+docs/CHARACTERS.md
+docs/SECTOR-UI-DESIGN.md
+---
+
+## Session End: 20260428_110143
+### Uncommitted Changes
+.claude/plans/battle-system-refactor-phase2.md
+docs/CHARACTERS.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/session-log.md
+src/renderer/CardRenderer.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/MiniCharacterRenderer.ts
+src/renderer/Renderer.ts
+src/renderer/ui/AgilityAxis.ts
+src/renderer/ui/Button.ts
+src/renderer/ui/SkillButton.ts
+src/renderer/ui/StatusBar.ts
+src/renderer/ui/Tooltip.ts
+src/renderer/ui/VerticalAgilityAxis.ts
+src/utils/TweenManager.ts
+---
+
+## Session End: 20260428_110200
+### Uncommitted Changes
+.claude/plans/battle-system-refactor-phase2.md
+docs/CHARACTERS.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/session-log.md
+src/renderer/CardRenderer.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/MiniCharacterRenderer.ts
+src/renderer/Renderer.ts
+src/renderer/ui/AgilityAxis.ts
+src/renderer/ui/Button.ts
+src/renderer/ui/SkillButton.ts
+src/renderer/ui/StatusBar.ts
+src/renderer/ui/Tooltip.ts
+src/renderer/ui/VerticalAgilityAxis.ts
+src/utils/TweenManager.ts
+---
+
+## Session End: 20260428_110337
+### Uncommitted Changes
+.claude/plans/battle-system-refactor-phase2.md
+docs/CHARACTERS.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/session-log.md
+src/renderer/CardRenderer.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/MiniCharacterRenderer.ts
+src/renderer/Renderer.ts
+src/renderer/ui/AgilityAxis.ts
+src/renderer/ui/Button.ts
+src/renderer/ui/SkillButton.ts
+src/renderer/ui/StatusBar.ts
+src/renderer/ui/Tooltip.ts
+src/renderer/ui/VerticalAgilityAxis.ts
+src/utils/TweenManager.ts
+---
+
+## Session End: 20260428_110958
+### Uncommitted Changes
+docs/CHARACTERS.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/session-log.md
+src/game/Game.ts
+src/renderer/CardRenderer.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/MiniCharacterRenderer.ts
+src/renderer/Renderer.ts
+src/renderer/ui/AgilityAxis.ts
+src/renderer/ui/Button.ts
+src/renderer/ui/SkillButton.ts
+src/renderer/ui/StatusBar.ts
+src/renderer/ui/Tooltip.ts
+src/renderer/ui/VerticalAgilityAxis.ts
+src/utils/TweenManager.ts
+---
+
+## Session End: 20260428_111501
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/game/types.ts
+src/renderer/CardRenderer.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/MiniCharacterRenderer.ts
+src/renderer/Renderer.ts
+src/renderer/ui/AgilityAxis.ts
+src/renderer/ui/Button.ts
+src/renderer/ui/SkillButton.ts
+src/renderer/ui/StatusBar.ts
+src/renderer/ui/Tooltip.ts
+src/renderer/ui/VerticalAgilityAxis.ts
+src/utils/TweenManager.ts
+---
+
+## Session End: 20260428_111638
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/game/types.ts
+src/renderer/CardRenderer.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/MiniCharacterRenderer.ts
+src/renderer/Renderer.ts
+src/renderer/ui/AgilityAxis.ts
+src/renderer/ui/Button.ts
+src/renderer/ui/SkillButton.ts
+src/renderer/ui/StatusBar.ts
+src/renderer/ui/Tooltip.ts
+src/renderer/ui/VerticalAgilityAxis.ts
+src/utils/TweenManager.ts
+---
+
+## Session End: 20260428_111830
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/game/types.ts
+src/renderer/CardRenderer.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/MiniCharacterRenderer.ts
+src/renderer/Renderer.ts
+src/renderer/ui/AgilityAxis.ts
+src/renderer/ui/Button.ts
+src/renderer/ui/SkillButton.ts
+src/renderer/ui/StatusBar.ts
+src/renderer/ui/Tooltip.ts
+src/renderer/ui/VerticalAgilityAxis.ts
+src/utils/TweenManager.ts
+---
+
+## Session End: 20260428_111919
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/game/types.ts
+src/renderer/CardRenderer.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/MiniCharacterRenderer.ts
+src/renderer/Renderer.ts
+src/renderer/ui/AgilityAxis.ts
+src/renderer/ui/Button.ts
+src/renderer/ui/SkillButton.ts
+src/renderer/ui/StatusBar.ts
+src/renderer/ui/Tooltip.ts
+src/renderer/ui/VerticalAgilityAxis.ts
+src/utils/TweenManager.ts
+---
+
+## Session End: 20260428_112137
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/game/types.ts
+src/renderer/CardRenderer.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/MiniCharacterRenderer.ts
+src/renderer/Renderer.ts
+src/renderer/ui/AgilityAxis.ts
+src/renderer/ui/Button.ts
+src/renderer/ui/SkillButton.ts
+src/renderer/ui/StatusBar.ts
+src/renderer/ui/Tooltip.ts
+src/renderer/ui/VerticalAgilityAxis.ts
+src/utils/TweenManager.ts
+---
+
+## Session End: 20260428_112831
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/game/types.ts
+src/renderer/CardRenderer.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/MiniCharacterRenderer.ts
+src/renderer/Renderer.ts
+src/renderer/ui/AgilityAxis.ts
+src/renderer/ui/Button.ts
+src/renderer/ui/SkillButton.ts
+src/renderer/ui/StatusBar.ts
+src/renderer/ui/Tooltip.ts
+src/renderer/ui/VerticalAgilityAxis.ts
+src/utils/TweenManager.ts
+---
+
+## Session End: 20260428_113305
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Game.ts
+src/game/types.ts
+src/renderer/CardRenderer.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/MiniCharacterRenderer.ts
+src/renderer/Renderer.ts
+src/renderer/ui/AgilityAxis.ts
+src/renderer/ui/Button.ts
+src/renderer/ui/SkillButton.ts
+src/renderer/ui/StatusBar.ts
+src/renderer/ui/Tooltip.ts
+src/renderer/ui/VerticalAgilityAxis.ts
+src/utils/TweenManager.ts
+---
+
+## Session End: 20260428_113740
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Character.ts
+src/game/Game.ts
+src/game/types.ts
+src/renderer/CardRenderer.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/MiniCharacterRenderer.ts
+src/renderer/Renderer.ts
+src/renderer/ui/AgilityAxis.ts
+src/renderer/ui/Button.ts
+src/renderer/ui/SkillButton.ts
+src/renderer/ui/StatusBar.ts
+src/renderer/ui/Tooltip.ts
+src/renderer/ui/VerticalAgilityAxis.ts
+src/utils/TweenManager.ts
+---
+
+## Session End: 20260428_114008
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/game/Character.ts
+src/game/Game.ts
+src/game/types.ts
+src/renderer/CardRenderer.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/MiniCharacterRenderer.ts
+src/renderer/Renderer.ts
+src/renderer/ui/AgilityAxis.ts
+src/renderer/ui/Button.ts
+src/renderer/ui/SkillButton.ts
+src/renderer/ui/StatusBar.ts
+src/renderer/ui/Tooltip.ts
+src/renderer/ui/VerticalAgilityAxis.ts
+src/utils/TweenManager.ts
+---
+

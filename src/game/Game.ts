@@ -1,11 +1,21 @@
 import { CharacterState, GameState, GamePhase, MartialArtSkill, SkillEffect, TriggerTiming, GameEventType, BattleMode, Card } from './types'
-import { eventManager } from '../utils/EventManager'
+import { eventManager, EventManager } from '../utils/EventManager'
 import { getTargetsInRange, assignSeats, calculateActualDistance } from './DistanceSystem'
 import { calculateStrengthBonus } from './Disciple'
 
-// 创建游戏状态
-export function createGame(): GameState {
+/**
+ * 创建游戏状态实例
+ * 管理回合流程、卡牌使用、武功招式效果、内功触发等战斗逻辑
+ * @param customEventManager 可选的自定义事件管理器，用于测试注入
+ * @returns GameState 游戏状态对象
+ */
+export function createGame(customEventManager?: EventManager): GameState {
+  // 使用闭包存储事件管理器，不修改接口
+  const emitter = customEventManager || eventManager
   const state: GameState = {
+    // 事件管理器引用（用于依赖注入）
+    _events: emitter,
+
     // 1v1 模式（向后兼容）
     player: null,
     enemy: null,
@@ -135,6 +145,10 @@ export function createGame(): GameState {
 
     // ==================== 回合管理 ====================
 
+    /**
+     * 开始新回合
+     * 重置角色状态、触发回合开始内功、抽牌、决定行动顺序
+     */
     startNewTurn() {
       this.currentTurn++
       this.addLog(`\n--- 第${this.currentTurn}回合 ---`)
@@ -175,7 +189,7 @@ export function createGame(): GameState {
       }
 
       // 发出回合开始事件
-      eventManager.emit(GameEventType.TURN_START, { turnNumber: this.currentTurn })
+      this._events.emit(GameEventType.TURN_START, { turnNumber: this.currentTurn })
 
       this.decideTurnOrder()
     },
@@ -230,6 +244,12 @@ export function createGame(): GameState {
 
     // ==================== 卡牌使用 ====================
 
+    /**
+     * 使用基础招式卡牌
+     * @param cardInstanceId 卡牌实例ID
+     * @param targetId 可选目标ID
+     * @returns 使用结果 { success, message?, gameOver? }
+     */
     useBasicCard(cardInstanceId: string, targetId?: string) {
       const validation = this.validateBasicCardUse(cardInstanceId, targetId)
       if (!validation.success) return validation
@@ -299,12 +319,23 @@ export function createGame(): GameState {
       actor.agility -= card.agilityCost
     },
 
+    /**
+     * 应用基础卡牌效果
+     * 计算伤害、触发内功、应用护盾
+     */
     applyBasicCardEffects(actor: CharacterState, target: CharacterState, card: Card) {
       const strengthMultiplier = calculateStrengthBonus(actor.strength)
-      let totalDamage = Math.floor(card.baseDamage * strengthMultiplier)
+      const baseDamage = Math.floor(card.baseDamage * strengthMultiplier)
       const totalShield = card.baseShield
-      let actualDamage = 0
 
+      const totalDamage = this.triggerOnPlayCardPassives(actor, card, baseDamage)
+      const actualDamage = this.applyDamageWithPassives(actor, target, totalDamage)
+
+      return { actualDamage, totalShield }
+    },
+
+    triggerOnPlayCardPassives(actor: CharacterState, card: Card, baseDamage: number): number {
+      let totalDamage = baseDamage
       actor.passives.forEach(passive => {
         if (passive.trigger === TriggerTiming.ON_PLAY_CARD) {
           const result = passive.effect(actor, card, totalDamage)
@@ -312,39 +343,33 @@ export function createGame(): GameState {
             const effectResult = typeof result === 'string' ? { message: result } : result
             if (effectResult.bonusDamage) totalDamage += effectResult.bonusDamage
             if (effectResult.message) {
-              eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
-                character: actor,
-                passiveId: passive.id,
-                passiveName: passive.name,
-                trigger: TriggerTiming.ON_PLAY_CARD,
-                effectResult
+              this._events.emit(GameEventType.PASSIVE_TRIGGERED, {
+                character: actor, passiveId: passive.id, passiveName: passive.name,
+                trigger: TriggerTiming.ON_PLAY_CARD, effectResult
               })
             }
           }
         }
       })
+      return totalDamage
+    },
 
-      if (totalDamage > 0) {
-        const result = target.takeDamage(totalDamage, actor, this)
-        actualDamage = result.damage
-
-        actor.passives.forEach(passive => {
-          if (passive.trigger === TriggerTiming.ON_DAMAGE) {
-            const msg = passive.effect(actor, result.damage)
-            if (msg) {
-              this.addLog(typeof msg === 'string' ? msg : msg.message || '')
-              eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
-                character: actor,
-                passiveId: passive.id,
-                passiveName: passive.name,
-                trigger: TriggerTiming.ON_DAMAGE
-              })
-            }
+    applyDamageWithPassives(actor: CharacterState, target: CharacterState, damage: number): number {
+      if (damage <= 0) return 0
+      const result = target.takeDamage(damage, actor, this)
+      actor.passives.forEach(passive => {
+        if (passive.trigger === TriggerTiming.ON_DAMAGE) {
+          const msg = passive.effect(actor, result.damage)
+          if (msg) {
+            this.addLog(typeof msg === 'string' ? msg : msg.message || '')
+            this._events.emit(GameEventType.PASSIVE_TRIGGERED, {
+              character: actor, passiveId: passive.id, passiveName: passive.name,
+              trigger: TriggerTiming.ON_DAMAGE
+            })
           }
-        })
-      }
-
-      return { actualDamage, totalShield }
+        }
+      })
+      return result.damage
     },
 
     finalizeBasicCardUse(actor: CharacterState, target: CharacterState, card: Card, effectResult: { actualDamage: number; totalShield: number }) {
@@ -355,7 +380,7 @@ export function createGame(): GameState {
       if (effectResult.totalShield > 0) {
         actor.shield += effectResult.totalShield
         logMsg += `，获得${effectResult.totalShield}点护盾`
-        eventManager.emit(GameEventType.CHARACTER_SHIELD, { character: actor, amount: effectResult.totalShield })
+        this._events.emit(GameEventType.CHARACTER_SHIELD, { character: actor, amount: effectResult.totalShield })
       }
       if (card.selfDamage) {
         actor.hp -= card.selfDamage
@@ -441,7 +466,7 @@ export function createGame(): GameState {
           if (msg) {
             const msgText = typeof msg === 'string' ? msg : msg.message || ''
             this.addLog(msgText)
-            eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
+            this._events.emit(GameEventType.PASSIVE_TRIGGERED, {
               character: actor,
               passiveId: passive.id,
               passiveName: passive.name,
@@ -531,7 +556,7 @@ export function createGame(): GameState {
               const effectResult = typeof result === 'string' ? {} : result
               if (effectResult.bonusDamage) totalDamage += effectResult.bonusDamage
               if (effectResult.message) {
-                eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
+                this._events.emit(GameEventType.PASSIVE_TRIGGERED, {
                   character: actor,
                   passiveId: passive.id,
                   passiveName: passive.name,
@@ -553,7 +578,7 @@ export function createGame(): GameState {
       if (effect.ignoreShield) {
         target.hp -= baseDamage
         actualDamage = baseDamage
-        eventManager.emit(GameEventType.CHARACTER_DAMAGED, { character: target, damage: actualDamage })
+        this._events.emit(GameEventType.CHARACTER_DAMAGED, { character: target, damage: actualDamage })
         this.triggerOnDamagePassives(actor, actualDamage)
       } else {
         const result = target.takeDamage(baseDamage, actor, this)
@@ -569,7 +594,7 @@ export function createGame(): GameState {
         if (passive.trigger === TriggerTiming.ON_DAMAGE) {
           const msg = passive.effect(actor, damage)
           if (msg) {
-            eventManager.emit(GameEventType.PASSIVE_TRIGGERED, {
+            this._events.emit(GameEventType.PASSIVE_TRIGGERED, {
               character: actor,
               passiveId: passive.id,
               passiveName: passive.name,
@@ -582,7 +607,7 @@ export function createGame(): GameState {
 
     processShieldEffect(effect: SkillEffect, actor: CharacterState) {
       actor.shield += effect.value!
-      eventManager.emit(GameEventType.CHARACTER_SHIELD, { character: actor, amount: effect.value! })
+      this._events.emit(GameEventType.CHARACTER_SHIELD, { character: actor, amount: effect.value! })
       return { actualDamage: 0 }
     },
 
@@ -699,7 +724,7 @@ export function createGame(): GameState {
       } else {
         this.addLog('\n你输了！')
       }
-      eventManager.emit(GameEventType.GAME_END, { playerWon })
+      this._events.emit(GameEventType.GAME_END, { playerWon })
     },
 
     addLog(message: string) {
@@ -711,7 +736,7 @@ export function createGame(): GameState {
       this.battleLog.push(logEntry)
       // === 调试日志 ===
       // console.log('[战斗日志]', message)
-      eventManager.emit(GameEventType.LOG_MESSAGE, logEntry)
+      this._events.emit(GameEventType.LOG_MESSAGE, logEntry)
     }
   }
 
