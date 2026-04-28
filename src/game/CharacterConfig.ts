@@ -18,11 +18,6 @@ export class CharacterConfig {
   strength: number   // 臂力 - 影响伤害 (1-10)，默认 5
   agilityBonus: number // 身法 - 影响轻功 (1-10)，默认 5
 
-  // 向后兼容字段（保留但不使用）
-  hp?: number
-  mp?: number
-  agility?: number
-
   constructor(data: CharacterConfigData) {
     this.id = data.id
     this.name = data.name
@@ -37,11 +32,6 @@ export class CharacterConfig {
     this.will = data.will ?? 5
     this.strength = data.strength ?? 5
     this.agilityBonus = data.agilityBonus ?? 5
-
-    // 向后兼容字段
-    this.hp = data.hp
-    this.mp = data.mp
-    this.agility = data.agility
   }
 
   // ==================== 属性计算方法 ====================
@@ -110,7 +100,7 @@ export interface CharacterConfigData {
   will?: number
   strength?: number
   agilityBonus?: number
-  // 向后兼容
+  // 向后兼容字段（已废弃但保留以兼容现有数据）
   hp?: number
   mp?: number
   agility?: number

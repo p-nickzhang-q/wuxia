@@ -1,27 +1,10 @@
 import { Application, Container, Text, TextStyle, Graphics } from 'pixi.js'
 import { LayoutConstants } from './LayoutConstants'
+import { Colors } from './ColorConfig'
 
-// 颜色常量
-export const Colors = {
-  BACKGROUND: 0x0a0a1a,
-  PANEL_BG: 0x1a1a2e,
-  CARD_BG: 0x16213e,
-  CARD_HOVER: 0x1f3460,
-  CARD_SELECTED: 0x2a4a80,
-  TEXT_PRIMARY: 0xffffff,
-  TEXT_SECONDARY: 0x888888,
-  TEXT_GOLD: 0xffd700,
-  TEXT_RED: 0xff6b6b,
-  TEXT_GREEN: 0x4ecdc4,
-  TEXT_BLUE: 0x4a9eff,
-  HP_BAR: 0xff4444,
-  MP_BAR: 0x4488ff,
-  SHIELD_BAR: 0x44ff88,
-  AGILITY_BAR: 0xffaa00,
-  BUTTON_NORMAL: 0x4a6ab0,
-  BUTTON_HOVER: 0x5a7ac0,
-  BUTTON_DISABLED: 0x444444
-}
+// 重新导出 Colors 和 ColorConfig
+export { Colors } from './ColorConfig'
+export { ColorConfig } from './ColorConfig'
 
 // 文字样式 - 动态生成，基于当前scale（带缓存）
 export class TextStyles {

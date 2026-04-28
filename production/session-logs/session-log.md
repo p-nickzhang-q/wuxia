@@ -2283,3 +2283,69 @@ src/renderer/ui/VerticalAgilityAxis.ts
 src/utils/TweenManager.ts
 ---
 
+## Session End: 20260428_114519
+### Commits
+8859aad refactor(renderer): 为UI组件添加destroy方法并改进事件管理
+### Uncommitted Changes
+docs/battle-system-refactor-phase2.md
+src/game/CharacterConfig.ts
+---
+
+## Session End: 20260428_114844
+### Commits
+8859aad refactor(renderer): 为UI组件添加destroy方法并改进事件管理
+### Uncommitted Changes
+docs/battle-system-refactor-phase2.md
+production/session-logs/session-log.md
+src/game/CharacterConfig.ts
+---
+
+## Session End: 20260428_120320
+### Commits
+8859aad refactor(renderer): 为UI组件添加destroy方法并改进事件管理
+### Uncommitted Changes
+docs/battle-system-refactor-phase2.md
+production/session-logs/session-log.md
+src/game/CharacterConfig.ts
+---
+
+## Session End: 20260428_120548
+### Commits
+8859aad refactor(renderer): 为UI组件添加destroy方法并改进事件管理
+### Uncommitted Changes
+docs/battle-system-refactor-phase2.md
+production/session-logs/session-log.md
+src/game/CharacterConfig.ts
+src/renderer/Renderer.ts
+---
+
+## Session End: 20260428_120644
+### Commits
+8859aad refactor(renderer): 为UI组件添加destroy方法并改进事件管理
+### Uncommitted Changes
+docs/battle-system-refactor-phase2.md
+production/session-logs/session-log.md
+src/game/CharacterConfig.ts
+src/renderer/Renderer.ts
+---
+
+## Session End: 20260428_164642
+### Commits
+8859aad refactor(renderer): 为UI组件添加destroy方法并改进事件管理
+### Uncommitted Changes
+docs/battle-system-refactor-phase2.md
+production/session-logs/session-log.md
+src/game/CharacterConfig.ts
+src/renderer/Renderer.ts
+---
+
+## Session End: 20260428_165158
+### Commits
+8859aad refactor(renderer): 为UI组件添加destroy方法并改进事件管理
+### Uncommitted Changes
+docs/battle-system-refactor-phase2.md
+production/session-logs/session-log.md
+src/game/CharacterConfig.ts
+src/renderer/Renderer.ts
+---
+
