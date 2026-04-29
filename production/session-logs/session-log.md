@@ -2384,3 +2384,28 @@ production/session-logs/session-log.md
 production/session-logs/session-log.md
 ---
 
+## Session End: 20260429_155851
+### Commits
+23a8fa7 docs(gdd): 添加资源系统设计文档和系统索引
+### Uncommitted Changes
+design/gdd/systems-index.md
+---
+
+## Session End: 20260429_160054
+### Commits
+23a8fa7 docs(gdd): 添加资源系统设计文档和系统索引
+### Uncommitted Changes
+design/gdd/resource-system.md
+design/gdd/systems-index.md
+production/session-logs/session-log.md
+---
+
+## Session End: 20260429_160217
+### Commits
+23a8fa7 docs(gdd): 添加资源系统设计文档和系统索引
+### Uncommitted Changes
+design/gdd/resource-system.md
+design/gdd/systems-index.md
+production/session-logs/session-log.md
+---
+

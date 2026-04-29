@@ -39,15 +39,16 @@
 | 20 | 境界突破系统 | Progression | Phase 2 | ⏳ Partial | design/gdd/game-expansion-design.md | 弟子系统 |
 | 21 | 弟子招募系统 | Progression | Phase 2 | ✅ Implemented | design/gdd/game-expansion-design.md | 弟子系统, 资源系统 |
 | 22 | 资源系统 | Economy | Alpha | ✅ Approved | design/gdd/resource-system.md | — |
-| 23 | 门派设施系统 | Economy | Alpha | 🔲 Not Started | — | 弟子系统, 资源系统 |
-| 24 | 合击技系统 | Gameplay | Alpha | 🔲 Not Started | — | 角色系统, 武功招式系统 |
-| 25 | 江湖地图系统 | Narrative | Alpha | 🔲 Not Started | — | — |
-| 26 | 门派势力系统 | Narrative | Vertical Slice | 🔲 Not Started | — | 江湖地图系统 |
-| 27 | 江湖事件系统 | Narrative | Vertical Slice | 🔲 Not Started | — | 门派势力系统, 资源系统 |
-| 28 | 音频系统 | Audio | Full Vision | 🔲 Not Started | — | 战斗流程系统, UI系统 |
-| 29 | 存档系统 | Persistence | Full Vision | 🔲 Not Started | — | 角色系统, 弟子系统, 资源系统 |
-| 30 | 成就系统 | Meta | Full Vision | 🔲 Not Started | — | 战斗流程系统, 弟子系统 |
-| 31 | 多人对战网络 | Meta | Full Vision | 🔲 Not Started | — | 多人战斗系统 |
+| 23 | 精力系统 | Progression | Alpha | ✅ Approved | design/gdd/vitality-system.md | 弟子系统 | |
+| 24 | 门派设施系统 | Economy | Alpha | 🔲 Not Started | — | 弟子系统, 资源系统, 精力系统 |
+| 25 | 合击技系统 | Gameplay | Alpha | 🔲 Not Started | — | 角色系统, 武功招式系统 |
+| 26 | 江湖地图系统 | Narrative | Alpha | 🔲 Not Started | — | — |
+| 27 | 门派势力系统 | Narrative | Vertical Slice | 🔲 Not Started | — | 江湖地图系统 |
+| 28 | 江湖事件系统 | Narrative | Vertical Slice | 🔲 Not Started | — | 门派势力系统, 资源系统 |
+| 29 | 音频系统 | Audio | Full Vision | 🔲 Not Started | — | 战斗流程系统, UI系统 |
+| 30 | 存档系统 | Persistence | Full Vision | 🔲 Not Started | — | 角色系统, 弟子系统, 资源系统, 精力系统 |
+| 31 | 成就系统 | Meta | Full Vision | 🔲 Not Started | — | 战斗流程系统, 弟子系统 |
+| 32 | 多人对战网络 | Meta | Full Vision | 🔲 Not Started | — | 多人战斗系统 |
 
 ---
 
@@ -102,6 +103,7 @@
 6. 战斗流程系统 — depends on: 回合管理系统, 伤害计算系统
 7. AI系统 — depends on: 卡牌系统, 武功招式系统, 伤害计算系统
 8. 合击技系统 — depends on: 角色系统, 武功招式系统
+9. 精力系统 — depends on: 弟子系统（精力作为弟子属性）
 
 ### Feature Layer (depends on core)
 
@@ -112,7 +114,7 @@
 5. 弟子系统 — depends on: 角色系统（扩展数据结构）
 6. 武功学习系统 — depends on: 弟子系统, 武功招式系统
 7. 境界突破系统 — depends on: 弟子系统
-8. 门派设施系统 — depends on: 弟子系统, 资源系统
+8. 门派设施系统 — depends on: 弟子系统, 资源系统, 精力系统（房间恢复精力）
 9. 门派势力系统 — depends on: 江湖地图系统
 10. 弟子招募系统 — depends on: 弟子系统, 资源系统
 
@@ -156,15 +158,16 @@
 | 20 | 境界突破系统 | Phase 2 | Feature | game-designer | S | ⏳ |
 | 21 | 弟子招募系统 | Phase 2 | Feature | game-designer | M | ✅ |
 | 22 | 资源系统 | Alpha | Foundation | economy-designer | S | ✅ |
-| 23 | 门派设施系统 | Alpha | Feature | game-designer | M | 🔲 |
-| 24 | 合击技系统 | Alpha | Core | game-designer | S | 🔲 |
-| 25 | 江湖地图系统 | Alpha | Foundation | level-designer | M | 🔲 |
-| 26 | 门派势力系统 | Vertical Slice | Feature | world-builder | M | 🔲 |
-| 27 | 江湖事件系统 | Vertical Slice | Polish | narrative-director | M | 🔲 |
-| 28 | 音频系统 | Full Vision | Polish | audio-director | M | 🔲 |
-| 29 | 存档系统 | Full Vision | Polish | gameplay-programmer | S | 🔲 |
-| 30 | 成就系统 | Full Vision | Polish | game-designer | S | 🔲 |
-| 31 | 多人对战网络 | Full Vision | Polish | network-programmer | L | 🔲 |
+| 23 | 精力系统 | Alpha | Core | game-designer | M | ✅ |
+| 24 | 门派设施系统 | Alpha | Feature | game-designer | M | 🔲 |
+| 25 | 合击技系统 | Alpha | Core | game-designer | S | 🔲 |
+| 26 | 江湖地图系统 | Alpha | Foundation | level-designer | M | 🔲 |
+| 27 | 门派势力系统 | Vertical Slice | Feature | world-builder | M | 🔲 |
+| 28 | 江湖事件系统 | Vertical Slice | Polish | narrative-director | M | 🔲 |
+| 29 | 音频系统 | Full Vision | Polish | audio-director | M | 🔲 |
+| 30 | 存档系统 | Full Vision | Polish | gameplay-programmer | S | 🔲 |
+| 31 | 成就系统 | Full Vision | Polish | game-designer | S | 🔲 |
+| 32 | 多人对战网络 | Full Vision | Polish | network-programmer | L | 🔲 |
 
 ---
 
@@ -191,15 +194,15 @@
 
 | Metric | Count |
 |--------|-------|
-| Total systems identified | 31 |
+| Total systems identified | 32 |
 | MVP systems | 13 (全部完成 ✅) |
 | Phase 1 systems | 4 (全部完成 ✅) |
 | Phase 2 systems | 4 (2完成, 2部分 ⏳) |
-| Alpha systems | 4 (1设计完成 ✅, 3待开发 🔲) |
+| Alpha systems | 5 (2设计完成 ✅, 3待开发 🔲) |
 | Vertical Slice systems | 2 (待开发 🔲) |
 | Full Vision systems | 4 (待开发 🔲) |
-| Design docs reviewed | 3 |
-| Design docs approved | 3 |
+| Design docs reviewed | 4 |
+| Design docs approved | 4 |
 
 ---
 
@@ -209,9 +212,9 @@
 - [x] Phase 1多人战斗系统实现
 - [x] Phase 2弟子系统基础实现
 - [x] 资源系统设计完成（Approved）
+- [x] 精力系统设计完成（Approved）
 - [ ] 完善武功学习系统和境界突破系统
-- [ ] 设计门派设施系统（依赖资源系统）
-- [ ] 设计精力系统（弟子系统的关键约束）
+- [ ] 设计门派设施系统（依赖资源系统、精力系统）
 - [ ] 运行 `/design-review` 验证新系统GDD质量
 - [ ] 运行 `/gate-check pre-production` 确认进入生产阶段
 - [ ] 原型验证多人对战网络架构
