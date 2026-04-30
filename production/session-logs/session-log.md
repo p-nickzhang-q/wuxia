@@ -2409,3 +2409,54 @@ design/gdd/systems-index.md
 production/session-logs/session-log.md
 ---
 
+## Session End: 20260429_164716
+### Commits
+aa2f179 docs(gdd): 添加精力系统设计文档并完善跨系统依赖关系
+23a8fa7 docs(gdd): 添加资源系统设计文档和系统索引
+---
+
+## Session End: 20260429_165012
+### Commits
+aa2f179 docs(gdd): 添加精力系统设计文档并完善跨系统依赖关系
+23a8fa7 docs(gdd): 添加资源系统设计文档和系统索引
+### Uncommitted Changes
+design/gdd/systems-index.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260430_155205
+### Uncommitted Changes
+design/gdd/systems-index.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260430_155645
+### Uncommitted Changes
+design/gdd/systems-index.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260430_161645
+### Uncommitted Changes
+design/gdd/systems-index.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260430_162442
+### Uncommitted Changes
+design/gdd/systems-index.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260430_164534
+### Uncommitted Changes
+design/gdd/systems-index.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+

@@ -35,20 +35,22 @@
 | 16 | 目标选择系统 | Gameplay | Phase 1 | ✅ Implemented | design/gdd/game-expansion-design.md | 距离系统, 武功攻击范围 |
 | 17 | 武功攻击范围 | Gameplay | Phase 1 | ✅ Implemented | design/gdd/game-expansion-design.md | 武功招式系统 |
 | 18 | 弟子系统 | Progression | Phase 2 | ✅ Implemented | design/gdd/game-expansion-design.md | 角色系统 |
-| 19 | 武功学习系统 | Progression | Phase 2 | ⏳ Partial | design/gdd/game-expansion-design.md | 弟子系统, 武功招式系统 |
-| 20 | 境界突破系统 | Progression | Phase 2 | ⏳ Partial | design/gdd/game-expansion-design.md | 弟子系统 |
+| 19 | 武功学习系统 | Progression | Phase 2 | ✅ Approved | design/gdd/martial-arts-learning-system.md | 弟子系统, 武功招式系统, 门派设施系统, 精力系统 |
+| 20 | 境界突破系统 | Progression | Phase 2 | ✅ Approved | design/gdd/realm-breakthrough-system.md | 弟子系统, 资源系统 |
 | 21 | 弟子招募系统 | Progression | Phase 2 | ✅ Implemented | design/gdd/game-expansion-design.md | 弟子系统, 资源系统 |
 | 22 | 资源系统 | Economy | Alpha | ✅ Approved | design/gdd/resource-system.md | — |
 | 23 | 精力系统 | Progression | Alpha | ✅ Approved | design/gdd/vitality-system.md | 弟子系统 | |
-| 24 | 门派设施系统 | Economy | Alpha | 🔲 Not Started | — | 弟子系统, 资源系统, 精力系统 |
-| 25 | 合击技系统 | Gameplay | Alpha | 🔲 Not Started | — | 角色系统, 武功招式系统 |
-| 26 | 江湖地图系统 | Narrative | Alpha | 🔲 Not Started | — | — |
-| 27 | 门派势力系统 | Narrative | Vertical Slice | 🔲 Not Started | — | 江湖地图系统 |
-| 28 | 江湖事件系统 | Narrative | Vertical Slice | 🔲 Not Started | — | 门派势力系统, 资源系统 |
-| 29 | 音频系统 | Audio | Full Vision | 🔲 Not Started | — | 战斗流程系统, UI系统 |
-| 30 | 存档系统 | Persistence | Full Vision | 🔲 Not Started | — | 角色系统, 弟子系统, 资源系统, 精力系统 |
-| 31 | 成就系统 | Meta | Full Vision | 🔲 Not Started | — | 战斗流程系统, 弟子系统 |
-| 32 | 多人对战网络 | Meta | Full Vision | 🔲 Not Started | — | 多人战斗系统 |
+| 24 | 门派设施系统 | Economy | Alpha | ✅ Approved | design/gdd/facility-system.md | 弟子系统, 资源系统, 精力系统 |
+| 25 | 装备系统 | Economy | Alpha | 🔲 Not Started | — | 门派设施系统, 精力系统, 弟子系统 |
+| 26 | 药品系统 | Economy | Alpha | 🔲 Not Started | — | 门派设施系统, 精力系统, 战斗系统 |
+| 27 | 合击技系统 | Gameplay | Alpha | 🔲 Not Started | — | 角色系统, 武功招式系统 |
+| 28 | 江湖地图系统 | Narrative | Alpha | 🔲 Not Started | — | — |
+| 29 | 门派势力系统 | Narrative | Vertical Slice | 🔲 Not Started | — | 江湖地图系统 |
+| 30 | 江湖事件系统 | Narrative | Vertical Slice | 🔲 Not Started | — | 门派势力系统, 资源系统 |
+| 31 | 音频系统 | Audio | Full Vision | 🔲 Not Started | — | 战斗流程系统, UI系统 |
+| 32 | 存档系统 | Persistence | Full Vision | 🔲 Not Started | — | 角色系统, 弟子系统, 资源系统, 精力系统 |
+| 33 | 成就系统 | Meta | Full Vision | 🔲 Not Started | — | 战斗流程系统, 弟子系统 |
+| 34 | 多人对战网络 | Meta | Full Vision | 🔲 Not Started | — | 多人战斗系统 |
 
 ---
 
@@ -59,7 +61,7 @@
 | **Core** | Foundation systems everything depends on | 渲染、场景管理、角色、卡牌、武功、内功、伤害、状态效果、回合、轻功、战斗流程、AI |
 | **Gameplay** | The systems that make the game fun | 多人战斗、距离、目标选择、武功攻击范围、合击技 |
 | **Progression** | How the player grows over time | 弟子、武功学习、境界突破、弟子招募 |
-| **Economy** | Resource creation and consumption | 资源系统、门派设施 |
+| **Economy** | Resource creation and consumption | 资源系统、门派设施、装备系统、药品系统 |
 | **Persistence** | Save state and continuity | 存档系统 |
 | **UI** | Player-facing information displays | UI系统（角色面板、卡牌渲染、战斗日志、状态栏） |
 | **Audio** | Sound and music systems | 音频系统（音效、BGM） |
@@ -154,20 +156,22 @@
 | 16 | 武功攻击范围 | Phase 1 | Feature | game-designer | S | ✅ |
 | 17 | 目标选择系统 | Phase 1 | Feature | ui-programmer | M | ✅ |
 | 18 | 弟子系统 | Phase 2 | Feature | game-designer | M | ✅ |
-| 19 | 武功学习系统 | Phase 2 | Feature | game-designer | S | ⏳ |
-| 20 | 境界突破系统 | Phase 2 | Feature | game-designer | S | ⏳ |
+| 19 | 武功学习系统 | Phase 2 | Feature | game-designer | M | ✅ |
+| 20 | 境界突破系统 | Phase 2 | Feature | game-designer | M | ✅ |
 | 21 | 弟子招募系统 | Phase 2 | Feature | game-designer | M | ✅ |
 | 22 | 资源系统 | Alpha | Foundation | economy-designer | S | ✅ |
 | 23 | 精力系统 | Alpha | Core | game-designer | M | ✅ |
-| 24 | 门派设施系统 | Alpha | Feature | game-designer | M | 🔲 |
-| 25 | 合击技系统 | Alpha | Core | game-designer | S | 🔲 |
-| 26 | 江湖地图系统 | Alpha | Foundation | level-designer | M | 🔲 |
-| 27 | 门派势力系统 | Vertical Slice | Feature | world-builder | M | 🔲 |
-| 28 | 江湖事件系统 | Vertical Slice | Polish | narrative-director | M | 🔲 |
-| 29 | 音频系统 | Full Vision | Polish | audio-director | M | 🔲 |
-| 30 | 存档系统 | Full Vision | Polish | gameplay-programmer | S | 🔲 |
-| 31 | 成就系统 | Full Vision | Polish | game-designer | S | 🔲 |
-| 32 | 多人对战网络 | Full Vision | Polish | network-programmer | L | 🔲 |
+| 24 | 门派设施系统 | Alpha | Feature | game-designer | M | ✅ |
+| 25 | 装备系统 | Alpha | Feature | game-designer | M | 🔲 |
+| 26 | 药品系统 | Alpha | Feature | game-designer | M | 🔲 |
+| 27 | 合击技系统 | Alpha | Core | game-designer | S | 🔲 |
+| 28 | 江湖地图系统 | Alpha | Foundation | level-designer | M | 🔲 |
+| 29 | 门派势力系统 | Vertical Slice | Feature | world-builder | M | 🔲 |
+| 30 | 江湖事件系统 | Vertical Slice | Polish | narrative-director | M | 🔲 |
+| 31 | 音频系统 | Full Vision | Polish | audio-director | M | 🔲 |
+| 32 | 存档系统 | Full Vision | Polish | gameplay-programmer | S | 🔲 |
+| 33 | 成就系统 | Full Vision | Polish | game-designer | S | 🔲 |
+| 34 | 多人对战网络 | Full Vision | Polish | network-programmer | L | 🔲 |
 
 ---
 
@@ -194,15 +198,15 @@
 
 | Metric | Count |
 |--------|-------|
-| Total systems identified | 32 |
+| Total systems identified | 34 |
 | MVP systems | 13 (全部完成 ✅) |
 | Phase 1 systems | 4 (全部完成 ✅) |
-| Phase 2 systems | 4 (2完成, 2部分 ⏳) |
-| Alpha systems | 5 (2设计完成 ✅, 3待开发 🔲) |
+| Phase 2 systems | 4 (全部完成 ✅) |
+| Alpha systems | 7 (4设计完成 ✅, 3待开发 🔲) |
 | Vertical Slice systems | 2 (待开发 🔲) |
 | Full Vision systems | 4 (待开发 🔲) |
 | Design docs reviewed | 4 |
-| Design docs approved | 4 |
+| Design docs approved | 7 |
 
 ---
 
@@ -213,8 +217,8 @@
 - [x] Phase 2弟子系统基础实现
 - [x] 资源系统设计完成（Approved）
 - [x] 精力系统设计完成（Approved）
-- [ ] 完善武功学习系统和境界突破系统
-- [ ] 设计门派设施系统（依赖资源系统、精力系统）
-- [ ] 运行 `/design-review` 验证新系统GDD质量
+- [x] 门派设施系统设计完成（Approved）
+- [x] 武功学习系统设计完成（Approved）
+- [x] 境界突破系统设计完成（Approved）
+- [ ] 设计合击技系统
 - [ ] 运行 `/gate-check pre-production` 确认进入生产阶段
-- [ ] 原型验证多人对战网络架构
