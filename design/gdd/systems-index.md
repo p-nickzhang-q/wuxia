@@ -46,7 +46,7 @@
 | 27 | 合击技系统 | Gameplay | Alpha | 🔲 Not Started | — | 角色系统, 武功招式系统 |
 | 28 | 江湖地图系统 | Narrative | Alpha | ✅ Approved | design/gdd/jianghu-map-system.md | — |
 | 29 | 门派势力系统 | Narrative | Vertical Slice | ✅ Approved | design/gdd/faction-power-system.md | 江湖地图系统 |
-| 30 | 江湖事件系统 | Narrative | Vertical Slice | 🔲 Not Started | — | 门派势力系统, 资源系统 |
+| 30 | 江湖事件系统 | Narrative | Vertical Slice | ✅ Approved | design/gdd/jianghu-event-system.md | 门派势力系统, 资源系统 |
 | 31 | 音频系统 | Audio | Full Vision | 🔲 Not Started | — | 战斗流程系统, UI系统 |
 | 32 | 存档系统 | Persistence | Full Vision | 🔲 Not Started | — | 角色系统, 弟子系统, 资源系统, 精力系统 |
 | 33 | 成就系统 | Meta | Full Vision | 🔲 Not Started | — | 战斗流程系统, 弟子系统 |
@@ -203,10 +203,10 @@
 | Phase 1 systems | 4 (全部完成 ✅) |
 | Phase 2 systems | 4 (全部完成 ✅) |
 | Alpha systems | 7 (7设计完成 ✅, 0待开发 🔲) |
-| Vertical Slice systems | 2 (1设计完成 ✅, 1待开发 🔲) |
+| Vertical Slice systems | 2 (2设计完成 ✅, 0待开发 🔲) |
 | Full Vision systems | 4 (待开发 🔲) |
 | Design docs reviewed | 4 |
-| Design docs approved | 11 |
+| Design docs approved | 12 |
 
 ---
 
@@ -224,5 +224,5 @@
 - [x] 药品系统设计完成（Approved）
 - [x] 江湖地图系统设计完成（Approved）
 - [x] 门派势力系统设计完成（Approved）
-- [ ] 设计江湖事件系统
+- [x] 江湖事件系统设计完成（Approved）
 - [ ] 运行 `/gate-check pre-production` 确认进入生产阶段
