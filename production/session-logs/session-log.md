@@ -2469,3 +2469,18 @@ design/gdd/vitality-system.md
 production/session-logs/compaction-log.txt
 ---
 
+## Session End: 20260506_172256
+### Commits
+8b590d2 feat(game): 更新资源系统和装备药品系统设计文档
+### Uncommitted Changes
+design/gdd/systems-index.md
+---
+
+## Session End: 20260506_173619
+### Commits
+8b590d2 feat(game): 更新资源系统和装备药品系统设计文档
+### Uncommitted Changes
+design/gdd/systems-index.md
+production/session-logs/session-log.md
+---
+
