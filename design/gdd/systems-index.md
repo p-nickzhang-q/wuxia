@@ -41,8 +41,8 @@
 | 22 | 资源系统 | Economy | Alpha | ✅ Approved | design/gdd/resource-system.md | — |
 | 23 | 精力系统 | Progression | Alpha | ✅ Approved | design/gdd/vitality-system.md | 弟子系统 | |
 | 24 | 门派设施系统 | Economy | Alpha | ✅ Approved | design/gdd/facility-system.md | 弟子系统, 资源系统, 精力系统 |
-| 25 | 装备系统 | Economy | Alpha | 🔲 Not Started | — | 门派设施系统, 精力系统, 弟子系统 |
-| 26 | 药品系统 | Economy | Alpha | 🔲 Not Started | — | 门派设施系统, 精力系统, 战斗系统 |
+| 25 | 装备系统 | Economy | Alpha | ✅ Approved | design/gdd/equipment-system.md | 门派设施系统, 精力系统, 弟子系统, 资源系统 |
+| 26 | 药品系统 | Economy | Alpha | ✅ Approved | design/gdd/medicine-system.md | 门派设施系统, 精力系统, 资源系统, 弟子系统, 战斗系统 |
 | 27 | 合击技系统 | Gameplay | Alpha | 🔲 Not Started | — | 角色系统, 武功招式系统 |
 | 28 | 江湖地图系统 | Narrative | Alpha | 🔲 Not Started | — | — |
 | 29 | 门派势力系统 | Narrative | Vertical Slice | 🔲 Not Started | — | 江湖地图系统 |
@@ -202,11 +202,11 @@
 | MVP systems | 13 (全部完成 ✅) |
 | Phase 1 systems | 4 (全部完成 ✅) |
 | Phase 2 systems | 4 (全部完成 ✅) |
-| Alpha systems | 7 (4设计完成 ✅, 3待开发 🔲) |
+| Alpha systems | 7 (6设计完成 ✅, 1待开发 🔲) |
 | Vertical Slice systems | 2 (待开发 🔲) |
 | Full Vision systems | 4 (待开发 🔲) |
 | Design docs reviewed | 4 |
-| Design docs approved | 7 |
+| Design docs approved | 9 |
 
 ---
 
@@ -220,5 +220,7 @@
 - [x] 门派设施系统设计完成（Approved）
 - [x] 武功学习系统设计完成（Approved）
 - [x] 境界突破系统设计完成（Approved）
+- [x] 装备系统设计完成（Approved）
+- [x] 药品系统设计完成（Approved）
 - [ ] 设计合击技系统
 - [ ] 运行 `/gate-check pre-production` 确认进入生产阶段
