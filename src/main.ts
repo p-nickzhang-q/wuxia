@@ -5,6 +5,7 @@ import { BattleScene } from './scenes/BattleScene'
 import { ResultScene } from './scenes/ResultScene'
 import { SkillListScene } from './scenes/SkillListScene'
 import { DiscipleRecruitScene } from './scenes/DiscipleRecruitScene'
+import { SectorScene } from './scenes/SectorScene'
 import { Scene } from './scenes/Scene'
 import { tweenManager } from './utils/TweenManager'
 import { audioManager } from './utils/AudioManager'
@@ -20,6 +21,7 @@ class Game {
   private resultScene: ResultScene | null = null
   private skillListScene: SkillListScene | null = null
   private discipleRecruitScene: DiscipleRecruitScene | null = null
+  private sectorScene: SectorScene | null = null
   private battleConfig: BattleConfig | null = null
 
   constructor() {
@@ -37,6 +39,7 @@ class Game {
     this.resultScene = new ResultScene(this.renderer)
     this.skillListScene = new SkillListScene(this.renderer)
     this.discipleRecruitScene = new DiscipleRecruitScene(this.renderer)
+    this.sectorScene = new SectorScene(this.renderer)
 
     // 标题场景回调
     this.titleScene.setOnBattleMode(() => {
@@ -49,6 +52,10 @@ class Game {
 
     this.titleScene.setOnRecruitDisciple(() => {
       this.showDiscipleRecruit()
+    })
+
+    this.titleScene.setOnSectorManage(() => {
+      this.showSector()
     })
 
     this.titleScene.setOnExit(() => {
@@ -78,6 +85,17 @@ class Game {
 
     this.discipleRecruitScene.setOnDiscipleRecruited((disciple) => {
       console.log('招募弟子:', disciple.name, disciple)
+    })
+
+    // 门派管理场景回调
+    this.sectorScene.setOnEnterBattle((discipleIds) => {
+      console.log('出战弟子:', discipleIds)
+      // TODO: 将弟子数据转换为战斗配置
+      this.showCharacterSelect()
+    })
+
+    this.sectorScene.setOnBackToTitle(() => {
+      this.showTitle()
     })
 
     this.battleScene.setOnBattleEnd((playerWon) => {
@@ -217,6 +235,20 @@ class Game {
     }
 
     this.currentScene = this.discipleRecruitScene
+    if (this.currentScene) {
+      this.renderer.getStage().addChild(this.currentScene)
+      this.currentScene.onEnter()
+    }
+  }
+
+  // 显示门派管理场景
+  private showSector(): void {
+    if (this.currentScene) {
+      this.currentScene.onExit()
+      this.renderer.getStage().removeChild(this.currentScene)
+    }
+
+    this.currentScene = this.sectorScene
     if (this.currentScene) {
       this.renderer.getStage().addChild(this.currentScene)
       this.currentScene.onEnter()

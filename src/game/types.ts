@@ -421,3 +421,75 @@ export interface DiscipleTemplate {
   recruitCost: number              // 基础招募花费
   minReputation: number            // 需要的最低声望
 }
+
+// ==================== 门派管理弟子状态 ====================
+export enum SectorDiscipleStatus {
+  HEALTHY = '健康',
+  INJURED = '受伤',
+  TRAINING = '修炼中',
+  RESTING = '休息中',
+  EXPLORING = '探索中'
+}
+
+// ==================== 门派弟子（扩展 DiscipleState）====================
+export interface SectorDisciple extends DiscipleState {
+  // 门派管理专属属性
+  vitality: number           // 精力 (0-100)
+  maxVitality: number        // 最大精力
+  loyalty: number            // 忠诚度 (0-100)
+  status: SectorDiscipleStatus
+  trainingTask?: string      // 当前修炼任务（武功ID或设施ID）
+  currentHp: number          // 当前HP
+  currentMp: number          // 当前MP
+}
+
+// ==================== 设施类型 ====================
+export enum FacilityType {
+  TRAINING_HALL = '练功房',
+  REST_ROOM = '休息室',
+  LIBRARY = '藏经阁',
+  ALCHEMY_ROOM = '炼丹房',
+  FORGE = '锻造房'
+}
+
+// ==================== 设施接口 ====================
+export interface Facility {
+  id: string
+  name: string
+  type: FacilityType
+  level: number              // 设施等级 (1-5)
+  capacity: number           // 容纳人数
+  occupants: string[]        // 当前使用者ID列表
+}
+
+// ==================== 门派资源 ====================
+export interface SectorResources {
+  wood: number               // 木材
+  metal: number              // 金属
+  herb: number               // 药材
+}
+
+// ==================== 门派状态 ====================
+export interface SectorState {
+  id: string
+  name: string               // 门派名称
+  faction: Faction           // 门派归属
+
+  // 资源
+  silver: number             // 银两
+  reputation: number         // 声望
+  resources: SectorResources // 材料
+
+  // 弟子
+  disciples: SectorDisciple[]
+  maxDisciples: number       // 最大弟子数量
+
+  // 设施
+  facilities: Facility[]
+
+  // 时间
+  turn: number               // 当前回合
+
+  // 门派关系（与各门派的关系值）
+  factionRelations: Record<string, number>
+}

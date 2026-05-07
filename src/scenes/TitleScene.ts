@@ -9,6 +9,7 @@ export class TitleScene extends Scene {
   private onBattleMode?: () => void
   private onViewSkills?: () => void
   private onRecruitDisciple?: () => void
+  private onSectorManage?: () => void
   private onExitGame?: () => void
 
   constructor(renderer: Renderer) {
@@ -26,6 +27,10 @@ export class TitleScene extends Scene {
 
   setOnRecruitDisciple(callback: () => void): void {
     this.onRecruitDisciple = callback
+  }
+
+  setOnSectorManage(callback: () => void): void {
+    this.onSectorManage = callback
   }
 
   setOnExit(callback: () => void): void {
@@ -109,12 +114,12 @@ export class TitleScene extends Scene {
     skillBtn.setOnClick(() => this.onViewSkills?.())
     this.addChild(skillBtn)
 
-    // 设置按钮（暂未实现）
-    const settingsBtn = new Button('设置', btnWidth, btnHeight, this.renderer)
-    settingsBtn.x = width / 2 - btnWidth / 2
-    settingsBtn.y = buttonY + buttonSpacing * 3
-    settingsBtn.setOnClick(() => {})
-    this.addChild(settingsBtn)
+    // 门派管理按钮
+    const sectorBtn = new Button('门派管理', btnWidth, btnHeight, this.renderer)
+    sectorBtn.x = width / 2 - btnWidth / 2
+    sectorBtn.y = buttonY + buttonSpacing * 3
+    sectorBtn.setOnClick(() => this.onSectorManage?.())
+    this.addChild(sectorBtn)
 
     // 退出按钮
     const exitBtn = new Button('退出', btnWidth, btnHeight, this.renderer)
