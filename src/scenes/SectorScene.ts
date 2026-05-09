@@ -11,9 +11,6 @@ import {
 } from '../game/types'
 import {
   createSector,
-  endTurn,
-  TurnSummary,
-  DiscipleStatusChange,
   upgradeFacility
 } from '../game/Sector'
 import { DiscipleCard } from '../renderer/ui/DiscipleCard'
@@ -49,13 +46,11 @@ export class SectorScene extends Scene {
 
   // 弹窗
   private detailPopup: Container | null = null
-  private turnSummaryPopup: Container | null = null
 
-  // 回调
-  private onEnterBattle?: (discipleIds: string[]) => void
+  // 回调（探索事件触发战斗时使用）
+  private _onEnterBattle?: (discipleIds: string[]) => void
   private onBackToTitle?: () => void
   private onTraining?: () => void
-  private onDiplomacy?: () => void
 
   constructor(renderer: Renderer) {
     super(renderer)
@@ -78,7 +73,9 @@ export class SectorScene extends Scene {
   update(_delta: number): void {}
 
   /**
-   * 创建完整UI - 按照设计文档布局
+   * 创建完整UI - 按照设计文档布局（居中响应式）
+   *
+   * 新布局：弟子列表右侧垂直排列操作按钮（修炼/训练/探索/返回）
    */
   private createUI(): void {
     const size = this.renderer.getSize()
@@ -90,42 +87,74 @@ export class SectorScene extends Scene {
     this.addChild(bg)
 
     // ═════════════════════════════════════════════════
+    // 布局计算 - 居中分布
+    // ═════════════════════════════════════════════════
+    const margin = 20          // 边距
+    const gap = 20             // 面板间距
+    const mapWidth = 280       // 势力地图固定宽度
+    const actionBtnWidth = 120 // 右侧操作按钮宽度
+
+    // 计算设施面板宽度（响应式）
+    const availableWidth = size.width - margin * 2 - gap - mapWidth
+    const facilityPanelWidth = Math.min(availableWidth * 0.65, 550)
+
+    // 弟子列表宽度 = 设施面板宽度（左侧对齐）
+    // 右侧操作按钮宽度 = actionBtnWidth
+    const discipleListWidth = facilityPanelWidth
+    const totalContentWidth = facilityPanelWidth + gap + mapWidth
+    const startX = (size.width - totalContentWidth) / 2
+
+    // ═════════════════════════════════════════════════
     // 顶部状态栏：门派名称 | 声望星级 | 财富 | 弟子数
     // ═════════════════════════════════════════════════
     const headerBar = this.createHeaderBar()
+    headerBar.x = startX
     headerBar.y = 10
     this.addChild(headerBar)
 
     // ═════════════════════════════════════════════════
-    // 左侧：门派设施区域
+    // 高度分配
     // ═════════════════════════════════════════════════
-    this.facilityContainer = this.createFacilityPanel()
-    this.facilityContainer.x = 20
-    this.facilityContainer.y = 70
+    const headerHeight = 65
+    const discipleListHeight = 200
+
+    // 底部区域：弟子列表 + 右侧操作按钮（垂直排列）
+    const actionPanelHeight = discipleListHeight
+    const bottomSectionY = size.height - margin - discipleListHeight
+
+    const facilityPanelHeight = bottomSectionY - headerHeight - margin
+
+    // ═════════════════════════════════════════════════
+    // 左侧：门派设施区域（居中）
+    // ═════════════════════════════════════════════════
+    this.facilityContainer = this.createFacilityPanel(facilityPanelWidth, facilityPanelHeight)
+    this.facilityContainer.x = startX
+    this.facilityContainer.y = headerHeight
     this.addChild(this.facilityContainer)
 
     // ═════════════════════════════════════════════════
-    // 右侧：势力地图
+    // 右侧：势力地图（居中）
     // ═════════════════════════════════════════════════
-    this.factionMapContainer = this.createFactionMap()
-    const mapWidth = 280
-    this.factionMapContainer.x = size.width - mapWidth - 20
-    this.factionMapContainer.y = 70
+    this.factionMapContainer = this.createFactionMap(mapWidth, facilityPanelHeight)
+    this.factionMapContainer.x = startX + facilityPanelWidth + gap
+    this.factionMapContainer.y = headerHeight
     this.addChild(this.factionMapContainer)
 
     // ═════════════════════════════════════════════════
-    // 弟子列表区域
+    // 弟子列表区域（左侧）
     // ═════════════════════════════════════════════════
-    this.discipleListContainer = this.createDiscipleList()
-    this.discipleListContainer.y = size.height - 220
+    this.discipleListContainer = this.createDiscipleList(discipleListWidth)
+    this.discipleListContainer.x = startX
+    this.discipleListContainer.y = bottomSectionY
     this.addChild(this.discipleListContainer)
 
     // ═════════════════════════════════════════════════
-    // 底部操作按钮：修炼 | 外交 | 挑战 | 结束回合
+    // 右侧操作按钮（垂直排列）- 学习武功 | 训练武功 | 江湖探索 | 返回
     // ═════════════════════════════════════════════════
-    const buttonBar = this.createButtonBar()
-    buttonBar.y = size.height - 55
-    this.addChild(buttonBar)
+    const actionPanel = this.createActionButtons(actionBtnWidth, actionPanelHeight)
+    actionPanel.x = startX + discipleListWidth + gap
+    actionPanel.y = bottomSectionY
+    this.addChild(actionPanel)
   }
 
   /**
@@ -134,7 +163,7 @@ export class SectorScene extends Scene {
   private createHeaderBar(): Container {
     const container = new Container()
     const size = this.renderer.getSize()
-    const barWidth = size.width - 40
+    const barWidth = size.width - 40  // 响应式宽度
     const barHeight = 55
 
     // 背景
@@ -205,12 +234,10 @@ export class SectorScene extends Scene {
   }
 
   /**
-   * 门派设施面板
+   * 门派设施面板（响应式宽度）
    */
-  private createFacilityPanel(): Container {
+  private createFacilityPanel(panelWidth: number, panelHeight: number): Container {
     const container = new Container()
-    const panelWidth = 450
-    const panelHeight = 350
 
     // 面板背景
     const bg = this.renderer.createGraphics()
@@ -228,9 +255,9 @@ export class SectorScene extends Scene {
     title.y = 10
     container.addChild(title)
 
-    // 设施卡片
-    const facilityWidth = 140
-    const facilityHeight = 100
+    // 设施卡片 - 响应式布局
+    const facilityWidth = Math.min(140, panelWidth * 0.3)   // 设施卡片宽度响应面板宽度
+    const facilityHeight = Math.min(100, panelHeight * 0.35)
     const startX = 15
     const startY = 40
     const padding = 10
@@ -303,10 +330,8 @@ export class SectorScene extends Scene {
   /**
    * 势力地图面板
    */
-  private createFactionMap(): Container {
+  private createFactionMap(mapWidth: number, mapHeight: number): Container {
     const container = new Container()
-    const mapWidth = 280
-    const mapHeight = 350
 
     // 背景
     const bg = this.renderer.createGraphics()
@@ -324,7 +349,7 @@ export class SectorScene extends Scene {
     title.y = 10
     container.addChild(title)
 
-    // 门派节点
+    // 门派节点 - 响应式布局
     const factions = [
       { name: '丐帮', relation: 'self' },
       { name: '武当', relation: 'hostile' },
@@ -334,12 +359,12 @@ export class SectorScene extends Scene {
       { name: '魔教', relation: 'hostile' }
     ]
 
-    const nodeWidth = 80
-    const nodeHeight = 60
+    const nodeWidth = Math.min(80, mapWidth * 0.28)
+    const nodeHeight = Math.min(60, mapHeight * 0.12)
     const startX = 30
     const startY = 40
-    const colPadding = 90
-    const rowPadding = 70
+    const colPadding = Math.min(90, mapWidth * 0.32)
+    const rowPadding = Math.min(70, mapHeight * 0.18)
 
     factions.forEach((faction, index) => {
       const col = index % 2
@@ -415,13 +440,11 @@ export class SectorScene extends Scene {
   }
 
   /**
-   * 弟子列表面板
+   * 弟子列表面板（响应式宽度）
    */
-  private createDiscipleList(): Container {
+  private createDiscipleList(listWidth: number): Container {
     const container = new Container()
-    const size = this.renderer.getSize()
-    const listWidth = size.width - 40
-    const listHeight = 160
+    const listHeight = 200   // 增加高度以容纳卡片
 
     // 背景
     const bg = this.renderer.createGraphics()
@@ -439,24 +462,29 @@ export class SectorScene extends Scene {
     title.y = 10
     container.addChild(title)
 
-    // 弟子卡片
+    // 弟子卡片 - 响应式尺寸，确保在容器高度内
     this.discipleCards = []
-    const cardWidth = 100
-    const cardHeight = 110
+    const cardWidth = Math.min(130, listWidth * 0.15)    // 卡片宽度响应列表宽度
+    const cardHeight = 155                               // 卡片高度固定，确保内容可见
     const startX = 20
-    const startY = 35
-    const padding = 10
+    const startY = 35                                    // 标题占35px
+    const padding = 15
+
+    // 计算每行能放多少卡片
+    const cardsPerRow = Math.floor((listWidth - startX - 20) / (cardWidth + padding))
 
     this.sector.disciples.forEach((disciple, index) => {
+      const col = index % cardsPerRow
+      const row = Math.floor(index / cardsPerRow)
       const card = new DiscipleCard(disciple, cardWidth, cardHeight, this.renderer)
-      card.x = startX + index * (cardWidth + padding)
-      card.y = startY
+      card.x = startX + col * (cardWidth + padding)
+      card.y = startY + row * (cardHeight + 5)
       card.setOnClick(() => this.showDiscipleDetail(disciple))
       container.addChild(card)
       this.discipleCards.push(card)
     })
 
-    // 招募新弟子按钮
+    // 招募新弟子按钮（右下角）
     const recruitBtn = new Button('招募新弟子', 120, 30, this.renderer)
     recruitBtn.x = listWidth - 130
     recruitBtn.y = 10
@@ -467,43 +495,46 @@ export class SectorScene extends Scene {
   }
 
   /**
-   * 底部按钮栏：修炼 | 外交 | 挑战 | 结束回合
+   * 右侧操作按钮（垂直排列）- 按照SECTOR-UI-DESIGN.md布局
+   * 按钮顺序：【修炼】→【训练】→【探索】→【返回】
    */
-  private createButtonBar(): Container {
+  private createActionButtons(panelWidth: number, panelHeight: number): Container {
     const container = new Container()
-    const size = this.renderer.getSize()
-    const btnWidth = 120
+
+    // 按钮尺寸
+    const btnWidth = panelWidth
     const btnHeight = 45
-    const startX = (size.width - 4 * btnWidth - 3 * 15) / 2
+    const btnGap = 10
 
-    // 修炼按钮
-    const trainingBtn = new Button('修炼', btnWidth, btnHeight, this.renderer)
-    trainingBtn.x = startX
-    trainingBtn.setOnClick(() => this.onTraining?.() || this.showMessage('修炼功能开发中...'))
-    container.addChild(trainingBtn)
+    // 计算按钮位置（垂直居中排列）
+    const totalButtonsHeight = 4 * btnHeight + 3 * btnGap
+    const startY = (panelHeight - totalButtonsHeight) / 2
 
-    // 外交按钮
-    const diplomacyBtn = new Button('外交', btnWidth, btnHeight, this.renderer)
-    diplomacyBtn.x = startX + btnWidth + 15
-    diplomacyBtn.setOnClick(() => this.onDiplomacy?.() || this.showMessage('外交功能开发中...'))
-    container.addChild(diplomacyBtn)
+    // 【修炼】按钮 - 学习武功
+    const learnBtn = new Button('【修炼】\n学习武功', btnWidth, btnHeight, this.renderer)
+    learnBtn.x = 0
+    learnBtn.y = startY
+    learnBtn.setOnClick(() => this.onTraining?.() || this.showMessage('修炼功能开发中...'))
+    container.addChild(learnBtn)
 
-    // 挑战按钮
-    const challengeBtn = new Button('挑战', btnWidth, btnHeight, this.renderer)
-    challengeBtn.x = startX + 2 * (btnWidth + 15)
-    challengeBtn.setOnClick(() => this.handleChallenge())
-    container.addChild(challengeBtn)
+    // 【训练】按钮 - 训练武功
+    const trainBtn = new Button('【训练】\n训练武功', btnWidth, btnHeight, this.renderer)
+    trainBtn.x = 0
+    trainBtn.y = startY + btnHeight + btnGap
+    trainBtn.setOnClick(() => this.showMessage('训练功能开发中...'))
+    container.addChild(trainBtn)
 
-    // 结束回合按钮
-    const endTurnBtn = new Button('结束回合', btnWidth, btnHeight, this.renderer)
-    endTurnBtn.x = startX + 3 * (btnWidth + 15)
-    endTurnBtn.setOnClick(() => this.handleEndTurn())
-    container.addChild(endTurnBtn)
+    // 【探索】按钮 - 江湖探索
+    const exploreBtn = new Button('【探索】\n江湖探索', btnWidth, btnHeight, this.renderer)
+    exploreBtn.x = 0
+    exploreBtn.y = startY + 2 * (btnHeight + btnGap)
+    exploreBtn.setOnClick(() => this.showMessage('探索功能开发中...'))
+    container.addChild(exploreBtn)
 
-    // 返回按钮（单独放左边）
-    const backBtn = new Button('返回', 80, 35, this.renderer)
-    backBtn.x = 20
-    backBtn.y = 5
+    // 【返回】按钮 - 返回标题界面
+    const backBtn = new Button('【返回】\n标题界面', btnWidth, btnHeight, this.renderer)
+    backBtn.x = 0
+    backBtn.y = startY + 3 * (btnHeight + btnGap)
     backBtn.setOnClick(() => this.onBackToTitle?.())
     container.addChild(backBtn)
 
@@ -618,7 +649,7 @@ export class SectorScene extends Scene {
   }
 
   /**
-   * 显示弟子详情
+   * 显示弟子详情（响应式弹窗）
    */
   private showDiscipleDetail(disciple: SectorDisciple): void {
     const size = this.renderer.getSize()
@@ -640,10 +671,13 @@ export class SectorScene extends Scene {
     })
     this.detailPopup!.addChild(mask)
 
-    const popupWidth = 350
-    const popupHeight = 400
-    const px = size.width / 2 - popupWidth / 2
-    const py = size.height / 2 - popupHeight / 2
+    // 弹窗尺寸响应屏幕大小（最大不超过屏幕的85%）
+    const maxPopupWidth = Math.min(350, size.width * 0.85)
+    const maxPopupHeight = Math.min(400, size.height * 0.85)
+    const popupWidth = maxPopupWidth
+    const popupHeight = maxPopupHeight
+    const px = (size.width - popupWidth) / 2
+    const py = (size.height - popupHeight) / 2
 
     // 弹窗背景
     const popupBg = this.renderer.createGraphics()
@@ -655,21 +689,21 @@ export class SectorScene extends Scene {
     // 弟子名称
     const nameText = new Text({
       text: disciple.name,
-      style: createStyle(20, Colors.TEXT_GOLD)
+      style: createStyle(18, Colors.TEXT_GOLD)
     })
     nameText.anchor.set(0.5)
-    nameText.x = size.width / 2
-    nameText.y = py + 30
+    nameText.x = px + popupWidth / 2
+    nameText.y = py + 25
     this.detailPopup!.addChild(nameText)
 
     // 境界等级
     const realmText = new Text({
       text: `${disciple.realm} · 等级 ${disciple.level}`,
-      style: createStyle(14, Colors.TEXT_SECONDARY)
+      style: createStyle(12, Colors.TEXT_SECONDARY)
     })
     realmText.anchor.set(0.5)
-    realmText.x = size.width / 2
-    realmText.y = py + 55
+    realmText.x = px + popupWidth / 2
+    realmText.y = py + 48
     this.detailPopup!.addChild(realmText)
 
     // 状态
@@ -680,13 +714,16 @@ export class SectorScene extends Scene {
         : Colors.TEXT_SECONDARY
     const statusText = new Text({
       text: `状态: ${disciple.status}`,
-      style: createStyle(14, statusColor)
+      style: createStyle(12, statusColor)
     })
-    statusText.x = px + 20
-    statusText.y = py + 80
+    statusText.x = px + 15
+    statusText.y = py + 70
     this.detailPopup!.addChild(statusText)
 
-    // 属性
+    // 属性 - 左侧
+    const attrColX = px + 15
+    const attrStartY = py + 95
+    const attrLineHeight = 18
     const attrs = [
       `根骨: ${disciple.root}`,
       `悟性: ${disciple.insight}`,
@@ -695,13 +732,14 @@ export class SectorScene extends Scene {
       `身法: ${disciple.agility}`
     ]
     attrs.forEach((attr, i) => {
-      const text = new Text({ text: attr, style: createStyle(12, Colors.TEXT_PRIMARY) })
-      text.x = px + 20
-      text.y = py + 110 + i * 22
+      const text = new Text({ text: attr, style: createStyle(11, Colors.TEXT_PRIMARY) })
+      text.x = attrColX
+      text.y = attrStartY + i * attrLineHeight
       this.detailPopup!.addChild(text)
     })
 
-    // 战斗属性
+    // 战斗属性 - 右侧（根据弹窗宽度调整位置）
+    const battleColX = px + popupWidth * 0.52
     const battleAttrs = [
       `HP: ${disciple.currentHp}/${disciple.maxHp}`,
       `MP: ${disciple.currentMp}/${disciple.maxMp}`,
@@ -709,28 +747,43 @@ export class SectorScene extends Scene {
       `忠诚: ${disciple.loyalty}`
     ]
     battleAttrs.forEach((attr, i) => {
-      const text = new Text({ text: attr, style: createStyle(12, Colors.TEXT_SECONDARY) })
-      text.x = px + 180
-      text.y = py + 110 + i * 22
+      const text = new Text({ text: attr, style: createStyle(11, Colors.TEXT_SECONDARY) })
+      text.x = battleColX
+      text.y = attrStartY + i * attrLineHeight
       this.detailPopup!.addChild(text)
     })
 
-    // 操作按钮
-    const assignBtn = new Button('分配任务', 100, 35, this.renderer)
-    assignBtn.x = px + 25
-    assignBtn.y = py + popupHeight - 55
-    assignBtn.setOnClick(() => this.showMessage('任务分配功能开发中...'))
-    this.detailPopup!.addChild(assignBtn)
+    // 操作按钮 - 响应式宽度（设为出战 | 修炼武功 | 返回）
+    const btnWidth = Math.min(100, popupWidth * 0.28)
+    const btnHeight = 32
+    const btnY = py + popupHeight - 50
+    const btnGap = 10
+    const totalBtnWidth = 3 * btnWidth + 2 * btnGap
+    const btnStartX = px + (popupWidth - totalBtnWidth) / 2
 
-    const trainBtn = new Button('修炼武功', 100, 35, this.renderer)
-    trainBtn.x = px + 130
-    trainBtn.y = py + popupHeight - 55
+    const setBattleBtn = new Button('设为出战', btnWidth, btnHeight, this.renderer)
+    setBattleBtn.x = btnStartX
+    setBattleBtn.y = btnY
+    setBattleBtn.setOnClick(() => {
+      if (disciple.status === SectorDiscipleStatus.HEALTHY && disciple.vitality >= 20) {
+        this._onEnterBattle?.([disciple.id])
+        this.removeChild(this.detailPopup!)
+        this.detailPopup = null
+      } else {
+        this.showMessage('弟子状态不适合出战')
+      }
+    })
+    this.detailPopup!.addChild(setBattleBtn)
+
+    const trainBtn = new Button('修炼武功', btnWidth, btnHeight, this.renderer)
+    trainBtn.x = btnStartX + btnWidth + btnGap
+    trainBtn.y = btnY
     trainBtn.setOnClick(() => this.showMessage('武功修炼功能开发中...'))
     this.detailPopup!.addChild(trainBtn)
 
-    const closeBtn = new Button('返回', 100, 35, this.renderer)
-    closeBtn.x = px + 235
-    closeBtn.y = py + popupHeight - 55
+    const closeBtn = new Button('返回', btnWidth, btnHeight, this.renderer)
+    closeBtn.x = btnStartX + 2 * (btnWidth + btnGap)
+    closeBtn.y = btnY
     closeBtn.setOnClick(() => {
       this.removeChild(this.detailPopup!)
       this.detailPopup = null
@@ -738,140 +791,6 @@ export class SectorScene extends Scene {
     this.detailPopup!.addChild(closeBtn)
 
     this.addChild(this.detailPopup)
-  }
-
-  /**
-   * 处理挑战
-   */
-  private handleChallenge(): void {
-    const availableDisciples = this.sector.disciples
-      .filter(d => d.status === SectorDiscipleStatus.HEALTHY && d.vitality >= 20)
-
-    if (availableDisciples.length === 0) {
-      this.showMessage('没有精力充足的弟子可出战')
-      return
-    }
-
-    if (this.onEnterBattle) {
-      this.onEnterBattle([availableDisciples[0].id])
-    }
-  }
-
-  /**
-   * 处理结束回合
-   */
-  private handleEndTurn(): void {
-    const result = endTurn(this.sector)
-    this.sector = result.sector
-    this.showTurnSummary(result.summary)
-  }
-
-  /**
-   * 显示回合结算
-   */
-  private showTurnSummary(summary: TurnSummary): void {
-    const size = this.renderer.getSize()
-
-    if (this.turnSummaryPopup) {
-      this.removeChild(this.turnSummaryPopup)
-    }
-
-    this.turnSummaryPopup = new Container()
-
-    // 遮罩
-    const mask = this.renderer.createGraphics()
-    mask.rect(0, 0, size.width, size.height)
-    mask.fill({ color: 0x000000, alpha: 0.5 })
-    mask.eventMode = 'static'
-    this.turnSummaryPopup!.addChild(mask)
-
-    const popupWidth = 450
-    const popupHeight = 350
-    const px = size.width / 2 - popupWidth / 2
-    const py = size.height / 2 - popupHeight / 2
-
-    // 弹窗背景
-    const popupBg = this.renderer.createGraphics()
-    popupBg.roundRect(px, py, popupWidth, popupHeight, 15)
-    popupBg.fill({ color: Colors.PANEL_BG, alpha: 0.95 })
-    popupBg.stroke({ color: Colors.TEXT_GOLD, width: 2 })
-    this.turnSummaryPopup!.addChild(popupBg)
-
-    // 标题
-    const titleText = new Text({
-      text: `【回合结算】第 ${this.sector.turn - 1} 回合`,
-      style: createStyle(18, Colors.TEXT_GOLD)
-    })
-    titleText.anchor.set(0.5)
-    titleText.x = size.width / 2
-    titleText.y = py + 30
-    this.turnSummaryPopup!.addChild(titleText)
-
-    // 资源变化
-    const resourceTitle = new Text({
-      text: '资源变化:',
-      style: createStyle(14, Colors.TEXT_PRIMARY)
-    })
-    resourceTitle.x = px + 20
-    resourceTitle.y = py + 60
-    this.turnSummaryPopup!.addChild(resourceTitle)
-
-    if (summary.silverChange > 0) {
-      const silverText = new Text({
-        text: `银两: +${summary.silverChange}`,
-        style: createStyle(12, Colors.TEXT_GOLD)
-      })
-      silverText.x = px + 40
-      silverText.y = py + 85
-      this.turnSummaryPopup!.addChild(silverText)
-    }
-
-    if (summary.reputationChange > 0) {
-      const repText = new Text({
-        text: `声望: +${summary.reputationChange}`,
-        style: createStyle(12, Colors.TEXT_GOLD)
-      })
-      repText.x = px + 40
-      repText.y = py + 105
-      this.turnSummaryPopup!.addChild(repText)
-    }
-
-    // 弟子变化
-    if (summary.discipleStatusChanges.length > 0) {
-      const discipleTitle = new Text({
-        text: '弟子变化:',
-        style: createStyle(14, Colors.TEXT_PRIMARY)
-      })
-      discipleTitle.x = px + 20
-      discipleTitle.y = py + 130
-      this.turnSummaryPopup!.addChild(discipleTitle)
-
-      let lineY = py + 155
-      summary.discipleStatusChanges.forEach((change: DiscipleStatusChange) => {
-        const text = new Text({
-          text: `${change.discipleName}: ${change.changes.join(', ')}`,
-          style: createStyle(11, Colors.TEXT_SECONDARY)
-        })
-        text.x = px + 40
-        text.y = lineY
-        this.turnSummaryPopup!.addChild(text)
-        lineY += 20
-      })
-    }
-
-    // 确认按钮
-    const confirmBtn = new Button('进入下一回合', 150, 40, this.renderer)
-    confirmBtn.x = size.width / 2 - 75
-    confirmBtn.y = py + popupHeight - 55
-    confirmBtn.setOnClick(() => {
-      this.removeChild(this.turnSummaryPopup!)
-      this.turnSummaryPopup = null
-      this.clear()
-      this.createUI()
-    })
-    this.turnSummaryPopup!.addChild(confirmBtn)
-
-    this.addChild(this.turnSummaryPopup)
   }
 
   /**
@@ -903,7 +822,7 @@ export class SectorScene extends Scene {
 
   // 回调设置
   setOnEnterBattle(callback: (discipleIds: string[]) => void): void {
-    this.onEnterBattle = callback
+    this._onEnterBattle = callback
   }
 
   setOnBackToTitle(callback: () => void): void {
@@ -912,10 +831,6 @@ export class SectorScene extends Scene {
 
   setOnTraining(callback: () => void): void {
     this.onTraining = callback
-  }
-
-  setOnDiplomacy(callback: () => void): void {
-    this.onDiplomacy = callback
   }
 
   getSector(): SectorState {

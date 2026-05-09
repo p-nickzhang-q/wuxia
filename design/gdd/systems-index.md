@@ -47,10 +47,11 @@
 | 28 | 江湖地图系统 | Narrative | Alpha | ✅ Approved | design/gdd/jianghu-map-system.md | — |
 | 29 | 门派势力系统 | Narrative | Vertical Slice | ✅ Approved | design/gdd/faction-power-system.md | 江湖地图系统 |
 | 30 | 江湖事件系统 | Narrative | Vertical Slice | ✅ Approved | design/gdd/jianghu-event-system.md | 门派势力系统, 资源系统 |
-| 31 | 音频系统 | Audio | Full Vision | 🔲 Not Started | — | 战斗流程系统, UI系统 |
-| 32 | 存档系统 | Persistence | Full Vision | 🔲 Not Started | — | 角色系统, 弟子系统, 资源系统, 精力系统 |
-| 33 | 成就系统 | Meta | Full Vision | 🔲 Not Started | — | 战斗流程系统, 弟子系统 |
-| 34 | 多人对战网络 | Meta | Full Vision | 🔲 Not Started | — | 多人战斗系统 |
+| 31 | 弟子事务权重系统 | Economy | Alpha | ✅ Approved | design/gdd/disciple-task-priority-system.md | 精力系统, 门派设施系统, 武功学习系统 |
+| 32 | 音频系统 | Audio | Full Vision | 🔲 Not Started | — | 战斗流程系统, UI系统 |
+| 33 | 存档系统 | Persistence | Full Vision | 🔲 Not Started | — | 角色系统, 弟子系统, 资源系统, 精力系统 |
+| 34 | 成就系统 | Meta | Full Vision | 🔲 Not Started | — | 战斗流程系统, 弟子系统 |
+| 35 | 多人对战网络 | Meta | Full Vision | 🔲 Not Started | — | 多人战斗系统 |
 
 ---
 
