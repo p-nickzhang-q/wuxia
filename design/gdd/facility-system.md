@@ -93,7 +93,7 @@
 | 弟子系统 | 容量提供者 | 弟子上限 | `getDiscipleCapacity(): number` |
 | 武功学习系统 | 功能提供者 | 训练效率 | `getTrainingEfficiency(facilityType): number` |
 | 制作系统 | 功能提供者 | 制作场所 | `hasFacility(facilityType): boolean` |
-| 任务系统 | 功能提供者 | 任务场所 | `hasFacility('议事厅'): boolean` |
+| 江湖任务系统 | 功能提供者 | 任务场所 | `hasFacility('议事厅'): boolean` |
 | 存档系统 | 持久化 | 设施状态 | `getFacilityState(): FacilityState[]`<br>`restoreFacilityState(state: FacilityState[])` |
 | UI系统 | 显示 | 设施信息 | `getFacilities(): Facility[]` |
 
@@ -182,7 +182,8 @@
 |------|---------|----------|
 | 武功学习系统 | 硬依赖 | 需要训练效率（徒手/兵器练武场） |
 | 制作系统 | 硬依赖 | 需要制作场所（兵器坊、炼丹房） |
-| 任务系统 | 硬依赖 | 需要任务场所（议事厅） |
+| 江湖任务系统 | 硬依赖 | 需要任务场所（议事厅） |
+| 弟子事务权重系统 | 硬依赖 | 需要设施存在检查（藏经阁、练武场等），不包含江湖任务 |
 | 存档系统 | 硬依赖 | 需要设施状态持久化 |
 | UI系统 | 软依赖 | 显示设施信息（UI可独立运行） |
 
