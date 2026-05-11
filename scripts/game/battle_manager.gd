@@ -24,8 +24,8 @@ func start_battle(player_data: Dictionary, enemy_data: Dictionary) -> void:
 	player = Character.new(player_data)
 	enemy = Character.new(enemy_data)
 
-	# 初始化 AI
-	ai = AI.new(self)
+	# 初始化 AI（默认普通难度）
+	ai = AI.new(self, AI.AIDifficulty.NORMAL)
 
 	current_turn = 1
 	_determine_first_actor()

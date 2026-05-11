@@ -1,0 +1,68 @@
+{
+  "lingbo_weibu": {
+    "id": "lingbo_weibu",
+    "name": "凌波微步",
+    "trigger_timing": "turn_start",
+    "trigger_chance": 1.0,
+    "effects": [
+      {"type": "agility_boost", "value": 2}
+    ],
+    "description": "回合开始时，轻功提升2点",
+    "triggers_per_turn": 1
+  },
+  "beiming_shengong": {
+    "id": "beiming_shengong",
+    "name": "北冥神功",
+    "trigger_timing": "on_damage",
+    "trigger_chance": 1.0,
+    "effects": [
+      {"type": "mp_recover", "value": 3}
+    ],
+    "description": "造成伤害时，恢复3点内力",
+    "triggers_per_turn": 0
+  },
+  "jiuyang_shengong": {
+    "id": "jiuyang_shengong",
+    "name": "九阳神功",
+    "trigger_timing": "turn_end",
+    "trigger_chance": 1.0,
+    "effects": [
+      {"type": "heal_self", "value": 5}
+    ],
+    "description": "回合结束时，恢复5点生命",
+    "triggers_per_turn": 1
+  },
+  "hama_gong": {
+    "id": "hama_gong",
+    "name": "蛤蟆功",
+    "trigger_timing": "on_take_damage",
+    "trigger_chance": 0.5,
+    "effects": [
+      {"type": "damage_target", "value": 8}
+    ],
+    "description": "受到伤害时，50%概率反弹8点伤害",
+    "triggers_per_turn": 1
+  },
+  "yijinjing": {
+    "id": "yijinjing",
+    "name": "易筋经",
+    "trigger_timing": "turn_start",
+    "trigger_chance": 1.0,
+    "effects": [
+      {"type": "shield", "value": 3}
+    ],
+    "description": "回合开始时，获得3点护盾",
+    "triggers_per_turn": 1
+  },
+  "xiaowuxiang_gong": {
+    "id": "xiaowuxiang_gong",
+    "name": "小无相功",
+    "trigger_timing": "on_skill_use",
+    "trigger_chance": 1.0,
+    "effects": [
+      {"type": "damage_boost", "value": 20}
+    ],
+    "description": "使用武功招式时，伤害提升20%",
+    "triggers_per_turn": 0
+  }
+}

@@ -14,6 +14,7 @@ var enemy_character_id: String = ""
 var characters_data: Dictionary = {}
 var skills_data: Dictionary = {}
 var cards_data: Dictionary = {}
+var passives_data: Dictionary = {}
 
 
 func _ready() -> void:
@@ -26,6 +27,7 @@ func load_game_data() -> void:
 	characters_data = _load_json("res://resources/characters/characters.json")
 	skills_data = _load_json("res://resources/skills/skills.json")
 	cards_data = _load_json("res://resources/cards/cards.json")
+	passives_data = _load_json("res://resources/skills/passives.json")
 
 
 func _load_json(path: String) -> Dictionary:
@@ -55,3 +57,8 @@ func change_state(new_state: GameScene) -> void:
 func get_character_data(character_id: String) -> Dictionary:
 	"""获取角色数据"""
 	return characters_data.get(character_id, {})
+
+
+func get_passive_data(passive_id: String) -> Dictionary:
+	"""获取内功数据"""
+	return passives_data.get(passive_id, {})
