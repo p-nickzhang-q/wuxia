@@ -21,8 +21,8 @@ var ai: AI
 
 func start_battle(player_data: Dictionary, enemy_data: Dictionary) -> void:
 	"""开始战斗"""
-	player = Character.new(player_data)
-	enemy = Character.new(enemy_data)
+	player = Character.from_data(player_data)
+	enemy = Character.from_data(enemy_data)
 
 	# 初始化 AI（默认普通难度）
 	ai = AI.new(self, AI.AIDifficulty.NORMAL)
