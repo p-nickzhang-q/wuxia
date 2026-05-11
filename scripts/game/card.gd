@@ -32,7 +32,7 @@ var agility_cost: int = 1
 var description: String = ""
 
 ## 特殊效果
-var effects: Array = []
+var effects: Array[Dictionary] = []
 
 ## 是否需要目标
 var requires_target: bool = true
@@ -50,7 +50,8 @@ static func from_data(data: Dictionary, instance_id: String = "") -> Card:
 	card.heal = data.get("heal", 0)
 	card.agility_cost = data.get("agility_cost", Types.DEFAULT_AGILITY_COST)
 	card.description = data.get("description", "")
-	card.effects = data.get("effects", [])
+	var effects_data = data.get("effects", [])
+	card.effects = effects_data.duplicate(true) if effects_data else []
 	card.requires_target = data.get("requires_target", card.damage > 0)
 	return card
 
