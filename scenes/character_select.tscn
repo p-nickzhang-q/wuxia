@@ -52,3 +52,6 @@ text = "返回"
 [node name="ConfirmButton" type="Button" parent="VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "开始战斗"
+
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/BackButton" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/ConfirmButton" to="." method="_on_confirm_pressed"]

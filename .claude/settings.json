@@ -116,6 +116,7 @@
     "command": "bash .claude/statusline.sh"
   },
   "enabledPlugins": {
-    "minimalist-entrepreneur@minimalist-entrepreneur": true
+    "minimalist-entrepreneur@minimalist-entrepreneur": true,
+    "superpowers@superpowers-marketplace": true
   }
 }

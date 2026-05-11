@@ -107,7 +107,7 @@ func draw_cards(count: int) -> Array[Card]:
 			discard_pile.clear()
 			_shuffle_deck()
 		if not deck.is_empty():
-			var card := deck.pop_back()
+			var card: Card = deck.pop_back()
 			hand.append(card)
 			drawn.append(card)
 	return drawn
@@ -116,7 +116,7 @@ func draw_cards(count: int) -> Array[Card]:
 ## 打出卡牌
 func play_card(card_index: int) -> Card:
 	if card_index >= 0 and card_index < hand.size():
-		var card := hand.pop_at(card_index)
+		var card: Card = hand.pop_at(card_index)
 		discard_pile.append(card)
 		return card
 	return null
@@ -322,7 +322,7 @@ func use_skill(skill_index: int, card_index: int, target: Character = null, game
 	current_agility -= skill.agility_cost
 
 	# 使用卡牌
-	var card := hand.pop_at(card_index)
+	var card: Card = hand.pop_at(card_index)
 	discard_pile.append(card)
 
 	# 标记武功使用
@@ -386,7 +386,7 @@ func to_dict() -> Dictionary:
 		"title": title,
 		"max_hp": max_hp,
 		"max_mp": max_mp,
-		"agility": agility,
+		"agility": base_agility,
 		"current_hp": current_hp,
 		"current_mp": current_mp,
 		"shield": shield,

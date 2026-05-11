@@ -3425,3 +3425,188 @@ scenes/main.tscn
 scripts/main.gd
 ---
 
+## Session End: 20260511_150345
+### Commits
+444e1c7 feat(game): 实现游戏核心功能模块
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+scripts/battle.gd
+---
+
+## Session End: 20260511_151445
+### Commits
+444e1c7 feat(game): 实现游戏核心功能模块
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+scenes/character_select.tscn
+scripts/battle.gd
+---
+
+## Session End: 20260511_151717
+### Commits
+444e1c7 feat(game): 实现游戏核心功能模块
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+scenes/character_select.tscn
+scripts/battle.gd
+---
+
+## Session End: 20260511_151825
+### Commits
+444e1c7 feat(game): 实现游戏核心功能模块
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+.claude/docs/technical-preferences.md
+production/session-logs/session-log.md
+scenes/character_select.tscn
+scripts/battle.gd
+---
+
+## Session End: 20260511_152044
+### Commits
+444e1c7 feat(game): 实现游戏核心功能模块
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+.claude/docs/technical-preferences.md
+production/session-logs/session-log.md
+scenes/character_select.tscn
+scripts/battle.gd
+---
+
+## Session End: 20260511_152324
+### Commits
+444e1c7 feat(game): 实现游戏核心功能模块
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+.claude/docs/technical-preferences.md
+production/project-stage-report.md
+production/session-logs/session-log.md
+scenes/character_select.tscn
+scripts/battle.gd
+---
+
+## Session End: 20260511_152758
+### Commits
+444e1c7 feat(game): 实现游戏核心功能模块
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+.claude/docs/technical-preferences.md
+production/project-stage-report.md
+production/session-logs/session-log.md
+scenes/character_select.tscn
+scripts/battle.gd
+---
+
+## Session End: 20260511_153019
+### Commits
+444e1c7 feat(game): 实现游戏核心功能模块
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+.claude/docs/technical-preferences.md
+docs/architecture/ADR-001-factory-function-pattern.md
+production/project-stage-report.md
+production/session-logs/session-log.md
+scenes/character_select.tscn
+scripts/battle.gd
+---
+
+## Session End: 20260511_153150
+### Commits
+444e1c7 feat(game): 实现游戏核心功能模块
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+.claude/docs/technical-preferences.md
+docs/architecture/ADR-001-factory-function-pattern.md
+production/project-stage-report.md
+production/session-logs/session-log.md
+scenes/character_select.tscn
+scripts/battle.gd
+---
+
+## Session End: 20260511_153823
+### Commits
+444e1c7 feat(game): 实现游戏核心功能模块
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+.claude/docs/technical-preferences.md
+docs/architecture/ADR-001-factory-function-pattern.md
+docs/phase1-implementation.md
+production/project-stage-report.md
+production/session-logs/session-log.md
+scenes/battle.tscn
+scenes/character_select.tscn
+scripts/battle.gd
+---
+
+## Session End: 20260511_154000
+### Commits
+444e1c7 feat(game): 实现游戏核心功能模块
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+.claude/docs/technical-preferences.md
+docs/architecture/ADR-001-factory-function-pattern.md
+docs/phase1-implementation.md
+production/project-stage-report.md
+production/session-logs/session-log.md
+scenes/battle.tscn
+scenes/character_select.tscn
+scripts/battle.gd
+---
+
+## Session End: 20260511_154408
+### Commits
+444e1c7 feat(game): 实现游戏核心功能模块
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+.claude/docs/technical-preferences.md
+docs/architecture/ADR-001-factory-function-pattern.md
+docs/phase1-implementation.md
+production/project-stage-report.md
+production/session-logs/session-log.md
+scenes/battle.tscn
+scenes/character_select.tscn
+scripts/battle.gd
+scripts/game/battle_manager.gd
+---
+
+## Session End: 20260511_155359
+### Commits
+444e1c7 feat(game): 实现游戏核心功能模块
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+.claude/docs/technical-preferences.md
+.claude/settings.json
+docs/architecture/ADR-001-factory-function-pattern.md
+docs/phase1-implementation.md
+production/project-stage-report.md
+production/session-logs/session-log.md
+scenes/battle.tscn
+scenes/character_select.tscn
+scripts/battle.gd
+scripts/game/battle_manager.gd
+---
+
+## Session End: 20260511_165522
+### Commits
+b8c8bcf docs: 添加 PixiJS 到 Godot 战斗系统迁移设计文档
+444e1c7 feat(game): 实现游戏核心功能模块
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+.claude/docs/technical-preferences.md
+.claude/hooks/session-stop.sh
+.claude/hooks/validate-assets.sh
+.claude/hooks/validate-commit.sh
+.claude/hooks/validate-push.sh
+.claude/settings.json
+docs/architecture/ADR-001-factory-function-pattern.md
+docs/phase1-implementation.md
+production/project-stage-report.md
+production/session-logs/session-log.md
+scenes/battle.tscn
+scenes/character_select.tscn
+scripts/battle.gd
+scripts/game/battle_manager.gd
+---
+

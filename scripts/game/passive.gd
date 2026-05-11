@@ -84,7 +84,7 @@ func can_trigger() -> bool:
 
 
 ## 触发内功效果
-func trigger(owner: Character, game_state: GameState, args: Array = []) -> Dictionary:
+func trigger(owner: Character, game_state, args: Array = []) -> Dictionary:
 	if not can_trigger():
 		return {"triggered": false}
 
@@ -106,7 +106,7 @@ func trigger(owner: Character, game_state: GameState, args: Array = []) -> Dicti
 
 
 ## 处理单个效果
-func _process_effect(owner: Character, game_state: GameState, effect: Dictionary, args: Array) -> Dictionary:
+func _process_effect(owner: Character, game_state, effect: Dictionary, args: Array) -> Dictionary:
 	var effect_type: String = effect.get("type", "")
 	var value: int = effect.get("value", 0)
 	var result: Dictionary = {"type": effect_type, "value": 0}

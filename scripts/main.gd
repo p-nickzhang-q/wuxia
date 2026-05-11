@@ -7,7 +7,7 @@ func _ready():
 
 func _on_start_pressed():
 	print("Start button pressed!")
-	GameManager.change_state(GameManager.GameState.CHARACTER_SELECT)
+	GameManager.change_state(GameManager.GameScene.CHARACTER_SELECT)
 
 func _on_quit_pressed():
 	print("Quit button pressed!")

@@ -2,19 +2,19 @@ extends Control
 
 ## 战斗场景
 
-@onready var player_hp_bar: ProgressBar = $BattleUI/PlayerPanel/HPBar
-@onready var player_mp_bar: ProgressBar = $BattleUI/PlayerPanel/MPBar
-@onready var player_hp_label: Label = $BattleUI/PlayerPanel/HPLabel
-@onready var player_mp_label: Label = $BattleUI/PlayerPanel/MPLabel
-@onready var player_shield_label: Label = $BattleUI/PlayerPanel/ShieldLabel
-@onready var player_agility_label: Label = $BattleUI/PlayerPanel/AgilityLabel
+@onready var player_hp_bar: ProgressBar = $BattleUI/TopPanel/PlayerPanel/HPBar
+@onready var player_mp_bar: ProgressBar = $BattleUI/TopPanel/PlayerPanel/MPBar
+@onready var player_hp_label: Label = $BattleUI/TopPanel/PlayerPanel/HPLabel
+@onready var player_mp_label: Label = $BattleUI/TopPanel/PlayerPanel/MPLabel
+@onready var player_shield_label: Label = $BattleUI/TopPanel/PlayerPanel/ShieldLabel
+@onready var player_agility_label: Label = $BattleUI/TopPanel/PlayerPanel/AgilityLabel
 
-@onready var enemy_hp_bar: ProgressBar = $BattleUI/EnemyPanel/HPBar
-@onready var enemy_mp_bar: ProgressBar = $BattleUI/EnemyPanel/MPBar
-@onready var enemy_hp_label: Label = $BattleUI/EnemyPanel/HPLabel
-@onready var enemy_mp_label: Label = $BattleUI/EnemyPanel/MPLabel
-@onready var enemy_shield_label: Label = $BattleUI/EnemyPanel/ShieldLabel
-@onready var enemy_agility_label: Label = $BattleUI/EnemyPanel/AgilityLabel
+@onready var enemy_hp_bar: ProgressBar = $BattleUI/TopPanel/EnemyPanel/HPBar
+@onready var enemy_mp_bar: ProgressBar = $BattleUI/TopPanel/EnemyPanel/MPBar
+@onready var enemy_hp_label: Label = $BattleUI/TopPanel/EnemyPanel/HPLabel
+@onready var enemy_mp_label: Label = $BattleUI/TopPanel/EnemyPanel/MPLabel
+@onready var enemy_shield_label: Label = $BattleUI/TopPanel/EnemyPanel/ShieldLabel
+@onready var enemy_agility_label: Label = $BattleUI/TopPanel/EnemyPanel/AgilityLabel
 
 @onready var hand_container: HBoxContainer = $BattleUI/HandContainer
 @onready var turn_label: Label = $BattleUI/TurnLabel
@@ -122,7 +122,7 @@ func _on_damage_dealt(target: Character, amount: int):
 func _on_battle_ended(winner: Character, loser: Character):
 	_log("%s 获胜!" % winner.name)
 	await get_tree().create_timer(2.0).timeout
-	GameManager.change_state(GameManager.GameState.RESULT)
+	GameManager.change_state(GameManager.GameScene.RESULT)
 
 
 func _log(message: String):

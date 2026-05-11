@@ -18,4 +18,4 @@ func _show_result():
 
 
 func _on_back_pressed():
-	GameManager.change_state(GameManager.GameState.MENU)
+	GameManager.change_state(GameManager.GameScene.MENU)

@@ -2,9 +2,9 @@ extends Node
 
 ## 游戏管理器 - 管理全局状态、场景切换、游戏数据
 
-# 当前游戏状态
-enum GameState { MENU, CHARACTER_SELECT, BATTLE, RESULT }
-var current_state: GameState = GameState.MENU
+# 当前游戏场景状态
+enum GameScene { MENU, CHARACTER_SELECT, BATTLE, RESULT }
+var current_scene: GameScene = GameScene.MENU
 
 # 玩家选择的角色
 var player_character_id: String = ""
@@ -38,17 +38,17 @@ func _load_json(path: String) -> Dictionary:
 	return {}
 
 
-func change_state(new_state: GameState) -> void:
+func change_state(new_state: GameScene) -> void:
 	"""切换游戏状态"""
-	current_state = new_state
+	current_scene = new_state
 	match new_state:
-		GameState.MENU:
+		GameScene.MENU:
 			get_tree().change_scene_to_file("res://scenes/main.tscn")
-		GameState.CHARACTER_SELECT:
+		GameScene.CHARACTER_SELECT:
 			get_tree().change_scene_to_file("res://scenes/character_select.tscn")
-		GameState.BATTLE:
+		GameScene.BATTLE:
 			get_tree().change_scene_to_file("res://scenes/battle.tscn")
-		GameState.RESULT:
+		GameScene.RESULT:
 			get_tree().change_scene_to_file("res://scenes/result.tscn")
 
 

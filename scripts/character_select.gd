@@ -97,9 +97,9 @@ func _on_confirm_pressed() -> void:
 	all_ids.erase(selected_character_id)
 	GameManager.enemy_character_id = all_ids.pick_random()
 
-	GameManager.change_state(GameManager.GameState.BATTLE)
+	GameManager.change_state(GameManager.GameScene.BATTLE)
 
 
 func _on_back_pressed() -> void:
 	"""返回主菜单"""
-	GameManager.change_state(GameManager.GameState.MENU)
+	GameManager.change_state(GameManager.GameScene.MENU)

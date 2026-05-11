@@ -101,15 +101,15 @@ function calculateDistance(seatA: number, seatB: number, totalSeats: number): nu
 ```
 示例：3v3
 
-        座位0 (敌人1)
-      ↗              ↘
+		座位0 (敌人1)
+	  ↗              ↘
   座位5              座位1
  (敌人3)            (敌人2)
-     ↑                 ↓
+	 ↑                 ↓
   座位4              座位2
  (玩家3)            (玩家1)
-      ↖              ↙
-        座位3 (玩家2)
+	  ↖              ↙
+		座位3 (玩家2)
 
 敌人占座位 0,1,2（连续）
 玩家占座位 3,4,5（连续）
@@ -120,15 +120,15 @@ function calculateDistance(seatA: number, seatB: number, totalSeats: number): nu
 ```
 示例：6人混战
 
-        座位0 (玩家A)
-      ↗              ↘
+		座位0 (玩家A)
+	  ↗              ↘
   座位5              座位1
  (玩家F)            (玩家B)
-     ↑                 ↓
+	 ↑                 ↓
   座位4              座位2
  (玩家E)            (玩家C)
-      ↖              ↙
-        座位3 (玩家D)
+	  ↖              ↙
+		座位3 (玩家D)
 
 座位交替分配，无固定队友
 ```

@@ -15,11 +15,17 @@ var enemy: Character
 var current_turn: int = 0
 var current_actor: Character  # 当前行动方
 
+# AI 系统
+var ai: AI
+
 
 func start_battle(player_data: Dictionary, enemy_data: Dictionary) -> void:
 	"""开始战斗"""
 	player = Character.new(player_data)
 	enemy = Character.new(enemy_data)
+
+	# 初始化 AI
+	ai = AI.new(self)
 
 	current_turn = 1
 	_determine_first_actor()
@@ -44,6 +50,21 @@ func _start_turn() -> void:
 	# TODO: 触发内功效果
 
 	turn_changed.emit(current_actor.id)
+
+	# 如果当前行动方是敌人，触发 AI
+	if current_actor == enemy:
+		_trigger_ai()
+
+
+func _trigger_ai() -> void:
+	"""触发 AI 行动"""
+	await ai.execute_turn()
+
+	# AI 行动结束后，检查是否需要结束回合或切换行动方
+	if not player.is_dead() and not enemy.is_dead():
+		if current_actor == enemy:
+			# AI 仍有轻功但无行动，结束回合
+			end_turn()
 
 
 func play_card(card_index: int) -> Dictionary:
@@ -152,6 +173,10 @@ func _check_actor_switch() -> void:
 	if current_actor.current_agility < opponent.current_agility:
 		current_actor = opponent
 		turn_changed.emit(current_actor.id)
+
+		# 如果切换到敌人，触发 AI
+		if current_actor == enemy:
+			_trigger_ai()
 
 
 func _get_opponent(character: Character) -> Character:
