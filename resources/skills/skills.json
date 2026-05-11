@@ -1,0 +1,112 @@
+{
+  "xianglong_zhang": {
+    "id": "xianglong_zhang",
+    "name": "降龙十八掌",
+    "type": "martial_art",
+    "required_card_type": "fist",
+    "mp_cost": 4,
+    "agility_cost": 3,
+    "damage": 10,
+    "effects": []
+  },
+  "dagou_bang": {
+    "id": "dagou_bang",
+    "name": "打狗棒法",
+    "type": "martial_art",
+    "required_card_type": "long_weapon",
+    "mp_cost": 4,
+    "agility_cost": 4,
+    "damage": 7,
+    "effects": [
+      {"type": "disable_card_type", "value": "kick", "duration": 1}
+    ]
+  },
+  "liumai_shenjian": {
+    "id": "liumai_shenjian",
+    "name": "六脉神剑",
+    "type": "martial_art",
+    "required_card_type": "fist",
+    "mp_cost": 5,
+    "agility_cost": 3,
+    "damage": 12,
+    "ignore_shield": true,
+    "effects": []
+  },
+  "lingbo_weibu": {
+    "id": "lingbo_weibu",
+    "name": "凌波微步",
+    "type": "passive",
+    "trigger": "turn_start",
+    "effects": [
+      {"type": "dodge_chance", "value": 25},
+      {"type": "agility_boost", "value": 1}
+    ]
+  },
+  "beiming_shengong": {
+    "id": "beiming_shengong",
+    "name": "北冥神功",
+    "type": "martial_art",
+    "required_card_type": "any",
+    "mp_cost": 0,
+    "agility_cost": 3,
+    "damage": 0,
+    "effects": [
+      {"type": "steal_mp", "value": 6}
+    ]
+  },
+  "beiming_shengong_passive": {
+    "id": "beiming_shengong_passive",
+    "name": "北冥神功",
+    "type": "passive",
+    "trigger": "on_damage",
+    "effects": [
+      {"type": "mp_recover_percent", "value": 30}
+    ]
+  },
+  "tianshan_zhemeishou": {
+    "id": "tianshan_zhemeishou",
+    "name": "天山折梅手",
+    "type": "martial_art",
+    "required_card_type": "fist",
+    "mp_cost": 3,
+    "agility_cost": 2,
+    "damage": 7,
+    "effects": [
+      {"type": "extra_attack", "value": 1}
+    ]
+  },
+  "tianshan_liuyangzhang": {
+    "id": "tianshan_liuyangzhang",
+    "name": "天山六阳掌",
+    "type": "martial_art",
+    "required_card_type": "palm",
+    "mp_cost": 4,
+    "agility_cost": 3,
+    "damage": 8,
+    "effects": []
+  },
+  "shengsifu": {
+    "id": "shengsifu",
+    "name": "生死符",
+    "type": "martial_art",
+    "required_card_type": "any",
+    "mp_cost": 3,
+    "agility_cost": 2,
+    "damage": 0,
+    "effects": [
+      {"type": "dot", "value": 3, "duration": 3}
+    ]
+  },
+  "kongming_quan": {
+    "id": "kongming_quan",
+    "name": "空明拳",
+    "type": "martial_art",
+    "required_card_type": "fist",
+    "mp_cost": 3,
+    "agility_cost": 2,
+    "damage": 6,
+    "effects": [
+      {"type": "shield", "value": 3}
+    ]
+  }
+}

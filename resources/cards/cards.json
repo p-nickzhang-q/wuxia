@@ -1,0 +1,74 @@
+{
+  "fist": {
+    "id": "fist",
+    "name": "拳击",
+    "type": "fist",
+    "damage": 2,
+    "defense": 0,
+    "heal": 0,
+    "agility_cost": 1
+  },
+  "palm": {
+    "id": "palm",
+    "name": "掌击",
+    "type": "palm",
+    "damage": 3,
+    "defense": 0,
+    "heal": 0,
+    "agility_cost": 1
+  },
+  "elbow": {
+    "id": "elbow",
+    "name": "肘击",
+    "type": "fist",
+    "damage": 2,
+    "defense": 1,
+    "heal": 0,
+    "agility_cost": 1
+  },
+  "sweep": {
+    "id": "sweep",
+    "name": "横扫",
+    "type": "long_weapon",
+    "damage": 3,
+    "defense": 0,
+    "heal": 0,
+    "agility_cost": 1
+  },
+  "thrust": {
+    "id": "thrust",
+    "name": "直刺",
+    "type": "short_weapon",
+    "damage": 4,
+    "defense": 0,
+    "heal": 0,
+    "agility_cost": 1
+  },
+  "stab": {
+    "id": "stab",
+    "name": "刺击",
+    "type": "short_weapon",
+    "damage": 3,
+    "defense": 0,
+    "heal": 0,
+    "agility_cost": 1
+  },
+  "front_kick": {
+    "id": "front_kick",
+    "name": "前踢",
+    "type": "kick",
+    "damage": 3,
+    "defense": 0,
+    "heal": 0,
+    "agility_cost": 1
+  },
+  "sweep_kick": {
+    "id": "sweep_kick",
+    "name": "扫腿",
+    "type": "kick",
+    "damage": 2,
+    "defense": 0,
+    "heal": 0,
+    "agility_cost": 1
+  }
+}

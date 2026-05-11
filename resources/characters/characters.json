@@ -1,0 +1,42 @@
+{
+  "qiaofeng": {
+    "id": "qiaofeng",
+    "name": "乔峰",
+    "title": "丐帮帮主",
+    "hp": 70,
+    "mp": 20,
+    "agility": 10,
+    "martialArts": ["xianglong_zhang", "dagou_bang"],
+    "deck": ["fist", "fist", "fist", "fist", "palm", "palm", "palm", "palm", "palm", "elbow", "elbow", "elbow", "sweep", "sweep", "sweep", "sweep", "thrust", "thrust", "front_kick", "front_kick"]
+  },
+  "duanyu": {
+    "id": "duanyu",
+    "name": "段誉",
+    "title": "大理世子",
+    "hp": 50,
+    "mp": 30,
+    "agility": 14,
+    "martialArts": ["liumai_shenjian", "lingbo_weibu", "beiming_shengong"],
+    "deck": ["fist", "fist", "fist", "fist", "fist", "fist", "palm", "palm", "palm", "palm", "palm", "palm", "elbow", "elbow", "elbow", "elbow", "front_kick", "front_kick", "sweep_kick", "sweep_kick"]
+  },
+  "xuzhu": {
+    "id": "xuzhu",
+    "name": "虚竹",
+    "title": "灵鹫宫主",
+    "hp": 60,
+    "mp": 28,
+    "agility": 10,
+    "martialArts": ["tianshan_zhemeishou", "tianshan_liuyangzhang", "shengsifu", "beiming_shengong_passive"],
+    "deck": ["fist", "fist", "fist", "fist", "fist", "palm", "palm", "palm", "palm", "palm", "elbow", "elbow", "elbow", "elbow", "stab", "stab", "front_kick", "front_kick", "sweep_kick", "sweep_kick"]
+  },
+  "guojing": {
+    "id": "guojing",
+    "name": "郭靖",
+    "title": "北侠",
+    "hp": 75,
+    "mp": 18,
+    "agility": 8,
+    "martialArts": ["xianglong_zhang", "kongming_quan"],
+    "deck": ["fist", "fist", "fist", "fist", "palm", "palm", "palm", "palm", "palm", "elbow", "elbow", "elbow", "sweep", "sweep", "sweep", "sweep", "thrust", "thrust", "front_kick", "front_kick"]
+  }
+}

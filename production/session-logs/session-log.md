@@ -2571,3 +2571,646 @@ src/renderer/ui/index.ts
 src/scenes/TitleScene.ts
 ---
 
+## Session End: 20260509_100753
+### Uncommitted Changes
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_100857
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_101341
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_102004
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_102702
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_102842
+### Uncommitted Changes
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_103914
+### Uncommitted Changes
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_104252
+### Uncommitted Changes
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_104850
+### Uncommitted Changes
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_110128
+### Uncommitted Changes
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_110319
+### Uncommitted Changes
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_110709
+### Uncommitted Changes
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_112221
+### Uncommitted Changes
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_112504
+### Uncommitted Changes
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_113729
+### Uncommitted Changes
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_120903
+### Uncommitted Changes
+design/gdd/systems-index.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_130607
+### Uncommitted Changes
+design/gdd/systems-index.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_133250
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_134624
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_134854
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_135242
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_135854
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_144927
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_145319
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_145456
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_151056
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_153504
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_160958
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_161100
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_161216
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_161355
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_162728
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_162853
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_163149
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_164439
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_165052
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_170234
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_171633
+### Uncommitted Changes
+design/gdd/facility-system.md
+design/gdd/systems-index.md
+design/gdd/vitality-system.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+docs/SECTOR-UI-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_172334
+### Commits
+14dd678 feat(design): 添加弟子事务权重系统和时间系统设计文档
+### Uncommitted Changes
+design/gdd/systems-index.md
+docs/SECTOR-MANAGEMENT-DESIGN.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/renderer/ui/DiscipleCard.ts
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260509_172449
+### Commits
+21d20ee refactor(sector): 更新系统索引和门派管理设计
+14dd678 feat(design): 添加弟子事务权重系统和时间系统设计文档
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260509_180815
+### Commits
+bffe5ea feat(assets): 添加门派管理UI素材图片
+21d20ee refactor(sector): 更新系统索引和门派管理设计
+14dd678 feat(design): 添加弟子事务权重系统和时间系统设计文档
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260511_101045
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260511_101234
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260511_101506
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260511_104057
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260511_105023
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+src/scenes/SectorScene.ts
+---
+
+## Session End: 20260511_105219
+### Uncommitted Changes
+docs/engine-reference/pixijs/VERSION.md
+index.html
+package-lock.json
+package.json
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+"public/assets/characters/\344\270\200\347\201\257\345\244\247\345\270\210.png"
+"public/assets/characters/\344\270\234\346\226\271\344\270\215\350\264\245.png"
+"public/assets/characters/\344\271\224\345\263\260.png"
+"public/assets/characters/\344\273\244\347\213\220\345\206\262.png"
+"public/assets/characters/\344\273\273\346\210\221\350\241\214.png"
+"public/assets/characters/\345\260\217\351\276\231\345\245\263.png"
+"public/assets/characters/\345\274\240\344\270\211\344\270\260.png"
+"public/assets/characters/\345\274\240\346\227\240\345\277\214.png"
+"public/assets/characters/\346\205\225\345\256\271\345\244\215.png"
+"public/assets/characters/\346\235\250\350\277\207.png"
+"public/assets/characters/\346\254\247\351\230\263\351\224\213.png"
+"public/assets/characters/\346\256\265\350\252\211.png"
+"public/assets/characters/\346\264\252\344\270\203\345\205\254.png"
+"public/assets/characters/\347\213\204\344\272\221.png"
+"public/assets/characters/\347\237\263\347\240\264\345\244\251.png"
+"public/assets/characters/\350\231\232\347\253\271.png"
+"public/assets/characters/\350\242\201\346\211\277\345\277\227.png"
+"public/assets/characters/\350\260\242\351\200\212.png"
+"public/assets/characters/\351\203\255\351\235\226.png"
+"public/assets/characters/\351\207\221\350\275\256\346\263\225\347\216\213.png"
+"public/assets/characters/\351\243\216\346\270\205\346\211\254.png"
+"public/assets/characters/\351\270\240\346\221\251\346\231\272.png"
+"public/assets/characters/\351\273\204\350\215\257\345\270\210.png"
+"public/assets/characters/\351\273\204\350\223\211.png"
+public/assets/sounds/README.md
+src/data/cards.ts
+src/data/disciples.ts
+src/data/skills.ts
+src/game/AI.ts
+src/game/Character.ts
+src/game/CharacterConfig.ts
+src/game/Disciple.ts
+src/game/DistanceSystem.ts
+src/game/Game.ts
+src/game/Sector.ts
+src/game/types.ts
+src/main.ts
+src/renderer/CardRenderer.ts
+src/renderer/CharacterDetailPopup.ts
+src/renderer/CharacterEffectAnimator.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/ColorConfig.ts
+src/renderer/LayoutConstants.ts
+src/renderer/MiniCharacterRenderer.ts
+src/renderer/Renderer.ts
+src/renderer/UIComponents.ts
+src/renderer/ui/AgilityAxis.ts
+src/renderer/ui/BattleLog.ts
+src/renderer/ui/Button.ts
+src/renderer/ui/DiscipleCard.ts
+src/renderer/ui/SkillButton.ts
+src/renderer/ui/StatusBar.ts
+src/renderer/ui/Tooltip.ts
+src/renderer/ui/VerticalAgilityAxis.ts
+src/renderer/ui/index.ts
+src/scenes/BattleAIHandler.ts
+src/scenes/BattleInputHandler.ts
+src/scenes/BattleLayoutManager.ts
+src/scenes/BattleScene.ts
+src/scenes/BattleUIManager.ts
+src/scenes/CharacterSelectScene.ts
+src/scenes/DiscipleRecruitScene.ts
+src/scenes/ResultScene.ts
+src/scenes/Scene.ts
+src/scenes/SectorScene.ts
+src/scenes/SkillListScene.ts
+src/scenes/TitleScene.ts
+src/scenes/types/BattleSceneInterface.ts
+src/utils/AudioManager.ts
+src/utils/EffectManager.ts
+src/utils/EventManager.ts
+src/utils/TweenManager.ts
+src/utils/helpers.ts
+tsconfig.json
+vite.config.ts
+---
+
+## Session End: 20260511_105250
+### Uncommitted Changes
+docs/engine-reference/pixijs/VERSION.md
+index.html
+package-lock.json
+package.json
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+"public/assets/characters/\344\270\200\347\201\257\345\244\247\345\270\210.png"
+"public/assets/characters/\344\270\234\346\226\271\344\270\215\350\264\245.png"
+"public/assets/characters/\344\271\224\345\263\260.png"
+"public/assets/characters/\344\273\244\347\213\220\345\206\262.png"
+"public/assets/characters/\344\273\273\346\210\221\350\241\214.png"
+"public/assets/characters/\345\260\217\351\276\231\345\245\263.png"
+"public/assets/characters/\345\274\240\344\270\211\344\270\260.png"
+"public/assets/characters/\345\274\240\346\227\240\345\277\214.png"
+"public/assets/characters/\346\205\225\345\256\271\345\244\215.png"
+"public/assets/characters/\346\235\250\350\277\207.png"
+"public/assets/characters/\346\254\247\351\230\263\351\224\213.png"
+"public/assets/characters/\346\256\265\350\252\211.png"
+"public/assets/characters/\346\264\252\344\270\203\345\205\254.png"
+"public/assets/characters/\347\213\204\344\272\221.png"
+"public/assets/characters/\347\237\263\347\240\264\345\244\251.png"
+"public/assets/characters/\350\231\232\347\253\271.png"
+"public/assets/characters/\350\242\201\346\211\277\345\277\227.png"
+"public/assets/characters/\350\260\242\351\200\212.png"
+"public/assets/characters/\351\203\255\351\235\226.png"
+"public/assets/characters/\351\207\221\350\275\256\346\263\225\347\216\213.png"
+"public/assets/characters/\351\243\216\346\270\205\346\211\254.png"
+"public/assets/characters/\351\270\240\346\221\251\346\231\272.png"
+"public/assets/characters/\351\273\204\350\215\257\345\270\210.png"
+"public/assets/characters/\351\273\204\350\223\211.png"
+public/assets/sounds/README.md
+src/data/cards.ts
+src/data/disciples.ts
+src/data/skills.ts
+src/game/AI.ts
+src/game/Character.ts
+src/game/CharacterConfig.ts
+src/game/Disciple.ts
+src/game/DistanceSystem.ts
+src/game/Game.ts
+src/game/Sector.ts
+src/game/types.ts
+src/main.ts
+src/renderer/CardRenderer.ts
+src/renderer/CharacterDetailPopup.ts
+src/renderer/CharacterEffectAnimator.ts
+src/renderer/CharacterRenderer.ts
+src/renderer/ColorConfig.ts
+src/renderer/LayoutConstants.ts
+src/renderer/MiniCharacterRenderer.ts
+src/renderer/Renderer.ts
+src/renderer/UIComponents.ts
+src/renderer/ui/AgilityAxis.ts
+src/renderer/ui/BattleLog.ts
+src/renderer/ui/Button.ts
+src/renderer/ui/DiscipleCard.ts
+src/renderer/ui/SkillButton.ts
+src/renderer/ui/StatusBar.ts
+src/renderer/ui/Tooltip.ts
+src/renderer/ui/VerticalAgilityAxis.ts
+src/renderer/ui/index.ts
+src/scenes/BattleAIHandler.ts
+src/scenes/BattleInputHandler.ts
+src/scenes/BattleLayoutManager.ts
+src/scenes/BattleScene.ts
+src/scenes/BattleUIManager.ts
+src/scenes/CharacterSelectScene.ts
+src/scenes/DiscipleRecruitScene.ts
+src/scenes/ResultScene.ts
+src/scenes/Scene.ts
+src/scenes/SectorScene.ts
+src/scenes/SkillListScene.ts
+src/scenes/TitleScene.ts
+src/scenes/types/BattleSceneInterface.ts
+src/utils/AudioManager.ts
+src/utils/EffectManager.ts
+src/utils/EventManager.ts
+src/utils/TweenManager.ts
+src/utils/helpers.ts
+tsconfig.json
+vite.config.ts
+---
+

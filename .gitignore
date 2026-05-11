@@ -1,5 +1,7 @@
-# Dependencies
-node_modules/
+# Godot
+.godot/
+*.tmp
+*.import
 
 # IDE
 .idea/
@@ -9,6 +11,7 @@ node_modules/
 
 # Build output
 dist/
+exports/
 
 # Environment
 .env
@@ -17,12 +20,13 @@ dist/
 
 # Logs
 *.log
-npm-debug.log*
 
 # OS
 .DS_Store
 Thumbs.db
-
 *.Zone.Identifier
 *:Zone.Identifier*
-/coverage
+
+# Old PixiJS (keep for reference)
+# node_modules/
+# coverage/
