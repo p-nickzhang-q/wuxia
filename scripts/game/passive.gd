@@ -99,7 +99,7 @@ func trigger(owner: Character, game_state: GameState, args: Array = []) -> Dicti
 
 	# 处理效果
 	for effect in effects:
-		var effect_result = _process_effect(owner, game_state, effect, args)
+		var effect_result: Dictionary = _process_effect(owner, game_state, effect, args)
 		result.effects.append(effect_result)
 
 	return result
@@ -107,13 +107,13 @@ func trigger(owner: Character, game_state: GameState, args: Array = []) -> Dicti
 
 ## 处理单个效果
 func _process_effect(owner: Character, game_state: GameState, effect: Dictionary, args: Array) -> Dictionary:
-	var effect_type = effect.get("type", "")
-	var value = effect.get("value", 0)
-	var result := {"type": effect_type, "value": 0}
+	var effect_type: String = effect.get("type", "")
+	var value: int = effect.get("value", 0)
+	var result: Dictionary = {"type": effect_type, "value": 0}
 
 	match effect_type:
 		"heal", "heal_self":
-			var heal_amount = owner.heal(value)
+			var heal_amount: int = owner.heal(value)
 			result.value = heal_amount
 			result.description = "%s 恢复 %d 点生命" % [owner.name, heal_amount]
 
@@ -124,8 +124,8 @@ func _process_effect(owner: Character, game_state: GameState, effect: Dictionary
 
 		"damage", "damage_target":
 			if args.size() > 0 and args[0] is Character:
-				var target = args[0]
-				var damage_result = target.take_damage(value, owner)
+				var target: Character = args[0]
+				var damage_result: Dictionary = target.take_damage(value, owner)
 				result.value = damage_result.actual_damage
 				result.description = "%s 对 %s 造成 %d 点伤害" % [owner.name, target.name, damage_result.actual_damage]
 
@@ -140,7 +140,7 @@ func _process_effect(owner: Character, game_state: GameState, effect: Dictionary
 			result.description = "%s 轻功提升 %d" % [owner.name, value]
 
 		"draw_cards", "draw":
-			var drawn = owner.draw_cards(value)
+			var drawn: Array = owner.draw_cards(value)
 			result.value = drawn.size()
 			result.description = "%s 抽取 %d 张牌" % [owner.name, drawn.size()]
 
