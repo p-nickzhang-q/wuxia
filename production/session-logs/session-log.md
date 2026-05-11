@@ -3214,3 +3214,214 @@ tsconfig.json
 vite.config.ts
 ---
 
+## Session End: 20260511_105858
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+---
+
+## Session End: 20260511_110114
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+---
+
+## Session End: 20260511_110211
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+---
+
+## Session End: 20260511_110317
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+---
+
+## Session End: 20260511_110350
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+---
+
+## Session End: 20260511_110416
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+---
+
+## Session End: 20260511_110503
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+---
+
+## Session End: 20260511_110607
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+---
+
+## Session End: 20260511_110904
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+---
+
+## Session End: 20260511_111221
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+scenes/main.tscn
+---
+
+## Session End: 20260511_111935
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+scenes/main.tscn
+---
+
+## Session End: 20260511_111943
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+scenes/main.tscn
+---
+
+## Session End: 20260511_112313
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+scenes/main.tscn
+---
+
+## Session End: 20260511_112430
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+scenes/main.tscn
+---
+
+## Session End: 20260511_112625
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+scenes/main.tscn
+---
+
+## Session End: 20260511_112805
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+scenes/main.tscn
+---
+
+## Session End: 20260511_113143
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+scenes/main.tscn
+---
+
+## Session End: 20260511_113333
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+scenes/main.tscn
+scripts/main.gd
+---
+
+## Session End: 20260511_114124
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+scenes/main.tscn
+scripts/main.gd
+---
+
+## Session End: 20260511_115044
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+scenes/main.tscn
+scripts/main.gd
+---
+
+## Session End: 20260511_120000
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+scenes/main.tscn
+scripts/main.gd
+---
+
+## Session End: 20260511_132838
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+scenes/main.tscn
+scripts/main.gd
+---
+
+## Session End: 20260511_133717
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+scenes/main.tscn
+scripts/main.gd
+---
+
+## Session End: 20260511_134452
+### Commits
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+project.godot
+scenes/main.tscn
+scripts/main.gd
+---
+

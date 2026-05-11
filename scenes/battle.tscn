@@ -1,0 +1,115 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle.gd" id="1"]
+
+[node name="Battle" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="BattleUI" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopPanel" type="HBoxContainer" parent="BattleUI"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PlayerPanel" type="VBoxContainer" parent="BattleUI/TopPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameLabel" type="Label" parent="BattleUI/TopPanel/PlayerPanel"]
+layout_mode = 2
+text = "玩家"
+
+[node name="HPBar" type="ProgressBar" parent="BattleUI/TopPanel/PlayerPanel"]
+layout_mode = 2
+value = 50.0
+
+[node name="HPLabel" type="Label" parent="BattleUI/TopPanel/PlayerPanel"]
+layout_mode = 2
+text = "HP: 0/0"
+
+[node name="MPBar" type="ProgressBar" parent="BattleUI/TopPanel/PlayerPanel"]
+layout_mode = 2
+value = 50.0
+
+[node name="MPLabel" type="Label" parent="BattleUI/TopPanel/PlayerPanel"]
+layout_mode = 2
+text = "MP: 0/0"
+
+[node name="ShieldLabel" type="Label" parent="BattleUI/TopPanel/PlayerPanel"]
+layout_mode = 2
+text = "护盾: 0"
+
+[node name="AgilityLabel" type="Label" parent="BattleUI/TopPanel/PlayerPanel"]
+layout_mode = 2
+text = "轻功: 0"
+
+[node name="VSLabel" type="Label" parent="BattleUI/TopPanel"]
+layout_mode = 2
+text = "VS"
+horizontal_alignment = 1
+
+[node name="EnemyPanel" type="VBoxContainer" parent="BattleUI/TopPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameLabel" type="Label" parent="BattleUI/TopPanel/EnemyPanel"]
+layout_mode = 2
+text = "敌人"
+
+[node name="HPBar" type="ProgressBar" parent="BattleUI/TopPanel/EnemyPanel"]
+layout_mode = 2
+value = 50.0
+
+[node name="HPLabel" type="Label" parent="BattleUI/TopPanel/EnemyPanel"]
+layout_mode = 2
+text = "HP: 0/0"
+
+[node name="MPBar" type="ProgressBar" parent="BattleUI/TopPanel/EnemyPanel"]
+layout_mode = 2
+value = 50.0
+
+[node name="MPLabel" type="Label" parent="BattleUI/TopPanel/EnemyPanel"]
+layout_mode = 2
+text = "MP: 0/0"
+
+[node name="ShieldLabel" type="Label" parent="BattleUI/TopPanel/EnemyPanel"]
+layout_mode = 2
+text = "护盾: 0"
+
+[node name="AgilityLabel" type="Label" parent="BattleUI/TopPanel/EnemyPanel"]
+layout_mode = 2
+text = "轻功: 0"
+
+[node name="TurnLabel" type="Label" parent="BattleUI"]
+layout_mode = 2
+text = "回合 1"
+horizontal_alignment = 1
+
+[node name="LogLabel" type="Label" parent="BattleUI"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+
+[node name="HandContainer" type="HBoxContainer" parent="BattleUI"]
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="BattleUI"]
+layout_mode = 2
+
+[node name="EndTurnButton" type="Button" parent="BattleUI"]
+layout_mode = 2
+text = "结束回合"
