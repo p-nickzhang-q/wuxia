@@ -11,25 +11,28 @@ const AI_DECISION_DELAY: float = 0.8
 const UI_REFRESH_INTERVAL: float = 0.1
 
 # ==================== 子节点引用 ====================
-## 战斗UI容器（旧版UI，逐步替换）
-@onready var player_hp_bar: ProgressBar = $BattleUI/TopPanel/PlayerPanel/HPBar
-@onready var player_mp_bar: ProgressBar = $BattleUI/TopPanel/PlayerPanel/MPBar
-@onready var player_hp_label: Label = $BattleUI/TopPanel/PlayerPanel/HPLabel
-@onready var player_mp_label: Label = $BattleUI/TopPanel/PlayerPanel/MPLabel
-@onready var player_shield_label: Label = $BattleUI/TopPanel/PlayerPanel/ShieldLabel
-@onready var player_agility_label: Label = $BattleUI/TopPanel/PlayerPanel/AgilityLabel
+## 战斗UI容器
+@onready var battle_ui: Control = $BattleUI
 
-@onready var enemy_hp_bar: ProgressBar = $BattleUI/TopPanel/EnemyPanel/HPBar
-@onready var enemy_mp_bar: ProgressBar = $BattleUI/TopPanel/EnemyPanel/MPBar
-@onready var enemy_hp_label: Label = $BattleUI/TopPanel/EnemyPanel/HPLabel
-@onready var enemy_mp_label: Label = $BattleUI/TopPanel/EnemyPanel/MPLabel
-@onready var enemy_shield_label: Label = $BattleUI/TopPanel/EnemyPanel/ShieldLabel
-@onready var enemy_agility_label: Label = $BattleUI/TopPanel/EnemyPanel/AgilityLabel
+## 顶部栏
+@onready var turn_label: Label = $BattleUI/TopBar/TurnLabel
+@onready var actor_label: Label = $BattleUI/TopBar/ActorLabel
 
-@onready var hand_container: HBoxContainer = $BattleUI/HandContainer
-@onready var turn_label: Label = $BattleUI/TurnLabel
-@onready var log_label: Label = $BattleUI/LogLabel
-@onready var end_turn_button: Button = $BattleUI/EndTurnButton
+## 角色面板
+@onready var player_panel: CharacterPanel = $BattleUI/PlayerPanel
+@onready var enemy_panel: CharacterPanel = $BattleUI/EnemyPanel
+
+## 右侧容器
+@onready var agility_axis: AgilityAxis = $BattleUI/RightContainer/AgilityAxis
+@onready var battle_log: BattleLog = $BattleUI/RightContainer/BattleLog
+
+## 底部栏
+@onready var skill_container: HBoxContainer = $BattleUI/BottomBar/SkillContainer
+@onready var hand_container: HBoxContainer = $BattleUI/BottomBar/HandContainer
+@onready var end_turn_button: Button = $BattleUI/BottomBar/EndTurnButton
+
+## 提示框
+@onready var tooltip: Tooltip = $BattleUI/Tooltip
 
 # ==================== 核心模块 ====================
 ## 游戏状态（数据层）
@@ -205,33 +208,98 @@ func _update_ui() -> void:
 	if battle_manager == null:
 		return
 
-	# 更新玩家面板
-	var p: Character = battle_manager.player
-	if p:
-		player_hp_bar.max_value = p.max_hp
-		player_hp_bar.value = p.current_hp
-		player_hp_label.text = "HP: %d/%d" % [p.current_hp, p.max_hp]
-		player_mp_bar.max_value = p.max_mp
-		player_mp_bar.value = p.current_mp
-		player_mp_label.text = "MP: %d/%d" % [p.current_mp, p.max_mp]
-		player_shield_label.text = "护盾: %d" % p.shield
-		player_agility_label.text = "轻功: %d" % p.current_agility
-
-	# 更新敌人面板
-	var e: Character = battle_manager.enemy
-	if e:
-		enemy_hp_bar.max_value = e.max_hp
-		enemy_hp_bar.value = e.current_hp
-		enemy_hp_label.text = "HP: %d/%d" % [e.current_hp, e.max_hp]
-		enemy_mp_bar.max_value = e.max_mp
-		enemy_mp_bar.value = e.current_mp
-		enemy_mp_label.text = "MP: %d/%d" % [e.current_mp, e.max_mp]
-		enemy_shield_label.text = "护盾: %d" % e.shield
-		enemy_agility_label.text = "轻功: %d" % e.current_agility
-
 	# 更新回合标签
 	var actor_name: String = "玩家" if battle_manager.current_actor == battle_manager.player else "敌人"
-	turn_label.text = "回合 %d - %s行动" % [battle_manager.current_turn, actor_name]
+	if turn_label:
+		turn_label.text = "第 %d 回合" % battle_manager.current_turn
+	if actor_label:
+		actor_label.text = "行动: %s" % actor_name
+
+	# 更新角色面板
+	if player_panel and battle_manager.player:
+		player_panel.character = battle_manager.player
+		player_panel.setup()
+	if enemy_panel and battle_manager.enemy:
+		enemy_panel.character = battle_manager.enemy
+		enemy_panel.setup()
+
+	# 更新轻功轴
+	if agility_axis:
+		_update_agility_axis()
+
+	# 更新武功按钮
+	_render_skills()
+
+
+## 更新轻功轴
+func _update_agility_axis() -> void:
+	if agility_axis == null or battle_manager == null:
+		return
+
+	var character_ids: Array[String] = []
+	if battle_manager.player:
+		character_ids.append(battle_manager.player.id)
+	if battle_manager.enemy:
+		character_ids.append(battle_manager.enemy.id)
+
+	agility_axis.setup(character_ids, _get_character_data_for_axis)
+
+
+## 获取角色数据用于轻功轴
+func _get_character_data_for_axis(char_id: String) -> Dictionary:
+	if battle_manager == null:
+		return {}
+
+	if battle_manager.player and battle_manager.player.id == char_id:
+		var p = battle_manager.player
+		return {
+			"name": p.name,
+			"current_agility": p.current_agility,
+			"base_agility": p.base_agility,
+			"is_player": true,
+			"is_current_actor": battle_manager.current_actor == p
+		}
+	elif battle_manager.enemy and battle_manager.enemy.id == char_id:
+		var e = battle_manager.enemy
+		return {
+			"name": e.name,
+			"current_agility": e.current_agility,
+			"base_agility": e.base_agility,
+			"is_player": false,
+			"is_current_actor": battle_manager.current_actor == e
+		}
+
+	return {}
+
+
+## 渲染武功按钮
+func _render_skills() -> void:
+	if skill_container == null or battle_manager == null:
+		return
+
+	# 清空武功容器
+	for child in skill_container.get_children():
+		child.queue_free()
+
+	# 渲染玩家的武功
+	var skills: Array[Skill] = battle_manager.player.skills
+	for i in range(skills.size()):
+		var skill: Skill = skills[i]
+		# 使用 SkillButton 组件
+		var skill_button_scene := preload("res://scenes/components/skill_button.tscn")
+		var skill_button: SkillButton = skill_button_scene.instantiate()
+		skill_button.skill = skill
+		skill_button.setup()
+
+		# 设置当前状态
+		skill_button.set_state(
+			battle_manager.player.current_mp,
+			battle_manager.player.current_agility,
+			battle_manager.player.hand
+		)
+
+		skill_button.skill_pressed.connect(_on_skill_pressed)
+		skill_container.add_child(skill_button)
 
 
 ## 渲染手牌
@@ -247,29 +315,57 @@ func _render_hand() -> void:
 	var hand: Array[Card] = battle_manager.player.hand
 	for i in range(hand.size()):
 		var card: Card = hand[i]
-		var card_button := Button.new()
-		card_button.text = "%s\n伤害:%d" % [card.name, card.damage]
-		card_button.custom_minimum_size = Vector2(80, 100)
+		# 使用 CardUI 组件
+		var card_ui_scene := preload("res://scenes/components/card.tscn")
+		var card_ui: CardUI = card_ui_scene.instantiate()
+		card_ui.card = card
+		card_ui.setup()
 
 		# 检查是否可用（轻功足够）
 		var is_playable: bool = card.agility_cost <= battle_manager.player.current_agility
-		if not is_playable:
-			card_button.modulate = Color(0.5, 0.5, 0.5)
+		card_ui.set_playable(is_playable)
 
-		card_button.pressed.connect(_on_card_pressed.bind(i))
-		hand_container.add_child(card_button)
+		# 连接点击信号
+		card_ui.clicked.connect(_on_card_ui_clicked)
+		hand_container.add_child(card_ui)
 
 
 ## 添加日志
 func _log(message: String) -> void:
-	if log_label:
-		log_label.text = message
+	if battle_log:
+		battle_log.add_message(message)
 	print("[Battle] %s" % message)
 
 
 # ==================== 事件处理 ====================
 
-## 卡牌点击处理
+## 卡牌UI点击处理
+func _on_card_ui_clicked(card: Card) -> void:
+	# 检查是否是玩家回合
+	if battle_manager.current_actor != battle_manager.player:
+		_log("现在不是你的回合!")
+		return
+
+	# 检查是否正在处理 AI
+	if _is_ai_turn:
+		return
+
+	# 找到卡牌在手牌中的索引
+	var card_index: int = -1
+	for i in range(battle_manager.player.hand.size()):
+		if battle_manager.player.hand[i].instance_id == card.instance_id:
+			card_index = i
+			break
+
+	if card_index < 0:
+		_log("卡牌未找到!")
+		return
+
+	# 使用输入处理器处理
+	input_handler.handle_card_click(card_index)
+
+
+## 卡牌点击处理（旧版，保留向后兼容）
 func _on_card_pressed(card_index: int) -> void:
 	# 检查是否是玩家回合
 	if battle_manager.current_actor != battle_manager.player:
@@ -364,6 +460,32 @@ func _on_target_selected(target) -> void:
 func _on_input_state_changed(new_state: int) -> void:
 	# 可以在这里更新 UI 提示
 	pass
+
+
+## 武功按钮点击处理
+func _on_skill_pressed(skill: Skill, button: SkillButton) -> void:
+	# 检查是否是玩家回合
+	if battle_manager.current_actor != battle_manager.player:
+		_log("现在不是你的回合!")
+		return
+
+	# 检查是否正在处理 AI
+	if _is_ai_turn:
+		return
+
+	# 找到武功在列表中的索引
+	var skill_index: int = -1
+	for i in range(battle_manager.player.skills.size()):
+		if battle_manager.player.skills[i].skill_id == skill.skill_id:
+			skill_index = i
+			break
+
+	if skill_index < 0:
+		_log("武功未找到!")
+		return
+
+	# 使用输入处理器处理
+	input_handler.handle_skill_click(skill_index)
 
 
 ## 回合改变处理（来自 BattleManager）
