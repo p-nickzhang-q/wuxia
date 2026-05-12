@@ -71,19 +71,17 @@ enum Faction {
 # ==================== 效果类型 ====================
 ## 效果类型
 enum EffectType {
-	DAMAGE,        ## 伤害
-	HEAL,          ## 治疗
-	SHIELD,        ## 护盾
-	MP_RECOVER,    ## 内力恢复
-	AGILITY_BOOST, ## 軽功提升
-	AGILITY_REDUCE,## 軽功降低
-	DRAW_CARDS,    ## 抽牌
-	DISCARD,       ## 弃牌
-	STUN,          ## 眩晕
-	POISON,        ## 中毒
-	BLEED,         ## 流血
-	BUFF,          ## 增益
-	DEBUFF         ## 减益
+	DAMAGE,            ## 造成伤害
+	SHIELD,            ## 获得护盾
+	SELF_DAMAGE,       ## 自伤
+	DRAIN_MP,          ## 吸取内力
+	REMOVE_MP,         ## 消除内力（造成等量伤害）
+	DRAIN_HP,          ## 吸取生命
+	DOT,               ## 持续伤害
+	DEBUFF_AGILITY,    ## 降低轻功
+	DISABLE_CARD_TYPE, ## 禁用卡牌类型
+	EXTRA_ACTION,      ## 额外行动
+	MIMIC              ## 模仿上一次武功
 }
 
 # ==================== 常量 ====================
@@ -132,6 +130,21 @@ const FACTION_NAMES: Dictionary = {
 	Faction.XIAKE: "侠客岛",
 	Faction.QINGCHENG: "青城",
 	Faction.RIVERSIDE: "江水帮"
+}
+
+## 效果类型名称映射
+const EFFECT_TYPE_NAMES: Dictionary = {
+	EffectType.DAMAGE: "伤害",
+	EffectType.SHIELD: "护盾",
+	EffectType.SELF_DAMAGE: "自伤",
+	EffectType.DRAIN_MP: "吸取内力",
+	EffectType.REMOVE_MP: "消除内力",
+	EffectType.DRAIN_HP: "吸取生命",
+	EffectType.DOT: "持续伤害",
+	EffectType.DEBUFF_AGILITY: "降低轻功",
+	EffectType.DISABLE_CARD_TYPE: "禁用卡牌",
+	EffectType.EXTRA_ACTION: "额外行动",
+	EffectType.MIMIC: "模仿"
 }
 
 
