@@ -1,240 +1,79 @@
 ## game_state.gd - 游戏状态管理类
 ## 管理整个战斗的状态，包含所有角色、当前阶段、行动历史等
+## 设计原则：事件驱动，通过信号通知 UI 更新
 
 class_name GameState
 extends RefCounted
 
-# ==================== 属性 ====================
-## 所有参与战斗的角色（Dictionary 数组）
-var characters: Array[Dictionary] = []
+# ==================== 信号定义 ====================
+## 回合开始信号
+signal turn_started(turn_number: int)
+## 回合结束信号
+signal turn_ended()
+## 行动方改变信号
+signal actor_changed(actor: Dictionary)
+## 卡牌打出信号
+signal card_played(character: Dictionary, card: CardState)
+## 武功使用信号
+signal skill_used(character: Dictionary, skill: SkillState)
+## 伤害造成信号
+signal damage_dealt(target: Dictionary, amount: int, source: Dictionary)
+## 护盾获得信号
+signal shield_gained(character: Dictionary, amount: int)
+## 角色治疗信号
+signal character_healed(character: Dictionary, amount: int)
+## 内功触发信号
+signal passive_triggered(character: Dictionary, passive: PassiveState, result: Dictionary)
+## 游戏结束信号
+signal game_ended(winner: Dictionary, loser: Dictionary)
+## 日志消息信号
+signal log_message(text: String)
 
-## 当前游戏阶段
-var current_phase: Types.GamePhase = Types.GamePhase.SETUP
+# ==================== 属性 ====================
+## 玩家角色
+var player: Dictionary = {}
+
+## 敌人角色
+var enemy: Dictionary = {}
 
 ## 当前回合数
 var turn_number: int = 1
 
-## 当前行动角色索引
-var current_actor_index: int = 0
+## 当前行动角色
+var current_actor: Dictionary = {}
+
+## 当前游戏阶段
+var current_phase: Types.GamePhase = Types.GamePhase.SETUP
 
 ## 行动历史记录
 var action_history: Array[Dictionary] = []
 
-## 距离系统（可选，用于支持距离机制）
-var distance_system = null  # DistanceSystem 类型，待实现
+## 上次使用的武功（用于模仿效果）
+var last_used_skill: SkillState = null
+
+# ==================== 工厂方法 ====================
+
+## 创建游戏状态
+## 返回包含状态和信号引用的字典
+static func create(player_data: Dictionary, enemy_data: Dictionary) -> Dictionary:
+	var state := GameState.new()
+	state.player = CharacterState.from_data(player_data)
+	state.enemy = CharacterState.from_data(enemy_data)
+	return {
+		"state": state,
+		"_signals": state  # 用于发射信号
+	}
 
 
 # ==================== 核心方法 ====================
-
-## 获取当前行动角色
-func get_current_actor() -> Dictionary:
-	if characters.is_empty() or current_actor_index < 0 or current_actor_index >= characters.size():
-		return {}
-	return characters[current_actor_index]
-
-
-## 获取下一个行动角色
-## 基于轻功值决定行动顺序：轻功高者优先行动
-func get_next_actor() -> Dictionary:
-	if characters.is_empty():
-		return {}
-
-	if characters.size() == 1:
-		return characters[0]
-
-	# 如果只有一个存活角色，返回该角色
-	var alive_characters := _get_alive_characters()
-	if alive_characters.size() == 1:
-		return alive_characters[0]
-
-	# 比较轻功值，轻功高者下一个行动
-	var current := get_current_actor()
-	if current.is_empty():
-		return characters[0]
-
-	# 找到存活的其他角色中轻功最高的
-	var next_actor: Dictionary = {}
-	var highest_agility := -1
-
-	for character in alive_characters:
-		if character == current:
-			continue
-		var agility: int = character.get("agility", 0)
-		if agility > highest_agility:
-			highest_agility = agility
-			next_actor = character
-
-	# 如果没有其他存活角色，返回当前角色
-	if next_actor.is_empty():
-		return current
-
-	return next_actor
-
-
-## 推进回合
-## 回合数+1，重置角色轻功，确定新的先手角色
-func advance_turn() -> void:
-	turn_number += 1
-
-	# 重置所有角色的回合状态
-	for character in characters:
-		CharacterState.reset_turn(character)
-
-	# 根据轻功值确定新的先手角色
-	_determine_first_actor()
-
-	# 更新阶段
-	if current_phase == Types.GamePhase.SETUP:
-		current_phase = Types.GamePhase.SELECTING
-
-
-## 检查战斗是否结束
-## 当任意角色死亡时战斗结束
-func is_battle_over() -> bool:
-	var alive_count := 0
-	for character in characters:
-		if not CharacterState.is_dead(character):
-			alive_count += 1
-	return alive_count <= 1
-
-
-## 获取胜利者
-## 返回存活的角色，如果没有则返回空字典
-func get_winner() -> Dictionary:
-	if not is_battle_over():
-		return {}
-
-	for character in characters:
-		if not CharacterState.is_dead(character):
-			return character
-
-	return {}
-
-
-## 记录行动到历史
-func record_action(action: Dictionary) -> void:
-	# 添加时间戳和回合信息
-	var record := action.duplicate()
-	record["turn"] = turn_number
-	record["timestamp"] = Time.get_ticks_msec()
-
-	action_history.append(record)
-
-
-## 获取指定角色可攻击的目标
-## 在对战模式下返回对手
-func get_targets_for(character: Dictionary) -> Array[Dictionary]:
-	var targets: Array[Dictionary] = []
-
-	for c in characters:
-		if c != character and not CharacterState.is_dead(c):
-			targets.append(c)
-
-	return targets
-
-
-# ==================== 辅助方法 ====================
-
-## 获取所有存活角色
-func _get_alive_characters() -> Array[Dictionary]:
-	var alive: Array[Dictionary] = []
-	for character in characters:
-		if not CharacterState.is_dead(character):
-			alive.append(character)
-	return alive
-
-
-## 根据轻功值确定先手角色
-func _determine_first_actor() -> void:
-	var alive_characters := _get_alive_characters()
-	if alive_characters.is_empty():
-		current_actor_index = 0
-		return
-
-	var first_actor: Dictionary = alive_characters[0]
-	var highest_agility: int = first_actor.get("agility", 0)
-
-	for character in alive_characters:
-		var agility: int = character.get("agility", 0)
-		if agility > highest_agility:
-			highest_agility = agility
-			first_actor = character
-
-	# 更新索引
-	var index := characters.find(first_actor)
-	if index >= 0:
-		current_actor_index = index
-
-
-## 切换到下一个行动角色
-## 当当前角色轻功低于对手时调用
-func switch_to_next_actor() -> void:
-	var next := get_next_actor()
-	if not next.is_empty():
-		var index := characters.find(next)
-		if index >= 0:
-			current_actor_index = index
-
-
-## 获取当前角色的对手（在对战模式下）
-func get_opponent(character: Dictionary) -> Dictionary:
-	var targets := get_targets_for(character)
-	if targets.is_empty():
-		return {}
-	return targets[0]
-
-
-## 检查是否轮到指定角色行动
-func is_character_turn(character: Dictionary) -> bool:
-	return get_current_actor() == character
-
-
-## 获取角色索引
-func get_character_index(character: Dictionary) -> int:
-	return characters.find(character)
-
-
-## 添加角色到战斗
-func add_character(character: Dictionary) -> void:
-	if not character.is_empty() and not characters.has(character):
-		characters.append(character)
-
-
-## 移除角色从战斗
-func remove_character(character: Dictionary) -> void:
-	var index := characters.find(character)
-	if index >= 0:
-		characters.remove_at(index)
-		# 调整当前行动索引
-		if current_actor_index >= characters.size():
-			current_actor_index = maxi(0, characters.size() - 1)
-
-
-## 清除所有角色
-func clear_characters() -> void:
-	characters.clear()
-	current_actor_index = 0
-
-
-## 重置战斗状态
-func reset() -> void:
-	characters.clear()
-	current_phase = Types.GamePhase.SETUP
-	turn_number = 1
-	current_actor_index = 0
-	action_history.clear()
-
-	if distance_system != null and distance_system.has_method("reset"):
-		distance_system.reset()
-
 
 ## 开始战斗
 func start_battle() -> void:
 	current_phase = Types.GamePhase.SELECTING
 
-	# 初始化所有角色
-	for character in characters:
-		CharacterState.reset_for_battle(character)
+	# 初始化双方角色
+	CharacterState.reset_for_battle(player)
+	CharacterState.reset_for_battle(enemy)
 
 	# 确定先手
 	_determine_first_actor()
@@ -242,80 +81,450 @@ func start_battle() -> void:
 	# 记录战斗开始
 	record_action({
 		"type": "battle_start",
-		"characters": characters.size()
+		"player": player.get("name", ""),
+		"enemy": enemy.get("name", "")
 	})
 
+	log_message.emit("战斗开始！")
 
-## 结束战斗
-func end_battle() -> void:
-	current_phase = Types.GamePhase.GAME_OVER
 
-	var winner := get_winner()
-	var winner_name: String = winner.get("name", "none") if not winner.is_empty() else "none"
+## 开始新回合
+func start_new_turn() -> void:
+	turn_number += 1
+
+	# 重置双方轻功
+	CharacterState.reset_turn(player)
+	CharacterState.reset_turn(enemy)
+
+	# 触发回合开始内功
+	CharacterState.on_turn_start(player, self)
+	CharacterState.on_turn_start(enemy, self)
+
+	# 双方抽牌
+	var player_drawn: Array = CharacterState.draw_cards(player, Types.DEFAULT_DRAW_COUNT)
+	var enemy_drawn: Array = CharacterState.draw_cards(enemy, Types.DEFAULT_DRAW_COUNT)
+
+	# 确定先手
+	_determine_first_actor()
+
+	# 更新阶段
+	current_phase = Types.GamePhase.SELECTING
+
+	# 发出信号
+	turn_started.emit(turn_number)
+	log_message.emit("第 %d 回合开始" % turn_number)
+
+	# 记录行动
 	record_action({
-		"type": "battle_end",
-		"winner": winner_name,
-		"turns": turn_number
+		"type": "turn_start",
+		"turn": turn_number,
+		"player_drawn": player_drawn.size(),
+		"enemy_drawn": enemy_drawn.size()
 	})
+
+
+## 结束回合
+func end_turn() -> void:
+	# 触发回合结束内功
+	CharacterState.on_turn_end(player, self)
+	CharacterState.on_turn_end(enemy, self)
+
+	# 处理持续伤害和减益
+	_process_dots_and_debuffs()
+
+	# 检查游戏结束
+	if is_battle_over():
+		_end_game()
+		return
+
+	# 发出信号
+	turn_ended.emit()
+
+	# 开始新回合
+	start_new_turn()
+
+
+## 使用基础招式卡牌
+func use_basic_card(card_index: int) -> Dictionary:
+	var result := {
+		"success": false,
+		"card": null,
+		"effects": []
+	}
+
+	if not is_character_turn(current_actor):
+		result["error"] = "not_your_turn"
+		return result
+
+	var hand: Array = current_actor.get("hand", [])
+	if card_index < 0 or card_index >= hand.size():
+		result["error"] = "invalid_card_index"
+		return result
+
+	var card: CardState = hand[card_index]
+	var agility: int = current_actor.get("agility", 0)
+
+	# 检查轻功是否足够
+	if card.agility_cost > agility:
+		result["error"] = "not_enough_agility"
+		return result
+
+	# 消耗轻功
+	current_actor["agility"] = agility - card.agility_cost
+
+	# 打出卡牌
+	var played_card: CardState = CharacterState.play_card(current_actor, card_index)
+	if played_card == null:
+		result["error"] = "play_card_failed"
+		return result
+
+	result.card = played_card
+	result.success = true
+
+	# 获取目标
+	var target: Dictionary = get_opponent(current_actor)
+
+	# 执行卡牌效果
+	_execute_card_effects(current_actor, target, played_card)
+
+	# 触发使用卡牌内功
+	var trigger_results := CharacterState.trigger_on_play_card(current_actor, self, played_card)
+	result.effects.append_array(trigger_results)
+
+	# 发出信号
+	card_played.emit(current_actor, played_card)
+
+	# 检查游戏结束
+	if is_battle_over():
+		_end_game()
+		return result
+
+	# 检查是否切换行动方
+	_check_actor_switch()
+
+	return result
+
+
+## 使用武功招式
+func use_skill(skill_index: int, card_index: int) -> Dictionary:
+	var result := {
+		"success": false,
+		"skill": null,
+		"card": null,
+		"effects": []
+	}
+
+	if not is_character_turn(current_actor):
+		result["error"] = "not_your_turn"
+		return result
+
+	var skills: Array = current_actor.get("skills", [])
+	if skill_index < 0 or skill_index >= skills.size():
+		result["error"] = "invalid_skill_index"
+		return result
+
+	var skill: SkillState = skills[skill_index]
+	var mp: int = current_actor.get("mp", 0)
+	var agility: int = current_actor.get("agility", 0)
+	var hand: Array = current_actor.get("hand", [])
+
+	# 检查是否可用
+	if not skill.is_available(mp, agility, hand):
+		result["error"] = "skill_not_available"
+		return result
+
+	# 检查卡牌索引是否有效
+	var available_cards := skill.get_available_card_indices(hand)
+	if card_index not in available_cards:
+		result["error"] = "invalid_card_for_skill"
+		return result
+
+	# 消耗资源
+	current_actor["mp"] = mp - skill.mp_cost
+	current_actor["agility"] = agility - skill.agility_cost
+
+	# 使用卡牌作为媒介
+	var card: CardState = CharacterState.play_card(current_actor, card_index)
+	if card == null:
+		result["error"] = "play_card_failed"
+		return result
+
+	# 标记武功使用
+	skill.use()
+
+	# 记录上次使用的武功
+	last_used_skill = skill
+
+	result.skill = skill
+	result.card = card
+	result.success = true
+
+	# 获取目标
+	var target: Dictionary = get_opponent(current_actor)
+
+	# 执行武功效果
+	_execute_skill_effects(current_actor, target, skill)
+
+	# 触发武功使用内功
+	var trigger_results := CharacterState.trigger_on_skill_use(current_actor, self, skill)
+	result.effects.append_array(trigger_results)
+
+	# 发出信号
+	skill_used.emit(current_actor, skill)
+
+	# 检查游戏结束
+	if is_battle_over():
+		_end_game()
+		return result
+
+	# 检查是否切换行动方
+	_check_actor_switch()
+
+	return result
+
+
+## 结束当前行动（主动结束回合）
+func pass_turn() -> void:
+	# 切换到对手
+	current_actor = get_opponent(current_actor)
+	actor_changed.emit(current_actor)
+
+	# 如果双方都无轻功，结束回合
+	var player_agility: int = player.get("agility", 0)
+	var enemy_agility: int = enemy.get("agility", 0)
+
+	if player_agility <= 0 and enemy_agility <= 0:
+		end_turn()
+
+
+# ==================== 查询方法 ====================
+
+## 检查战斗是否结束
+func is_battle_over() -> bool:
+	return CharacterState.is_dead(player) or CharacterState.is_dead(enemy)
+
+
+## 获取胜利者
+func get_winner() -> Dictionary:
+	if CharacterState.is_dead(player):
+		return enemy
+	if CharacterState.is_dead(enemy):
+		return player
+	return {}
+
+
+## 获取失败者
+func get_loser() -> Dictionary:
+	if CharacterState.is_dead(player):
+		return player
+	if CharacterState.is_dead(enemy):
+		return enemy
+	return {}
+
+
+## 获取对手
+func get_opponent(character: Dictionary) -> Dictionary:
+	if character == player:
+		return enemy
+	return player
+
+
+## 检查是否轮到指定角色行动
+func is_character_turn(character: Dictionary) -> bool:
+	return current_actor == character
+
+
+## 获取当前行动角色名称
+func get_current_actor_name() -> String:
+	if current_actor == player:
+		return "玩家"
+	return "敌人"
+
+
+## 记录行动到历史
+func record_action(action: Dictionary) -> void:
+	var record := action.duplicate()
+	record["turn"] = turn_number
+	record["timestamp"] = Time.get_ticks_msec()
+	action_history.append(record)
 
 
 ## 获取战斗摘要
 func get_battle_summary() -> Dictionary:
 	var winner := get_winner()
+	var loser := get_loser()
 	return {
-		"winner": winner.get("name", "none") if not winner.is_empty() else "none",
+		"winner": winner.get("name", "无"),
+		"loser": loser.get("name", "无"),
 		"turns": turn_number,
-		"actions": action_history.size(),
-		"characters": _get_characters_status()
+		"actions": action_history.size()
 	}
 
 
-## 获取所有角色状态
-func _get_characters_status() -> Array[Dictionary]:
-	var status: Array[Dictionary] = []
-	for character in characters:
-		status.append({
-			"name": character.get("name", ""),
-			"hp": character.get("hp", 0),
-			"max_hp": character.get("max_hp", 60),
-			"is_alive": not CharacterState.is_dead(character)
-		})
-	return status
+# ==================== 内部方法 ====================
+
+## 根据轻功决定先手
+func _determine_first_actor() -> void:
+	var player_agility: int = player.get("agility", 0)
+	var enemy_agility: int = enemy.get("agility", 0)
+
+	if player_agility >= enemy_agility:
+		current_actor = player
+	else:
+		current_actor = enemy
+
+	actor_changed.emit(current_actor)
+
+
+## 检查是否需要切换行动方
+func _check_actor_switch() -> void:
+	var opponent := get_opponent(current_actor)
+	var current_agility: int = current_actor.get("agility", 0)
+	var opponent_agility: int = opponent.get("agility", 0)
+
+	# 如果当前行动方轻功低于对手，切换
+	if current_agility < opponent_agility:
+		current_actor = opponent
+		actor_changed.emit(current_actor)
+
+		# 如果双方都无轻功，结束回合
+		if current_agility <= 0 and opponent_agility <= 0:
+			end_turn()
+
+
+## 执行卡牌效果
+func _execute_card_effects(source: Dictionary, target: Dictionary, card: CardState) -> void:
+	# 伤害
+	if card.base_damage > 0:
+		var damage_result: Dictionary = CharacterState.take_damage(target, card.base_damage, source)
+		damage_dealt.emit(target, damage_result.actual_damage, source)
+
+		# 触发造成伤害内功
+		CharacterState.trigger_on_damage(source, self, target, damage_result.actual_damage)
+
+		# 触发受到伤害内功
+		CharacterState.trigger_on_take_damage(target, self, source, damage_result.actual_damage)
+
+		var target_name: String = target.get("name", "未知")
+		log_message.emit("%s 对 %s 造成 %d 点伤害" % [source.get("name", "未知"), target_name, damage_result.actual_damage])
+
+	# 护盾
+	if card.base_shield > 0:
+		var shield: int = source.get("shield", 0)
+		source["shield"] = shield + card.base_shield
+		shield_gained.emit(source, card.base_shield)
+
+		var source_name: String = source.get("name", "未知")
+		log_message.emit("%s 获得 %d 点护盾" % [source_name, card.base_shield])
+
+	# 治疗
+	if card.base_heal > 0:
+		var heal_amount: int = CharacterState.heal(source, card.base_heal)
+		character_healed.emit(source, heal_amount)
+
+		var source_name: String = source.get("name", "未知")
+		log_message.emit("%s 恢复 %d 点生命" % [source_name, heal_amount])
+
+	# 特殊效果
+	for effect in card.effects:
+		_process_effect(source, target, effect)
+
+
+## 执行武功效果
+func _execute_skill_effects(source: Dictionary, target: Dictionary, skill: SkillState) -> void:
+	# 基础伤害
+	if skill.damage > 0:
+		var damage_result: Dictionary = CharacterState.take_damage(target, skill.damage, source)
+		damage_dealt.emit(target, damage_result.actual_damage, source)
+
+		# 触发造成伤害内功
+		CharacterState.trigger_on_damage(source, self, target, damage_result.actual_damage)
+
+		# 触发受到伤害内功
+		CharacterState.trigger_on_take_damage(target, self, source, damage_result.actual_damage)
+
+		var target_name: String = target.get("name", "未知")
+		log_message.emit("%s 使用 %s 对 %s 造成 %d 点伤害" % [source.get("name", "未知"), skill.name, target_name, damage_result.actual_damage])
+
+	# 特殊效果
+	for effect in skill.effects:
+		_process_effect(source, target, effect)
+
+
+## 处理单个效果
+func _process_effect(source: Dictionary, target: Dictionary, effect: Dictionary) -> void:
+	var effect_type: String = effect.get("type", "")
+	var value: int = effect.get("value", 0)
+
+	match effect_type:
+		"heal", "heal_self":
+			var heal_amount: int = CharacterState.heal(source, value)
+			character_healed.emit(source, heal_amount)
+			log_message.emit("%s 恢复 %d 点生命" % [source.get("name", "未知"), heal_amount])
+
+		"shield", "add_shield":
+			var shield: int = source.get("shield", 0)
+			source["shield"] = shield + value
+			shield_gained.emit(source, value)
+			log_message.emit("%s 获得 %d 点护盾" % [source.get("name", "未知"), value])
+
+		"damage", "damage_target":
+			var damage_result: Dictionary = CharacterState.take_damage(target, value, source)
+			damage_dealt.emit(target, damage_result.actual_damage, source)
+			log_message.emit("%s 对 %s 造成 %d 点伤害" % [source.get("name", "未知"), target.get("name", "未知"), damage_result.actual_damage])
+
+		"mp_recover", "recover_mp":
+			CharacterState.recover_mp(source, value)
+			log_message.emit("%s 恢复 %d 点内力" % [source.get("name", "未知"), value])
+
+		"agility_boost", "boost_agility":
+			var agility: int = source.get("agility", 0)
+			source["agility"] = agility + value
+			log_message.emit("%s 轻功提升 %d" % [source.get("name", "未知"), value])
+
+		"agility_reduce", "reduce_agility":
+			var agility: int = target.get("agility", 0)
+			target["agility"] = maxi(0, agility - value)
+			log_message.emit("%s 轻功降低 %d" % [target.get("name", "未知"), value])
+
+		"draw_cards", "draw":
+			var drawn: Array = CharacterState.draw_cards(source, value)
+			log_message.emit("%s 抽取 %d 张牌" % [source.get("name", "未知"), drawn.size()])
+
+
+## 处理持续伤害和减益
+func _process_dots_and_debuffs() -> void:
+	# TODO: 实现持续伤害和减益效果处理
+	pass
+
+
+## 结束游戏
+func _end_game() -> void:
+	current_phase = Types.GamePhase.GAME_OVER
+
+	var winner := get_winner()
+	var loser := get_loser()
+
+	# 记录战斗结束
+	record_action({
+		"type": "battle_end",
+		"winner": winner.get("name", ""),
+		"loser": loser.get("name", ""),
+		"turns": turn_number
+	})
+
+	# 发出信号
+	game_ended.emit(winner, loser)
+	log_message.emit("%s 获胜！" % winner.get("name", "未知"))
 
 
 ## 转换为字典（用于序列化/保存）
 func to_dict() -> Dictionary:
-	var characters_data: Array[Dictionary] = []
-	for character in characters:
-		characters_data.append(CharacterState.to_dict(character))
-
-	var history_data: Array[Dictionary] = []
-	for action in action_history:
-		history_data.append(action)
-
 	return {
 		"turn_number": turn_number,
-		"current_actor_index": current_actor_index,
 		"current_phase": current_phase,
-		"characters": characters_data,
-		"action_history": history_data
+		"player": CharacterState.to_dict(player),
+		"enemy": CharacterState.to_dict(enemy),
+		"current_actor_is_player": current_actor == player,
+		"action_history": action_history.duplicate()
 	}
-
-
-## 从字典加载状态
-static func from_dict(data: Dictionary) -> GameState:
-	var state := GameState.new()
-	state.turn_number = data.get("turn_number", 1)
-	state.current_actor_index = data.get("current_actor_index", 0)
-
-	var phase_value: int = data.get("current_phase", Types.GamePhase.SETUP)
-	state.current_phase = phase_value as Types.GamePhase
-
-	# 注意：角色需要单独加载，因为需要从资源文件重建
-	# action_history 可以直接加载
-	var history_data: Array = data.get("action_history", [])
-	for action in history_data:
-		if action is Dictionary:
-			state.action_history.append(action)
-
-	return state

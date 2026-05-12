@@ -1,5 +1,5 @@
 ## battle.gd - 战斗场景主控制器
-## 协调 GameState、BattleUI、BattleInputHandler、BattleAnimator、BattleEffects
+## 协调 GameState、BattleUI
 ## 实现设计文档: 战斗场景架构
 
 extends Control
@@ -38,23 +38,13 @@ const UI_REFRESH_INTERVAL: float = 0.1
 ## 游戏状态（数据层）
 var game_state: GameState = null
 
-## 战斗管理器（包装器，保持向后兼容）
-var battle_manager: BattleManager = null
-
 ## 输入处理器
 var input_handler: BattleInputHandler = null
 
 ## 动画器
 var animator: BattleAnimator = null
 
-## 视觉效果管理器
-var effects: BattleEffects = null
-
 # ==================== 内部状态 ====================
-## 玩家角色引用
-var _player: Dictionary = {}
-## 敌人角色引用
-var _enemy: Dictionary = {}
 ## 是否正在处理 AI 回合
 var _is_ai_turn: bool = false
 ## UI 刷新计时器
@@ -75,9 +65,6 @@ func _ready() -> void:
 
 ## 初始化所有模块
 func _initialize_modules() -> void:
-	# 创建游戏状态
-	game_state = GameState.new()
-
 	# 创建输入处理器
 	input_handler = BattleInputHandler.new()
 	input_handler.setup(game_state)
@@ -92,15 +79,6 @@ func _initialize_modules() -> void:
 	animator.animation_started.connect(_on_animation_started)
 	animator.animation_completed.connect(_on_animation_completed)
 
-	# 创建战斗管理器（作为包装器）
-	battle_manager = BattleManager.new()
-	add_child(battle_manager)
-
-	# 连接战斗管理器信号
-	battle_manager.turn_changed.connect(_on_turn_changed)
-	battle_manager.damage_dealt.connect(_on_damage_dealt)
-	battle_manager.battle_ended.connect(_on_battle_ended)
-
 
 ## 开始战斗
 func _start_battle() -> void:
@@ -108,11 +86,19 @@ func _start_battle() -> void:
 	var player_data: Dictionary = GameManager.get_character_data(GameManager.player_character_id)
 	var enemy_data: Dictionary = GameManager.get_character_data(GameManager.enemy_character_id)
 
-	# 使用 BattleManager 初始化（保持向后兼容）
-	battle_manager.start_battle(player_data, enemy_data)
+	# 创建游戏状态
+	var state_result := GameState.create(player_data, enemy_data)
+	game_state = state_result.state
 
-	# 同步到 GameState
-	_sync_game_state_from_battle_manager()
+	# 连接游戏状态信号
+	_connect_game_state_signals()
+
+	# 更新输入处理器引用
+	if input_handler:
+		input_handler.game_state = game_state
+
+	# 开始战斗
+	game_state.start_battle()
 
 	# 初始化 UI
 	_update_ui()
@@ -121,30 +107,23 @@ func _start_battle() -> void:
 	_log("战斗开始！")
 
 
-## 从 BattleManager 同步状态到 GameState
-func _sync_game_state_from_battle_manager() -> void:
-	game_state.clear_characters()
-
-	_player = battle_manager.player
-	_enemy = battle_manager.enemy
-
-	if not _player.is_empty():
-		game_state.add_character(_player)
-	if not _enemy.is_empty():
-		game_state.add_character(_enemy)
-
-	# 同步回合数
-	game_state.turn_number = battle_manager.current_turn
-
-	# 同步当前行动者
-	if battle_manager.current_actor == _player:
-		game_state.current_actor_index = 0
-	elif battle_manager.current_actor == _enemy:
-		game_state.current_actor_index = 1
+## 连接游戏状态信号
+func _connect_game_state_signals() -> void:
+	game_state.turn_started.connect(_on_turn_started)
+	game_state.turn_ended.connect(_on_turn_ended)
+	game_state.actor_changed.connect(_on_actor_changed)
+	game_state.card_played.connect(_on_card_played)
+	game_state.skill_used.connect(_on_skill_used)
+	game_state.damage_dealt.connect(_on_damage_dealt)
+	game_state.shield_gained.connect(_on_shield_gained)
+	game_state.character_healed.connect(_on_character_healed)
+	game_state.passive_triggered.connect(_on_passive_triggered)
+	game_state.game_ended.connect(_on_game_ended)
+	game_state.log_message.connect(_on_log_message)
 
 
 func _process(delta: float) -> void:
-	# 轮询刷新 UI（因为 GameState 没有信号）
+	# 轮询刷新 UI
 	_ui_refresh_timer += delta
 	if _ui_refresh_timer >= UI_REFRESH_INTERVAL:
 		_ui_refresh_timer = 0.0
@@ -168,12 +147,11 @@ func _check_ai_turn() -> void:
 	if _is_ai_turn:
 		return
 
-	var current_actor: Dictionary = game_state.get_current_actor()
-	if current_actor.is_empty():
+	if game_state == null or game_state.current_actor.is_empty():
 		return
 
 	# 如果当前行动者是敌人，触发 AI
-	if current_actor == _enemy and not CharacterState.is_dead(_enemy):
+	if game_state.current_actor == game_state.enemy and not CharacterState.is_dead(game_state.enemy):
 		_is_ai_turn = true
 		_execute_ai_turn()
 
@@ -183,16 +161,12 @@ func _execute_ai_turn() -> void:
 	# 等待一小段时间让玩家看到状态变化
 	await get_tree().create_timer(AI_DECISION_DELAY).timeout
 
-	if battle_manager.enemy.is_empty() or CharacterState.is_dead(battle_manager.enemy):
+	if game_state == null or game_state.enemy.is_empty() or CharacterState.is_dead(game_state.enemy):
 		_is_ai_turn = false
 		return
 
-	# 使用 BattleManager 的 AI 系统执行回合
-	if battle_manager.ai:
-		await battle_manager.ai.execute_turn()
-
-	# 同步状态
-	_sync_game_state_from_battle_manager()
+	# 使用静态 AI 系统执行回合
+	await AI.execute_turn(game_state, AI.AIDifficulty.NORMAL)
 
 	# 刷新 UI
 	_update_ui()
@@ -205,22 +179,22 @@ func _execute_ai_turn() -> void:
 
 ## 更新 UI 显示
 func _update_ui() -> void:
-	if battle_manager == null:
+	if game_state == null:
 		return
 
 	# 更新回合标签
-	var actor_name: String = "玩家" if battle_manager.current_actor == battle_manager.player else "敌人"
+	var actor_name: String = game_state.get_current_actor_name()
 	if turn_label:
-		turn_label.text = "第 %d 回合" % battle_manager.current_turn
+		turn_label.text = "第 %d 回合" % game_state.turn_number
 	if actor_label:
 		actor_label.text = "行动: %s" % actor_name
 
 	# 更新角色面板
-	if player_panel and not battle_manager.player.is_empty():
-		player_panel.character = battle_manager.player
+	if player_panel and not game_state.player.is_empty():
+		player_panel.character = game_state.player
 		player_panel.setup()
-	if enemy_panel and not battle_manager.enemy.is_empty():
-		enemy_panel.character = battle_manager.enemy
+	if enemy_panel and not game_state.enemy.is_empty():
+		enemy_panel.character = game_state.enemy
 		enemy_panel.setup()
 
 	# 更新轻功轴
@@ -233,16 +207,16 @@ func _update_ui() -> void:
 
 ## 更新轻功轴
 func _update_agility_axis() -> void:
-	if agility_axis == null or battle_manager == null:
+	if agility_axis == null or game_state == null:
 		return
 
 	var character_ids: Array[String] = []
-	if not battle_manager.player.is_empty():
-		var player_id: String = battle_manager.player.get("id", "")
+	if not game_state.player.is_empty():
+		var player_id: String = game_state.player.get("id", "")
 		if not player_id.is_empty():
 			character_ids.append(player_id)
-	if not battle_manager.enemy.is_empty():
-		var enemy_id: String = battle_manager.enemy.get("id", "")
+	if not game_state.enemy.is_empty():
+		var enemy_id: String = game_state.enemy.get("id", "")
 		if not enemy_id.is_empty():
 			character_ids.append(enemy_id)
 
@@ -251,31 +225,31 @@ func _update_agility_axis() -> void:
 
 ## 获取角色数据用于轻功轴
 func _get_character_data_for_axis(char_id: String) -> Dictionary:
-	if battle_manager == null:
+	if game_state == null:
 		return {}
 
-	if not battle_manager.player.is_empty():
-		var player_id: String = battle_manager.player.get("id", "")
+	if not game_state.player.is_empty():
+		var player_id: String = game_state.player.get("id", "")
 		if player_id == char_id:
-			var p = battle_manager.player
+			var p = game_state.player
 			return {
 				"name": p.get("name", ""),
 				"current_agility": p.get("agility", 0),
 				"base_agility": p.get("base_agility", 10),
 				"is_player": true,
-				"is_current_actor": battle_manager.current_actor == p
+				"is_current_actor": game_state.current_actor == p
 			}
 
-	if not battle_manager.enemy.is_empty():
-		var enemy_id: String = battle_manager.enemy.get("id", "")
+	if not game_state.enemy.is_empty():
+		var enemy_id: String = game_state.enemy.get("id", "")
 		if enemy_id == char_id:
-			var e = battle_manager.enemy
+			var e = game_state.enemy
 			return {
 				"name": e.get("name", ""),
 				"current_agility": e.get("agility", 0),
 				"base_agility": e.get("base_agility", 10),
 				"is_player": false,
-				"is_current_actor": battle_manager.current_actor == e
+				"is_current_actor": game_state.current_actor == e
 			}
 
 	return {}
@@ -283,7 +257,7 @@ func _get_character_data_for_axis(char_id: String) -> Dictionary:
 
 ## 渲染武功按钮
 func _render_skills() -> void:
-	if skill_container == null or battle_manager == null:
+	if skill_container == null or game_state == null:
 		return
 
 	# 清空武功容器
@@ -291,10 +265,10 @@ func _render_skills() -> void:
 		child.queue_free()
 
 	# 渲染玩家的武功
-	var skills: Array = battle_manager.player.get("skills", [])
-	var mp: int = battle_manager.player.get("mp", 0)
-	var agility: int = battle_manager.player.get("agility", 0)
-	var hand: Array = battle_manager.player.get("hand", [])
+	var skills: Array = game_state.player.get("skills", [])
+	var mp: int = game_state.player.get("mp", 0)
+	var agility: int = game_state.player.get("agility", 0)
+	var hand: Array = game_state.player.get("hand", [])
 
 	for i in range(skills.size()):
 		var skill: SkillState = skills[i]
@@ -315,7 +289,7 @@ func _render_skills() -> void:
 
 ## 渲染手牌
 func _render_hand() -> void:
-	if hand_container == null or battle_manager == null:
+	if hand_container == null or game_state == null:
 		return
 
 	# 清空手牌容器
@@ -323,8 +297,8 @@ func _render_hand() -> void:
 		child.queue_free()
 
 	# 渲染手牌
-	var hand: Array = battle_manager.player.get("hand", [])
-	var agility: int = battle_manager.player.get("agility", 0)
+	var hand: Array = game_state.player.get("hand", [])
+	var agility: int = game_state.player.get("agility", 0)
 
 	for i in range(hand.size()):
 		var card: CardState = hand[i]
@@ -359,7 +333,7 @@ func _log(message: String) -> void:
 ## 卡牌UI点击处理
 func _on_card_ui_clicked(card: CardState) -> void:
 	# 检查是否是玩家回合
-	if battle_manager.current_actor != battle_manager.player:
+	if game_state.current_actor != game_state.player:
 		_log("现在不是你的回合!")
 		return
 
@@ -368,7 +342,7 @@ func _on_card_ui_clicked(card: CardState) -> void:
 		return
 
 	# 找到卡牌在手牌中的索引
-	var hand: Array = battle_manager.player.get("hand", [])
+	var hand: Array = game_state.player.get("hand", [])
 	var card_index: int = -1
 	for i in range(hand.size()):
 		var hand_card: CardState = hand[i]
@@ -381,34 +355,21 @@ func _on_card_ui_clicked(card: CardState) -> void:
 		return
 
 	# 使用输入处理器处理
-	input_handler.handle_card_click(card_index)
-
-
-## 卡牌点击处理（旧版，保留向后兼容）
-func _on_card_pressed(card_index: int) -> void:
-	# 检查是否是玩家回合
-	if battle_manager.current_actor != battle_manager.player:
-		_log("现在不是你的回合!")
-		return
-
-	# 检查是否正在处理 AI
-	if _is_ai_turn:
-		return
-
-	# 使用输入处理器处理
-	input_handler.handle_card_click(card_index)
+	if input_handler:
+		input_handler.handle_card_click(card_index)
 
 
 ## 结束回合按钮处理
 func _on_end_turn_pressed() -> void:
-	if battle_manager.current_actor != battle_manager.player:
+	if game_state == null or game_state.current_actor != game_state.player:
 		return
 
 	if _is_ai_turn:
 		return
 
 	# 使用输入处理器处理
-	input_handler.handle_end_turn()
+	if input_handler:
+		input_handler.handle_end_turn()
 
 
 ## 行动请求处理（来自输入处理器）
@@ -417,60 +378,53 @@ func _on_action_requested(action: Dictionary) -> void:
 
 	match action_type:
 		"play_card":
-			_execute_play_card(action.get("card_index", -1), action.get("target", {}))
+			_execute_play_card(action.get("card_index", -1))
 		"use_skill":
-			_execute_use_skill(action.get("skill_index", -1), action.get("card_index", -1), action.get("target", {}))
+			_execute_use_skill(action.get("skill_index", -1), action.get("card_index", -1))
 		"end_turn":
 			_execute_end_turn()
 
 
 ## 执行打出卡牌
-func _execute_play_card(card_index: int, target: Dictionary) -> void:
-	if card_index < 0:
+func _execute_play_card(card_index: int) -> void:
+	if card_index < 0 or game_state == null:
 		return
 
-	var result: Dictionary = battle_manager.play_card(card_index)
+	var result: Dictionary = game_state.use_basic_card(card_index)
 	if result.success:
-		_log("打出卡牌: %s" % result.card_id)
+		_log("打出卡牌: %s" % result.card.card_id)
 		_update_ui()
 		_render_hand()
 	else:
-		_log("无法出牌: %s" % result.reason)
+		_log("无法出牌: %s" % result.get("error", "未知错误"))
 
 
 ## 执行使用武功
-func _execute_use_skill(skill_index: int, card_index: int, target: Dictionary) -> void:
-	if skill_index < 0 or card_index < 0:
+func _execute_use_skill(skill_index: int, card_index: int) -> void:
+	if skill_index < 0 or card_index < 0 or game_state == null:
 		return
 
-	var skills: Array = battle_manager.current_actor.get("skills", [])
-	if skill_index >= skills.size():
-		return
-
-	var skill: SkillState = skills[skill_index]
-	if skill == null:
-		return
-
-	var result: Dictionary = battle_manager.use_skill(skill.skill_id, card_index)
+	var result: Dictionary = game_state.use_skill(skill_index, card_index)
 	if result.success:
-		_log("使用武功: %s" % skill.name)
+		_log("使用武功: %s" % result.skill.name)
 		_update_ui()
 		_render_hand()
 	else:
-		_log("无法使用武功: %s" % result.reason)
+		_log("无法使用武功: %s" % result.get("error", "未知错误"))
 
 
 ## 执行结束回合
 func _execute_end_turn() -> void:
-	battle_manager.end_turn()
-	_sync_game_state_from_battle_manager()
+	if game_state == null:
+		return
+
+	game_state.pass_turn()
 	_update_ui()
 	_render_hand()
 
 
 ## 目标选择开始处理
 func _on_target_selection_started(targets: Array) -> void:
-	# 高亮可选目标
 	_log("请选择目标...")
 
 
@@ -488,7 +442,7 @@ func _on_input_state_changed(new_state: int) -> void:
 ## 武功按钮点击处理
 func _on_skill_pressed(skill: Skill, button: SkillButton) -> void:
 	# 检查是否是玩家回合
-	if battle_manager.current_actor != battle_manager.player:
+	if game_state == null or game_state.current_actor != game_state.player:
 		_log("现在不是你的回合!")
 		return
 
@@ -497,7 +451,7 @@ func _on_skill_pressed(skill: Skill, button: SkillButton) -> void:
 		return
 
 	# 找到武功在列表中的索引
-	var skills: Array = battle_manager.player.get("skills", [])
+	var skills: Array = game_state.player.get("skills", [])
 	var skill_index: int = -1
 	for i in range(skills.size()):
 		var s: SkillState = skills[i]
@@ -510,21 +464,45 @@ func _on_skill_pressed(skill: Skill, button: SkillButton) -> void:
 		return
 
 	# 使用输入处理器处理
-	input_handler.handle_skill_click(skill_index)
+	if input_handler:
+		input_handler.handle_skill_click(skill_index)
 
 
-## 回合改变处理（来自 BattleManager）
-func _on_turn_changed(actor_id: String) -> void:
-	var player_id: String = battle_manager.player.get("id", "")
-	var actor_name: String = "玩家" if actor_id == player_id else "敌人"
+# ==================== 游戏状态信号处理 ====================
+
+## 回合开始处理
+func _on_turn_started(turn_num: int) -> void:
+	_log("第 %d 回合开始" % turn_num)
+	_update_ui()
+	_render_hand()
+
+
+## 回合结束处理
+func _on_turn_ended() -> void:
+	_log("回合结束")
+
+
+## 行动方改变处理
+func _on_actor_changed(actor: Dictionary) -> void:
+	var actor_name: String = "玩家" if actor == game_state.player else "敌人"
 	_log("轮到 %s 行动" % actor_name)
-
-	# 同步状态
-	_sync_game_state_from_battle_manager()
+	_update_ui()
 
 
-## 伤害处理（来自 BattleManager）
-func _on_damage_dealt(target: Dictionary, amount: int) -> void:
+## 卡牌打出处理
+func _on_card_played(character: Dictionary, card: CardState) -> void:
+	var char_name: String = character.get("name", "未知")
+	_log("%s 打出 %s" % [char_name, card.name])
+
+
+## 武功使用处理
+func _on_skill_used(character: Dictionary, skill: SkillState) -> void:
+	var char_name: String = character.get("name", "未知")
+	_log("%s 使用 %s" % [char_name, skill.name])
+
+
+## 伤害处理
+func _on_damage_dealt(target: Dictionary, amount: int, source: Dictionary) -> void:
 	var target_name: String = target.get("name", "未知")
 	_log("%s 受到 %d 点伤害" % [target_name, amount])
 
@@ -533,8 +511,26 @@ func _on_damage_dealt(target: Dictionary, amount: int) -> void:
 		animator.play_damage_animation(target, amount)
 
 
-## 战斗结束处理（来自 BattleManager）
-func _on_battle_ended(winner: Dictionary, loser: Dictionary) -> void:
+## 护盾获得处理
+func _on_shield_gained(character: Dictionary, amount: int) -> void:
+	var char_name: String = character.get("name", "未知")
+	_log("%s 获得 %d 点护盾" % [char_name, amount])
+
+
+## 角色治疗处理
+func _on_character_healed(character: Dictionary, amount: int) -> void:
+	var char_name: String = character.get("name", "未知")
+	_log("%s 恢复 %d 点生命" % [char_name, amount])
+
+
+## 内功触发处理
+func _on_passive_triggered(character: Dictionary, passive: PassiveState, result: Dictionary) -> void:
+	var char_name: String = character.get("name", "未知")
+	_log("%s 的 %s 触发" % [char_name, passive.name])
+
+
+## 游戏结束处理
+func _on_game_ended(winner: Dictionary, loser: Dictionary) -> void:
 	var winner_name: String = winner.get("name", "未知")
 	_log("%s 获胜!" % winner_name)
 
@@ -545,6 +541,11 @@ func _on_battle_ended(winner: Dictionary, loser: Dictionary) -> void:
 	# 延迟切换到结果场景
 	await get_tree().create_timer(2.0).timeout
 	GameManager.change_state(GameManager.GameScene.RESULT)
+
+
+## 日志消息处理
+func _on_log_message(text: String) -> void:
+	_log(text)
 
 
 ## 动画开始处理

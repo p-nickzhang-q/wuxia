@@ -1,15 +1,16 @@
+## ai.gd - AI 决策系统
+## 控制敌人自动行动，支持不同难度级别
+## 设计原则：完全静态化，使用 Engine.get_main_loop().create_timer() 实现延迟
+
 class_name AI
 extends RefCounted
-
-## AI 决策系统 - 控制敌人自动行动
-## 支持不同难度级别的决策逻辑
 
 # ==================== 枚举定义 ====================
 
 ## AI 难度级别
 enum AIDifficulty {
 	EASY,    # 简单：随机选择，较少使用武功
-	NORMAL,  # 普通：基础策略，适度使用武功
+	NORMAL,   # 普通：基础策略，适度使用武功
 	HARD     # 困难：优化策略，充分利用武功
 }
 
@@ -39,69 +40,58 @@ const RANDOM_FACTOR_BY_DIFFICULTY: Dictionary = {
 ## 最大行动次数（防止无限循环）
 const MAX_ACTIONS_PER_TURN: int = 10
 
-# ==================== 状态变量 ====================
 
-## 战斗管理器引用
-var battle_manager: BattleManager
-
-## 当前难度
-var difficulty: AIDifficulty = AIDifficulty.NORMAL
-
-## 随机数生成器
-var _rng: RandomNumberGenerator
-
-
-## 初始化 AI
-func _init(manager: BattleManager, ai_difficulty: AIDifficulty = AIDifficulty.NORMAL) -> void:
-	battle_manager = manager
-	difficulty = ai_difficulty
-	_rng = RandomNumberGenerator.new()
-	_rng.randomize()
-
-
-# ==================== 主要接口 ====================
+# ==================== 静态方法 ====================
 
 ## 执行 AI 回合
-func execute_turn() -> void:
-	var actor: Dictionary = battle_manager.current_actor
-	if actor.is_empty() or actor != battle_manager.enemy:
+## game_state: GameState 实例
+## difficulty: AI 难度
+## on_complete: 完成回调
+static func execute_turn(game_state: GameState, difficulty: AIDifficulty = AIDifficulty.NORMAL, on_complete: Callable = Callable()) -> void:
+	var actor: Dictionary = game_state.current_actor
+	if actor.is_empty() or actor != game_state.enemy:
+		if on_complete.is_valid():
+			on_complete.call()
 		return
 
 	# 延迟执行，让玩家看到 AI 思考
-	await _delay(_get_decision_delay())
+	await _delay(_get_decision_delay(difficulty))
 
 	var action_count := 0
 
 	while _can_continue_action(actor) and action_count < MAX_ACTIONS_PER_TURN:
-		# 检查是否有敌人存活
-		var target: Dictionary = _get_target()
-		if target.is_empty():
+		# 检查是否有目标存活
+		var target: Dictionary = game_state.get_opponent(actor)
+		if target.is_empty() or CharacterState.is_dead(target):
 			break
 
 		# 决定行动
-		var action: Dictionary = decide_action(actor, target)
+		var action: Dictionary = decide_action(actor, target, game_state, difficulty)
 		if action.is_empty():
 			break
 
 		action_count += 1
 
 		# 执行行动
-		_execute_action(action, target)
+		_execute_action(game_state, action, target)
 
 		# 检查是否切换行动方
-		if battle_manager.current_actor != actor:
+		if game_state.current_actor != actor:
 			break
 
 		# 检查战斗是否结束
-		if CharacterState.is_dead(battle_manager.player) or CharacterState.is_dead(battle_manager.enemy):
+		if game_state.is_battle_over():
 			break
 
-		await _delay(_get_action_delay())
+		await _delay(_get_action_delay(difficulty))
+
+	if on_complete.is_valid():
+		on_complete.call()
 
 
 ## 决定行动 - 返回标准 Dictionary
 ## 返回格式: { "type": "card"|"skill"|"pass", "card_index": int, "skill_index": int }
-func decide_action(actor: Dictionary, target: Dictionary) -> Dictionary:
+static func decide_action(actor: Dictionary, target: Dictionary, game_state: GameState, difficulty: AIDifficulty = AIDifficulty.NORMAL) -> Dictionary:
 	# 获取所有可用行动
 	var available_actions: Dictionary = CharacterState.get_available_actions(actor)
 
@@ -116,7 +106,7 @@ func decide_action(actor: Dictionary, target: Dictionary) -> Dictionary:
 	# 评估基础招式卡牌
 	for card_index: int in available_actions.cards:
 		var score: float = evaluate_card(actor, target, card_index)
-		score = _apply_random_factor(score)
+		score = _apply_random_factor(score, difficulty)
 
 		if score > best_score:
 			best_score = score
@@ -129,7 +119,7 @@ func decide_action(actor: Dictionary, target: Dictionary) -> Dictionary:
 	var skill_weight: float = SKILL_WEIGHT_BY_DIFFICULTY.get(difficulty, 0.6)
 	for skill_index: int in available_actions.skills:
 		var score: float = evaluate_skill(actor, target, skill_index) * skill_weight
-		score = _apply_random_factor(score)
+		score = _apply_random_factor(score, difficulty)
 
 		if score > best_score:
 			best_score = score
@@ -150,7 +140,7 @@ func decide_action(actor: Dictionary, target: Dictionary) -> Dictionary:
 
 
 ## 评估卡牌 - 返回 float 分数
-func evaluate_card(actor: Dictionary, target: Dictionary, card_index: int) -> float:
+static func evaluate_card(actor: Dictionary, target: Dictionary, card_index: int) -> float:
 	var hand: Array = actor.get("hand", [])
 	if card_index < 0 or card_index >= hand.size():
 		return -INF
@@ -213,7 +203,7 @@ func evaluate_card(actor: Dictionary, target: Dictionary, card_index: int) -> fl
 
 
 ## 评估武功招式 - 返回 float 分数
-func evaluate_skill(actor: Dictionary, target: Dictionary, skill_index: int) -> float:
+static func evaluate_skill(actor: Dictionary, target: Dictionary, skill_index: int) -> float:
 	var skills: Array = actor.get("skills", [])
 	if skill_index < 0 or skill_index >= skills.size():
 		return -INF
@@ -271,10 +261,10 @@ func evaluate_skill(actor: Dictionary, target: Dictionary, skill_index: int) -> 
 	return score
 
 
-# ==================== 内部方法 ====================
+# ==================== 内部静态方法 ====================
 
 ## 评估特殊效果
-func _evaluate_effect(actor: Dictionary, target: Dictionary, effect: Dictionary) -> float:
+static func _evaluate_effect(actor: Dictionary, target: Dictionary, effect: Dictionary) -> float:
 	var effect_type: String = effect.get("type", "")
 	var value: int = effect.get("value", 0)
 	var score: float = 0.0
@@ -323,39 +313,32 @@ func _evaluate_effect(actor: Dictionary, target: Dictionary, effect: Dictionary)
 
 
 ## 应用随机因子（根据难度）
-func _apply_random_factor(score: float) -> float:
+static func _apply_random_factor(score: float, difficulty: AIDifficulty) -> float:
 	var random_factor: float = RANDOM_FACTOR_BY_DIFFICULTY.get(difficulty, 0.0)
 	if random_factor > 0.0:
-		var noise: float = _rng.randf_range(-random_factor * 50.0, random_factor * 50.0)
+		var noise: float = randf_range(-random_factor * 50.0, random_factor * 50.0)
 		return score + noise
 	return score
 
 
 ## 获取决策延迟
-func _get_decision_delay() -> float:
+static func _get_decision_delay(difficulty: AIDifficulty) -> float:
 	return DELAY_BY_DIFFICULTY.get(difficulty, 0.8)
 
 
 ## 获取行动延迟
-func _get_action_delay() -> float:
+static func _get_action_delay(difficulty: AIDifficulty) -> float:
 	return DELAY_BY_DIFFICULTY.get(difficulty, 0.8) * 0.75
 
 
 ## 检查是否可以继续行动
-func _can_continue_action(actor: Dictionary) -> bool:
+static func _can_continue_action(actor: Dictionary) -> bool:
 	var agility: int = actor.get("agility", 0)
 	return agility > 0 and not CharacterState.is_dead(actor)
 
 
-## 获取目标（玩家）
-func _get_target() -> Dictionary:
-	if CharacterState.is_dead(battle_manager.player):
-		return {}
-	return battle_manager.player
-
-
 ## 执行行动
-func _execute_action(action: Dictionary, target: Dictionary) -> void:
+static func _execute_action(game_state: GameState, action: Dictionary, target: Dictionary) -> void:
 	if action.is_empty():
 		return
 
@@ -365,16 +348,13 @@ func _execute_action(action: Dictionary, target: Dictionary) -> void:
 		"card":
 			var card_index: int = action.get("card_index", -1)
 			if card_index >= 0:
-				battle_manager.play_card(card_index)
+				game_state.use_basic_card(card_index)
 
 		"skill":
 			var skill_index: int = action.get("skill_index", -1)
 			var card_index: int = action.get("card_index", -1)
 			if skill_index >= 0 and card_index >= 0:
-				var skills: Array = battle_manager.enemy.get("skills", [])
-				if skill_index < skills.size():
-					var skill: SkillState = skills[skill_index]
-					battle_manager.use_skill(skill.skill_id, card_index)
+				game_state.use_skill(skill_index, card_index)
 
 		"pass":
 			# 不执行任何行动
@@ -382,24 +362,16 @@ func _execute_action(action: Dictionary, target: Dictionary) -> void:
 
 
 ## 延迟函数
-func _delay(seconds: float) -> void:
-	await battle_manager.get_tree().create_timer(seconds).timeout
+static func _delay(seconds: float) -> void:
+	var scene_tree: SceneTree = Engine.get_main_loop() as SceneTree
+	if scene_tree != null:
+		await scene_tree.create_timer(seconds).timeout
 
 
 # ==================== 工具方法 ====================
 
-## 设置难度
-func set_difficulty(new_difficulty: AIDifficulty) -> void:
-	difficulty = new_difficulty
-
-
-## 获取当前难度
-func get_difficulty() -> AIDifficulty:
-	return difficulty
-
-
 ## 获取难度名称
-func get_difficulty_name() -> String:
+static func get_difficulty_name(difficulty: AIDifficulty) -> String:
 	match difficulty:
 		AIDifficulty.EASY:
 			return "简单"
