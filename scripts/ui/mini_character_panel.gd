@@ -11,8 +11,8 @@ signal clicked(character)
 signal hovered(character)
 
 # ==================== 导出属性 ====================
-## 绑定的角色（弟子）
-@export var character: Character = null
+## 绑定的角色（使用无类型避免导出限制）
+var character = null  # Character 类型，运行时赋值
 
 # ==================== 子节点引用 ====================
 ## 头像容器

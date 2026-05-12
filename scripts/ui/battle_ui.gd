@@ -19,8 +19,8 @@ signal end_turn_pressed()
 signal character_panel_clicked(character: Character)
 
 # ==================== 导出属性 ====================
-## 游戏状态引用
-@export var game_state: GameState = null
+## 游戏状态引用（使用无类型避免导出限制）
+var game_state = null  # GameState 类型，运行时赋值
 
 # ==================== 子节点引用 ====================
 ## 顶部栏

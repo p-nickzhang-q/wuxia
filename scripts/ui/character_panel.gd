@@ -19,8 +19,8 @@ const HIGHLIGHT_TARGETED: Color = Color(1.0, 0.5, 0.5, 0.5)
 const HIGHLIGHT_ACTOR: Color = Color(0.5, 1.0, 0.5, 0.4)
 
 # ==================== 导出属性 ====================
-## 绑定的角色
-@export var character: Character = null
+## 绑定的角色（使用 Resource 类型避免导出限制）
+var character = null  # Character 类型，运行时赋值
 
 # ==================== 子节点引用 ====================
 ## 立绘容器

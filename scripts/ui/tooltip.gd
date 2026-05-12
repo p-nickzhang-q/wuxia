@@ -9,7 +9,7 @@ extends Control
 ## 显示完成信号
 signal shown()
 ## 隐藏完成信号
-signal hidden()
+signal tooltip_hidden()
 
 # ==================== 导出属性 ====================
 ## 显示延迟（秒）
@@ -136,7 +136,7 @@ func setup_from_card(card: Card) -> void:
 	set_type(Types.get_card_type_name(card.type))
 
 	# 构建描述
-	var desc := card.get_full_description()
+	var desc: String = card.description if card.description else card.get_short_description()
 	set_description(desc)
 
 	# 清空并添加详情
@@ -259,7 +259,7 @@ func _do_hide() -> void:
 	visible = false
 	is_showing = false
 	_current_data.clear()
-	hidden.emit()
+	tooltip_hidden.emit()
 
 
 ## 更新位置（跟随鼠标并检测边界）

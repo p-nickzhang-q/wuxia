@@ -3653,3 +3653,10 @@ ae558dd fix(game): 重命名静态方法避免命名冲突
 production/session-logs/session-log.md
 ---
 
+## Session End: 20260512_093454
+### Commits
+e24eb86 feat(ui): Phase 2 UI 框架搭建完成
+ae558dd fix(game): 重命名静态方法避免命名冲突
+2326c39 fix(game): 修复 effect_processor.gd 命名冲突
+---
+

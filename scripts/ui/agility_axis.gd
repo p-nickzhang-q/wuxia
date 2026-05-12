@@ -82,16 +82,16 @@ class AgilityMarker extends Control:
 		_name_label = Label.new()
 		_name_label.set_anchors_preset(Control.PRESET_CENTER_LEFT)
 		_name_label.offset_left = 8
-		_name_label.theme_override_colors/font_color = Color.WHITE
-		_name_label.theme_override_font_sizes/font_size = 14
+		_name_label.add_theme_color_override("font_color", Color.WHITE)
+		_name_label.add_theme_font_size_override("font_size", 14)
 		add_child(_name_label)
 
 		# 数值标签
 		_value_label = Label.new()
 		_value_label.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
 		_value_label.offset_right = -8
-		_value_label.theme_override_colors/font_color = Color.WHITE
-		_value_label.theme_override_font_sizes/font_size = 14
+		_value_label.add_theme_color_override("font_color", Color.WHITE)
+		_value_label.add_theme_font_size_override("font_size", 14)
 		_value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		add_child(_value_label)
 
