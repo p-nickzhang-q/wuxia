@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3 uid="uid://shield_effect"]
+
+[ext_resource type="Script" path="res://scripts/battle/effects/shield_effect.gd" id="1_shield"]
+
+[node name="ShieldEffect" type="Node2D"]
+script = ExtResource("1_shield")
+
+[node name="Label" type="Label" parent="."]
+anchors_preset = 0
+offset_right = 100.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Particles" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 16
+lifetime = 0.5
+one_shot = true
+explosiveness = 0.8

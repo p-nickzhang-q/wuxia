@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3 uid="uid://skill_effect"]
+
+[ext_resource type="Script" path="res://scripts/battle/effects/skill_effect.gd" id="1_skill"]
+
+[node name="SkillEffect" type="Node2D"]
+script = ExtResource("1_skill")
+
+[node name="Label" type="Label" parent="."]
+anchors_preset = 0
+offset_right = 200.0
+offset_bottom = 50.0
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]

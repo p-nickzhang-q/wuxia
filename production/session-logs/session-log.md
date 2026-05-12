@@ -3660,3 +3660,11 @@ ae558dd fix(game): 重命名静态方法避免命名冲突
 2326c39 fix(game): 修复 effect_processor.gd 命名冲突
 ---
 
+## Session End: 20260512_094246
+### Commits
+5e68452 fix(ui): 修复 GDScript 解析错误
+e24eb86 feat(ui): Phase 2 UI 框架搭建完成
+ae558dd fix(game): 重命名静态方法避免命名冲突
+2326c39 fix(game): 修复 effect_processor.gd 命名冲突
+---
+

@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://damage_number"]
+
+[ext_resource type="Script" path="res://scripts/battle/effects/damage_number.gd" id="1_damage"]
+
+[node name="DamageNumber" type="Node2D"]
+script = ExtResource("1_damage")
+
+[node name="Label" type="Label" parent="."]
+anchors_preset = 0
+offset_right = 100.0
+offset_bottom = 40.0
+horizontal_alignment = 1
+vertical_alignment = 1
