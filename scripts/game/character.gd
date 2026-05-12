@@ -52,7 +52,7 @@ var skills: Array[SkillState] = []
 
 # ==================== 内功系统 ====================
 ## 内功列表
-var passives: Array[Passive] = []
+var passives: Array[PassiveState] = []
 
 
 ## 静态工厂方法 - 从数据字典创建角色
@@ -91,7 +91,7 @@ static func from_data(data: Dictionary) -> Character:
 	for passive_id in passives_data:
 		var passive_data: Dictionary = GameManager.skills_data.get(passive_id, {})
 		if not passive_data.is_empty():
-			var passive := Passive.from_data(passive_data)
+			var passive := PassiveState.from_data(passive_data)
 			character.passives.append(passive)
 
 	return character

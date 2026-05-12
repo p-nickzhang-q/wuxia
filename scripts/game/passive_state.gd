@@ -1,7 +1,7 @@
-## passive.gd - 内功类
-## 管理被动内功效果的数据和触发逻辑
+## passive_state.gd - 内功运行时状态
+## 管理内功的数据和效果，包含运行时状态（如触发次数）
 
-class_name Passive
+class_name PassiveState
 extends RefCounted
 
 ## 内功ID
@@ -33,8 +33,8 @@ var current_triggers: int = 0
 
 
 ## 从数据字典创建内功
-static func from_data(data: Dictionary) -> Passive:
-	var passive := Passive.new()
+static func from_data(data: Dictionary) -> PassiveState:
+	var passive := PassiveState.new()
 	passive.passive_id = data.get("id", "")
 	passive.name = data.get("name", "未知内功")
 	passive.trigger_timing = _parse_trigger_timing(data.get("trigger_timing", "turn_start"))
