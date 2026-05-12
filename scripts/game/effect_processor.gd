@@ -167,7 +167,7 @@ class ReflectDamageInfo:
 
 
 	## 创建百分比反弹
-	static func percentage(pct: int, owner_char, source_desc: String = "") -> ReflectDamageInfo:
+	static func create_percentage(pct: int, owner_char, source_desc: String = "") -> ReflectDamageInfo:
 		var info := ReflectDamageInfo.new()
 		info.percentage_value = pct
 		info.owner = owner_char
@@ -177,7 +177,7 @@ class ReflectDamageInfo:
 
 
 	## 创建固定值反弹
-	static func fixed(amount: int, owner_char, source_desc: String = "") -> ReflectDamageInfo:
+	static func create_fixed(amount: int, owner_char, source_desc: String = "") -> ReflectDamageInfo:
 		var info := ReflectDamageInfo.new()
 		info.fixed_amount = amount
 		info.owner = owner_char
