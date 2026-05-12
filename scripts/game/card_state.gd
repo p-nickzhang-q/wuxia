@@ -142,6 +142,6 @@ func to_dict() -> Dictionary:
 	}
 
 
-## 获取实例ID（用于字典键）
-func get_instance_id() -> int:
-	return get_instance_id()
+## 获取唯一哈希值（用于字典键）
+func get_hash() -> int:
+	return hash(instance_id)

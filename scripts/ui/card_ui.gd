@@ -6,13 +6,13 @@ extends Control
 
 # ==================== 信号 ====================
 ## 点击信号
-signal clicked(card: Card)
+signal clicked(card: CardState)
 ## 悬停信号
-signal hovered(card: Card)
+signal hovered(card: CardState)
 ## 拖拽开始信号
-signal drag_started(card: Card)
+signal drag_started(card: CardState)
 ## 拖拽结束信号
-signal drag_ended(card: Card)
+signal drag_ended(card: CardState)
 
 # ==================== 高亮颜色常量 ====================
 ## 可选中的高亮颜色

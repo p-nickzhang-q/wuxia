@@ -252,7 +252,8 @@ static func _trigger_passives(state: Dictionary, timing: Types.TriggerTiming, ga
 
 	for passive in passives:
 		if passive is PassiveState and passive.trigger_timing == timing:
-			var result := passive.trigger(state, game_state, args)
+			var passive_state: PassiveState = passive
+			var result: Dictionary = passive_state.trigger(state, game_state, args)
 			if result.get("triggered", false):
 				results.append(result)
 

@@ -152,12 +152,19 @@ func has_required_card(hand: Array) -> bool:
 				return true
 		elif card is String:
 			# 如果是卡牌ID，需要从GameManager获取数据
-			var card_data = GameManager.cards_data.get(card, {})
-			var card_type = CardState._parse_card_type(card_data.get("type", "empty_hand"))
+			var card_data: Dictionary = _get_card_data(card)
+			var card_type: Types.CardType = CardState._parse_card_type(card_data.get("type", "empty_hand"))
 			if Types.is_card_type_match(card_type, required_card_type):
 				return true
 
 	return false
+
+
+## 获取卡牌数据（安全访问 GameManager）
+static func _get_card_data(card_id: String) -> Dictionary:
+	if GameManager != null:
+		return GameManager.cards_data.get(card_id, {})
+	return {}
 
 
 ## 获取手牌中可用的媒介卡牌索引列表
@@ -171,7 +178,7 @@ func get_available_card_indices(hand: Array) -> Array[int]:
 		if card is CardState:
 			card_type = card.type
 		elif card is String:
-			var card_data = GameManager.cards_data.get(card, {})
+			var card_data: Dictionary = _get_card_data(card)
 			card_type = CardState._parse_card_type(card_data.get("type", "empty_hand"))
 		else:
 			continue

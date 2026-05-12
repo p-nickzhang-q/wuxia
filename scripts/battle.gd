@@ -440,7 +440,7 @@ func _on_input_state_changed(new_state: int) -> void:
 
 
 ## 武功按钮点击处理
-func _on_skill_pressed(skill: Skill, button: SkillButton) -> void:
+func _on_skill_pressed(skill: SkillState, button: SkillButton) -> void:
 	# 检查是否是玩家回合
 	if game_state == null or game_state.current_actor != game_state.player:
 		_log("现在不是你的回合!")
