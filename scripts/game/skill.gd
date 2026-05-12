@@ -59,7 +59,10 @@ static func from_data(data: Dictionary) -> Skill:
 	skill.damage = data.get("damage", 0)
 	skill.required_card_type = _parse_card_type(data.get("required_card_type", "any"))
 	var effects_data = data.get("effects", [])
-	skill.effects = effects_data.duplicate(true) if effects_data else []
+	if effects_data and effects_data.size() > 0:
+		for effect in effects_data:
+			if effect is Dictionary:
+				skill.effects.append(effect)
 	skill.description = data.get("description", "")
 	skill.requires_target = data.get("requires_target", true)
 	skill.range_requirement = data.get("range", 0)
