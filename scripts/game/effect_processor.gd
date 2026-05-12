@@ -151,7 +151,7 @@ class DamageModifier:
 ## 用于 reflect_damage 效果
 class ReflectDamageInfo:
 	## 反弹百分比
-	var percentage: int = 0
+	var percentage_value: int = 0
 
 	## 拥有者（反弹伤害的角色）
 	var owner = null  # Character 类型
@@ -169,7 +169,7 @@ class ReflectDamageInfo:
 	## 创建百分比反弹
 	static func percentage(pct: int, owner_char, source_desc: String = "") -> ReflectDamageInfo:
 		var info := ReflectDamageInfo.new()
-		info.percentage = pct
+		info.percentage_value = pct
 		info.owner = owner_char
 		info.source_description = source_desc
 		info.use_fixed = false
@@ -191,13 +191,13 @@ class ReflectDamageInfo:
 		if use_fixed:
 			return fixed_amount
 		else:
-			return received_damage * percentage / 100
+			return received_damage * percentage_value / 100
 
 
 	## 转换为字典
 	func to_dict() -> Dictionary:
 		return {
-			"percentage": percentage,
+			"percentage": percentage_value,
 			"owner": owner.name if owner else null,
 			"source_description": source_description,
 			"fixed_amount": fixed_amount,
