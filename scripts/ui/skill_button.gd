@@ -6,13 +6,13 @@ extends Button
 
 # ==================== 信号 ====================
 ## 点击信号，传递技能和按钮
-signal skill_pressed(skill: Skill, button: SkillButton)
+signal skill_pressed(skill: SkillState, button: SkillButton)
 ## 悬停信号，传递技能
-signal skill_hovered(skill: Skill)
+signal skill_hovered(skill: SkillState)
 
 # ==================== 导出属性 ====================
 ## 绑定的武功（使用无类型避免导出限制）
-var skill = null  # Skill 类型，运行时赋值
+var skill: SkillState = null
 
 # ==================== 子节点引用 ====================
 ## 技能名称标签

@@ -48,7 +48,7 @@ var discard_pile: Array = []
 
 # ==================== 武功系统 ====================
 ## 武功招式列表
-var skills: Array[Skill] = []
+var skills: Array[SkillState] = []
 
 # ==================== 内功系统 ====================
 ## 内功列表
@@ -83,7 +83,7 @@ static func from_data(data: Dictionary) -> Character:
 	for skill_id in skills_data:
 		var skill_data: Dictionary = GameManager.skills_data.get(skill_id, {})
 		if not skill_data.is_empty():
-			var skill := Skill.from_data(skill_data)
+			var skill := SkillState.from_data(skill_data)
 			character.skills.append(skill)
 
 	# 加载内功
@@ -262,13 +262,13 @@ func trigger_on_play_card(game_state, card: CardState) -> Array[Dictionary]:
 
 
 ## 触发使用武功招式时的内功
-func trigger_on_skill_use(game_state, skill: Skill) -> Array[Dictionary]:
+func trigger_on_skill_use(game_state, skill: SkillState) -> Array[Dictionary]:
 	return _trigger_passives(Types.TriggerTiming.ON_SKILL_USE, game_state, [skill])
 
 
 ## 获取可用武功列表
-func get_available_skills() -> Array[Skill]:
-	var available: Array[Skill] = []
+func get_available_skills() -> Array[SkillState]:
+	var available: Array[SkillState] = []
 	for skill in skills:
 		if skill.is_available(current_mp, current_agility, hand):
 			available.append(skill)

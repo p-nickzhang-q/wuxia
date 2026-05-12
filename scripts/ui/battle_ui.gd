@@ -10,9 +10,9 @@ signal card_clicked(card_data: Dictionary, card_ui: CardUI)
 ## 卡牌悬停信号
 signal card_hovered(card_data: Dictionary)
 ## 技能点击信号
-signal skill_clicked(skill: Skill, button: SkillButton)
+signal skill_clicked(skill: SkillState, button: SkillButton)
 ## 技能悬停信号
-signal skill_hovered(skill: Skill)
+signal skill_hovered(skill: SkillState)
 ## 结束回合按钮点击信号
 signal end_turn_pressed()
 ## 角色面板点击信号
@@ -70,7 +70,7 @@ var _enemy_character: Character = null
 ## 当前选中的卡牌数据
 var _selected_card_data: Dictionary = {}
 ## 当前选中的技能
-var _selected_skill: Skill = null
+var _selected_skill: SkillState = null
 
 
 func _ready() -> void:
@@ -194,7 +194,7 @@ func _setup_skill_buttons() -> void:
 
 
 ## 创建技能按钮
-func _create_skill_button(skill: Skill) -> SkillButton:
+func _create_skill_button(skill: SkillState) -> SkillButton:
 	var button_scene := preload("res://scenes/components/skill_button.tscn")
 	var button: SkillButton = button_scene.instantiate()
 	button.skill = skill
@@ -359,7 +359,7 @@ func set_selected_card(card_data: Dictionary) -> void:
 
 
 ## 设置选中的技能
-func set_selected_skill(skill: Skill) -> void:
+func set_selected_skill(skill: SkillState) -> void:
 	_selected_skill = skill
 
 	# 更新所有技能按钮的选中状态（可选实现）
@@ -383,7 +383,7 @@ func show_card_tooltip(card: CardState) -> void:
 
 
 ## 显示提示框（技能）
-func show_skill_tooltip(skill: Skill) -> void:
+func show_skill_tooltip(skill: SkillState) -> void:
 	if tooltip and skill:
 		var skill_data := {
 			"name": skill.name,
@@ -464,11 +464,11 @@ func _on_card_hovered(card: CardState) -> void:
 		hide_tooltip()
 
 
-func _on_skill_pressed(skill: Skill, button: SkillButton) -> void:
+func _on_skill_pressed(skill: SkillState, button: SkillButton) -> void:
 	skill_clicked.emit(skill, button)
 
 
-func _on_skill_hovered(skill: Skill) -> void:
+func _on_skill_hovered(skill: SkillState) -> void:
 	if skill:
 		show_skill_tooltip(skill)
 		skill_hovered.emit(skill)

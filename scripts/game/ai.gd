@@ -134,7 +134,7 @@ func decide_action(actor: Character, target: Character) -> Dictionary:
 		if score > best_score:
 			best_score = score
 			# 找到合适的媒介卡牌
-			var skill: Skill = actor.skills[skill_index]
+			var skill: SkillState = actor.skills[skill_index]
 			var card_indices: Array[int] = skill.get_available_card_indices(actor.hand)
 			if not card_indices.is_empty():
 				best_action = {
@@ -206,7 +206,7 @@ func evaluate_skill(actor: Character, target: Character, skill_index: int) -> fl
 	if skill_index < 0 or skill_index >= actor.skills.size():
 		return -INF
 
-	var skill: Skill = actor.skills[skill_index]
+	var skill: SkillState = actor.skills[skill_index]
 
 	# 检查是否可用
 	if not skill.is_available(actor.current_mp, actor.current_agility, actor.hand):
@@ -346,7 +346,7 @@ func _execute_action(action: Dictionary, target: Character) -> void:
 			var skill_index: int = action.get("skill_index", -1)
 			var card_index: int = action.get("card_index", -1)
 			if skill_index >= 0 and card_index >= 0:
-				var skill: Skill = battle_manager.enemy.skills[skill_index]
+				var skill: SkillState = battle_manager.enemy.skills[skill_index]
 				battle_manager.use_skill(skill.skill_id, card_index)
 
 		"pass":

@@ -282,9 +282,9 @@ func _render_skills() -> void:
 		child.queue_free()
 
 	# 渲染玩家的武功
-	var skills: Array[Skill] = battle_manager.player.skills
+	var skills: Array[SkillState] = battle_manager.player.skills
 	for i in range(skills.size()):
-		var skill: Skill = skills[i]
+		var skill: SkillState = skills[i]
 		# 使用 SkillButton 组件
 		var skill_button_scene := preload("res://scenes/components/skill_button.tscn")
 		var skill_button: SkillButton = skill_button_scene.instantiate()
@@ -431,7 +431,7 @@ func _execute_use_skill(skill_index: int, card_index: int, target) -> void:
 	if skill_index < 0 or card_index < 0:
 		return
 
-	var skill: Skill = battle_manager.current_actor.skills[skill_index]
+	var skill: SkillState = battle_manager.current_actor.skills[skill_index]
 	if skill == null:
 		return
 

@@ -1,7 +1,7 @@
-## skill.gd - 武功招式类
-## 管理武功招式的数据和效果
+## skill_state.gd - 武功招式运行时状态
+## 管理武功招式的数据和效果，包含运行时状态（如冷却）
 
-class_name Skill
+class_name SkillState
 extends RefCounted
 
 ## 武功ID
@@ -48,8 +48,8 @@ var current_cooldown: int = 0
 
 
 ## 从数据字典创建武功
-static func from_data(data: Dictionary) -> Skill:
-	var skill := Skill.new()
+static func from_data(data: Dictionary) -> SkillState:
+	var skill := SkillState.new()
 	skill.skill_id = data.get("id", "")
 	skill.name = data.get("name", "未知武功")
 	skill.level = _parse_skill_level(data.get("level", "beginner"))
