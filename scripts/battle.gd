@@ -289,9 +289,12 @@ func _render_skills() -> void:
 		var skill_button_scene := preload("res://scenes/components/skill_button.tscn")
 		var skill_button: SkillButton = skill_button_scene.instantiate()
 		skill_button.skill = skill
-		skill_button.setup()
 
-		# 设置当前状态
+		# 先添加到场景树，让 @onready 变量初始化
+		skill_container.add_child(skill_button)
+
+		# 然后设置和更新状态
+		skill_button.setup()
 		skill_button.set_state(
 			battle_manager.player.current_mp,
 			battle_manager.player.current_agility,
@@ -299,7 +302,6 @@ func _render_skills() -> void:
 		)
 
 		skill_button.skill_pressed.connect(_on_skill_pressed)
-		skill_container.add_child(skill_button)
 
 
 ## 渲染手牌
@@ -319,6 +321,11 @@ func _render_hand() -> void:
 		var card_ui_scene := preload("res://scenes/components/card.tscn")
 		var card_ui: CardUI = card_ui_scene.instantiate()
 		card_ui.card = card
+
+		# 先添加到场景树，让 @onready 变量初始化
+		hand_container.add_child(card_ui)
+
+		# 然后设置和更新状态
 		card_ui.setup()
 
 		# 检查是否可用（轻功足够）
@@ -327,7 +334,6 @@ func _render_hand() -> void:
 
 		# 连接点击信号
 		card_ui.clicked.connect(_on_card_ui_clicked)
-		hand_container.add_child(card_ui)
 
 
 ## 添加日志
