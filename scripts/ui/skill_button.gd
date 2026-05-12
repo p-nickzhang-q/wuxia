@@ -101,7 +101,7 @@ func _update_availability() -> void:
 		return
 
 	# 使用技能的可用性检查
-	var available := skill.is_available(current_mp, current_agility, hand)
+	var available: bool = skill.is_available(current_mp, current_agility, hand)
 	disabled = not available
 
 	# 同时更新冷却显示
