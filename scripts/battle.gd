@@ -314,9 +314,9 @@ func _render_hand() -> void:
 		child.queue_free()
 
 	# 渲染手牌
-	var hand: Array[Card] = battle_manager.player.hand
+	var hand: Array = battle_manager.player.hand
 	for i in range(hand.size()):
-		var card: Card = hand[i]
+		var card: CardState = hand[i]
 		# 使用 CardUI 组件
 		var card_ui_scene := preload("res://scenes/components/card.tscn")
 		var card_ui: CardUI = card_ui_scene.instantiate()
@@ -346,7 +346,7 @@ func _log(message: String) -> void:
 # ==================== 事件处理 ====================
 
 ## 卡牌UI点击处理
-func _on_card_ui_clicked(card: Card) -> void:
+func _on_card_ui_clicked(card: CardState) -> void:
 	# 检查是否是玩家回合
 	if battle_manager.current_actor != battle_manager.player:
 		_log("现在不是你的回合!")
@@ -359,7 +359,8 @@ func _on_card_ui_clicked(card: Card) -> void:
 	# 找到卡牌在手牌中的索引
 	var card_index: int = -1
 	for i in range(battle_manager.player.hand.size()):
-		if battle_manager.player.hand[i].instance_id == card.instance_id:
+		var hand_card: CardState = battle_manager.player.hand[i]
+		if hand_card.instance_id == card.instance_id:
 			card_index = i
 			break
 

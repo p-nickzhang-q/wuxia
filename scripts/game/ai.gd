@@ -151,11 +151,11 @@ func evaluate_card(actor: Character, target: Character, card_index: int) -> floa
 	if card_index < 0 or card_index >= actor.hand.size():
 		return -INF
 
-	var card: Card = actor.hand[card_index]
+	var card: CardState = actor.hand[card_index]
 	var score: float = 0.0
 
 	# 伤害评分
-	var damage: int = card.damage
+	var damage: int = card.base_damage
 	if damage > 0:
 		# 考虑护盾
 		var effective_damage: int = damage
@@ -170,7 +170,7 @@ func evaluate_card(actor: Character, target: Character, card_index: int) -> floa
 			score += 100.0
 
 	# 防御评分
-	var defense: int = card.defense
+	var defense: int = card.base_shield
 	if defense > 0:
 		# 低血量时防御更有价值
 		var hp_ratio: float = float(actor.current_hp) / float(actor.max_hp)
@@ -180,7 +180,7 @@ func evaluate_card(actor: Character, target: Character, card_index: int) -> floa
 			score += defense * 3.0
 
 	# 治疗评分
-	var heal: int = card.heal
+	var heal: int = card.base_heal
 	if heal > 0:
 		# 低血量时治疗更有价值
 		var hp_ratio: float = float(actor.current_hp) / float(actor.max_hp)

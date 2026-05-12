@@ -38,13 +38,13 @@ var current_agility: int = 0
 
 # ==================== 卡组系统 ====================
 ## 牌库
-var deck: Array[Card] = []
+var deck: Array = []
 
 ## 手牌
-var hand: Array[Card] = []
+var hand: Array = []
 
 ## 弃牌堆
-var discard_pile: Array[Card] = []
+var discard_pile: Array = []
 
 # ==================== 武功系统 ====================
 ## 武功招式列表
@@ -75,7 +75,7 @@ static func from_data(data: Dictionary) -> Character:
 	for card_id in deck_data:
 		var card_data: Dictionary = GameManager.cards_data.get(card_id, {})
 		if not card_data.is_empty():
-			var card := Card.from_data(card_data)
+			var card := CardState.create(card_data)
 			character.deck.append(card)
 
 	# 加载武功
@@ -98,8 +98,8 @@ static func from_data(data: Dictionary) -> Character:
 
 
 ## 抽牌
-func draw_cards(count: int) -> Array[Card]:
-	var drawn: Array[Card] = []
+func draw_cards(count: int) -> Array:
+	var drawn: Array = []
 	for i in range(count):
 		if deck.is_empty():
 			# 洗牌
@@ -107,16 +107,16 @@ func draw_cards(count: int) -> Array[Card]:
 			discard_pile.clear()
 			_shuffle_deck()
 		if not deck.is_empty():
-			var card: Card = deck.pop_back()
+			var card: CardState = deck.pop_back()
 			hand.append(card)
 			drawn.append(card)
 	return drawn
 
 
 ## 打出卡牌
-func play_card(card_index: int) -> Card:
+func play_card(card_index: int) -> CardState:
 	if card_index >= 0 and card_index < hand.size():
-		var card: Card = hand.pop_at(card_index)
+		var card: CardState = hand.pop_at(card_index)
 		discard_pile.append(card)
 		return card
 	return null
@@ -257,7 +257,7 @@ func trigger_on_take_damage(game_state, source: Character, damage: int) -> Array
 
 
 ## 触发使用基础招式时的内功
-func trigger_on_play_card(game_state, card: Card) -> Array[Dictionary]:
+func trigger_on_play_card(game_state, card: CardState) -> Array[Dictionary]:
 	return _trigger_passives(Types.TriggerTiming.ON_PLAY_CARD, game_state, [card])
 
 
@@ -284,7 +284,8 @@ func get_available_actions() -> Dictionary:
 
 	# 检查每张手牌是否可打出
 	for i in range(hand.size()):
-		if hand[i].agility_cost <= current_agility:
+		var card: CardState = hand[i]
+		if card.agility_cost <= current_agility:
 			result.cards.append(i)
 
 	# 检查每个武功是否可用
@@ -322,7 +323,7 @@ func use_skill(skill_index: int, card_index: int, target: Character = null, game
 	current_agility -= skill.agility_cost
 
 	# 使用卡牌
-	var card: Card = hand.pop_at(card_index)
+	var card: CardState = hand.pop_at(card_index)
 	discard_pile.append(card)
 
 	# 标记武功使用
@@ -353,7 +354,8 @@ func reset_turn() -> void:
 func get_cards_by_type(card_type: Types.CardType) -> Array[int]:
 	var indices: Array[int] = []
 	for i in range(hand.size()):
-		if Types.is_card_type_match(hand[i].type, card_type):
+		var card: CardState = hand[i]
+		if Types.is_card_type_match(card.type, card_type):
 			indices.append(i)
 	return indices
 
@@ -362,15 +364,18 @@ func get_cards_by_type(card_type: Types.CardType) -> Array[int]:
 func to_dict() -> Dictionary:
 	var deck_ids: Array[String] = []
 	for card in deck:
-		deck_ids.append(card.card_id)
+		var card_state: CardState = card
+		deck_ids.append(card_state.card_id)
 
 	var hand_ids: Array[String] = []
 	for card in hand:
-		hand_ids.append(card.card_id)
+		var card_state: CardState = card
+		hand_ids.append(card_state.card_id)
 
 	var discard_ids: Array[String] = []
 	for card in discard_pile:
-		discard_ids.append(card.card_id)
+		var card_state: CardState = card
+		discard_ids.append(card_state.card_id)
 
 	var skill_ids: Array[String] = []
 	for skill in skills:

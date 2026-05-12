@@ -126,36 +126,46 @@ func add_detail(label: String, value: String, color: Color = Color.WHITE) -> voi
 
 
 ## 从卡牌数据设置
-func setup_from_card(card: Card) -> void:
-	if not card:
+func setup_from_card(card_data: Dictionary) -> void:
+	if card_data.is_empty():
 		return
 
-	_current_data = {"type": "card", "data": card}
+	_current_data = {"type": "card", "data": card_data}
 
-	set_title(card.name)
-	set_type(Types.get_card_type_name(card.type))
+	set_title(card_data.get("name", ""))
+	set_type(Types.get_card_type_name(card_data.get("type", Types.CardType.EMPTY_HAND)))
 
 	# 构建描述
-	var desc: String = card.description if card.description else card.get_short_description()
+	var desc: String = card_data.get("description", "")
+	if desc.is_empty():
+		# 构建简短描述
+		var parts: Array[String] = []
+		if card_data.get("damage", 0) > 0:
+			parts.append("伤害 %d" % card_data.get("damage", 0))
+		if card_data.get("shield", 0) > 0:
+			parts.append("护盾 %d" % card_data.get("shield", 0))
+		if card_data.get("heal", 0) > 0:
+			parts.append("治疗 %d" % card_data.get("heal", 0))
+		desc = " | ".join(parts) if not parts.is_empty() else "无效果"
 	set_description(desc)
 
 	# 清空并添加详情
 	clear_details()
 
 	# 轻功消耗
-	add_detail("轻功消耗", str(card.agility_cost), Color(0.8, 1.0, 0.8))
+	add_detail("轻功消耗", str(card_data.get("agility_cost", 1)), Color(0.8, 1.0, 0.8))
 
 	# 伤害
-	if card.damage > 0:
-		add_detail("伤害", str(card.damage), Color(1.0, 0.4, 0.4))
+	if card_data.get("damage", 0) > 0:
+		add_detail("伤害", str(card_data.get("damage", 0)), Color(1.0, 0.4, 0.4))
 
 	# 护盾
-	if card.shield > 0:
-		add_detail("护盾", str(card.shield), Color(0.4, 0.7, 1.0))
+	if card_data.get("shield", 0) > 0:
+		add_detail("护盾", str(card_data.get("shield", 0)), Color(0.4, 0.7, 1.0))
 
 	# 治疗
-	if card.heal > 0:
-		add_detail("治疗", str(card.heal), Color(0.4, 1.0, 0.4))
+	if card_data.get("heal", 0) > 0:
+		add_detail("治疗", str(card_data.get("heal", 0)), Color(0.4, 1.0, 0.4))
 
 
 ## 从技能数据设置

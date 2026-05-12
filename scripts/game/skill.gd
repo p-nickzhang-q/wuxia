@@ -119,7 +119,7 @@ static func _parse_faction(faction_str: String) -> Types.Faction:
 
 ## 解析卡牌类型
 static func _parse_card_type(type_str: String) -> Types.CardType:
-	return Card._parse_card_type(type_str)
+	return CardState._parse_card_type(type_str)
 
 
 ## 检查是否可用
@@ -147,13 +147,13 @@ func has_required_card(hand: Array) -> bool:
 		return not hand.is_empty()
 
 	for card in hand:
-		if card is Card:
+		if card is CardState:
 			if Types.is_card_type_match(card.type, required_card_type):
 				return true
 		elif card is String:
 			# 如果是卡牌ID，需要从GameManager获取数据
 			var card_data = GameManager.cards_data.get(card, {})
-			var card_type = Card._parse_card_type(card_data.get("type", "empty_hand"))
+			var card_type = CardState._parse_card_type(card_data.get("type", "empty_hand"))
 			if Types.is_card_type_match(card_type, required_card_type):
 				return true
 
@@ -168,11 +168,11 @@ func get_available_card_indices(hand: Array) -> Array[int]:
 		var card = hand[i]
 		var card_type: Types.CardType
 
-		if card is Card:
+		if card is CardState:
 			card_type = card.type
 		elif card is String:
 			var card_data = GameManager.cards_data.get(card, {})
-			card_type = Card._parse_card_type(card_data.get("type", "empty_hand"))
+			card_type = CardState._parse_card_type(card_data.get("type", "empty_hand"))
 		else:
 			continue
 

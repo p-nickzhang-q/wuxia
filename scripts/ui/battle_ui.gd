@@ -6,9 +6,9 @@ extends Control
 
 # ==================== 信号 ====================
 ## 卡牌点击信号
-signal card_clicked(card: Card, card_ui: CardUI)
+signal card_clicked(card_data: Dictionary, card_ui: CardUI)
 ## 卡牌悬停信号
-signal card_hovered(card: Card)
+signal card_hovered(card_data: Dictionary)
 ## 技能点击信号
 signal skill_clicked(skill: Skill, button: SkillButton)
 ## 技能悬停信号
@@ -67,8 +67,8 @@ var skill_buttons: Dictionary = {}
 var _player_character: Character = null
 ## 当前敌人角色
 var _enemy_character: Character = null
-## 当前选中的卡牌
-var _selected_card: Card = null
+## 当前选中的卡牌数据
+var _selected_card_data: Dictionary = {}
 ## 当前选中的技能
 var _selected_skill: Skill = null
 
@@ -237,14 +237,14 @@ func update_hand_display() -> void:
 
 	# 为每张手牌创建UI
 	for i in range(_player_character.hand.size()):
-		var card: Card = _player_character.hand[i]
+		var card: CardState = _player_character.hand[i]
 		var card_ui := _create_card_ui(card, i)
 		hand_container.add_child(card_ui)
-		card_uis[card.get_instance_id()] = card_ui
+		card_uis[card.instance_id.hash()] = card_ui
 
 
 ## 创建卡牌UI
-func _create_card_ui(card: Card, index: int) -> CardUI:
+func _create_card_ui(card: CardState, index: int) -> CardUI:
 	var card_scene := preload("res://scenes/components/card.tscn")
 	var card_ui: CardUI = card_scene.instantiate()
 	card_ui.card = card
@@ -346,12 +346,16 @@ func set_target_selection_mode(enabled: bool) -> void:
 
 
 ## 设置选中的卡牌
-func set_selected_card(card: Card) -> void:
-	_selected_card = card
+func set_selected_card(card_data: Dictionary) -> void:
+	_selected_card_data = card_data
 
 	# 更新所有卡牌UI的选中状态
 	for card_ui: CardUI in card_uis.values():
-		card_ui.set_selected(card_ui.card == card)
+		# 比较卡牌数据
+		var is_selected: bool = false
+		if card_ui.card is CardState and card_data.has("instance_id"):
+			is_selected = (card_ui.card as CardState).instance_id == card_data.get("instance_id", "")
+		card_ui.set_selected(is_selected)
 
 
 ## 设置选中的技能
@@ -363,9 +367,18 @@ func set_selected_skill(skill: Skill) -> void:
 
 
 ## 显示提示框（卡牌）
-func show_card_tooltip(card: Card) -> void:
+func show_card_tooltip(card: CardState) -> void:
 	if tooltip and card:
-		tooltip.setup_from_card(card)
+		var card_data := {
+			"name": card.name,
+			"type": card.type,
+			"description": card.description,
+			"agility_cost": card.agility_cost,
+			"damage": card.base_damage,
+			"shield": card.base_shield,
+			"heal": card.base_heal
+		}
+		tooltip.setup_from_card(card_data)
 		tooltip.request_show()
 
 
@@ -426,14 +439,27 @@ func _on_end_turn_pressed() -> void:
 	end_turn_pressed.emit()
 
 
-func _on_card_clicked(card: Card) -> void:
-	card_clicked.emit(card, get_card_ui(card.get_instance_id()))
+func _on_card_clicked(card: CardState) -> void:
+	var card_data := {
+		"instance_id": card.instance_id,
+		"name": card.name,
+		"type": card.type,
+		"damage": card.base_damage,
+		"shield": card.base_shield,
+		"heal": card.base_heal,
+		"agility_cost": card.agility_cost
+	}
+	card_clicked.emit(card_data, get_card_ui(card.instance_id.hash()))
 
 
-func _on_card_hovered(card: Card) -> void:
+func _on_card_hovered(card: CardState) -> void:
 	if card:
 		show_card_tooltip(card)
-		card_hovered.emit(card)
+		var card_data := {
+			"instance_id": card.instance_id,
+			"name": card.name
+		}
+		card_hovered.emit(card_data)
 	else:
 		hide_tooltip()
 
