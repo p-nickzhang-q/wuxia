@@ -51,7 +51,10 @@ static func from_data(data: Dictionary, instance_id: String = "") -> Card:
 	card.agility_cost = data.get("agility_cost", Types.DEFAULT_AGILITY_COST)
 	card.description = data.get("description", "")
 	var effects_data = data.get("effects", [])
-	card.effects = effects_data.duplicate(true) if effects_data else []
+	if effects_data and effects_data.size() > 0:
+		for effect in effects_data:
+			if effect is Dictionary:
+				card.effects.append(effect)
 	card.requires_target = data.get("requires_target", card.damage > 0)
 	return card
 
