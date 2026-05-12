@@ -154,7 +154,7 @@ func _setup_agility_axis() -> void:
 	agility_axis.setup(character_ids, _get_character_data_callback)
 
 	# 设置当前行动者
-	var current_actor := game_state.get_current_actor()
+	var current_actor: Character = game_state.get_current_actor()
 	if current_actor:
 		agility_axis.set_current_actor(current_actor.id)
 
@@ -218,7 +218,7 @@ func _update_top_bar() -> void:
 
 	# 更新当前行动者
 	if actor_label:
-		var current_actor := game_state.get_current_actor()
+		var current_actor: Character = game_state.get_current_actor()
 		if current_actor:
 			actor_label.text = "行动: %s" % current_actor.name
 		else:
@@ -291,7 +291,7 @@ func refresh() -> void:
 	# 刷新轻功轴
 	if agility_axis:
 		agility_axis.refresh(_get_character_data_callback)
-		var current_actor := game_state.get_current_actor()
+		var current_actor: Character = game_state.get_current_actor()
 		if current_actor:
 			agility_axis.set_current_actor(current_actor.id)
 
@@ -313,7 +313,7 @@ func _update_panel_highlights() -> void:
 	if not game_state:
 		return
 
-	var current_actor := game_state.get_current_actor()
+	var current_actor: Character = game_state.get_current_actor()
 
 	# 更新玩家面板
 	if player_panel and _player_character:
