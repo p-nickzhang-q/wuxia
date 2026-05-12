@@ -3610,3 +3610,46 @@ scripts/battle.gd
 scripts/game/battle_manager.gd
 ---
 
+## Session End: 20260511_175922
+### Commits
+82326cc feat(game): 完成 Phase 1 核心逻辑模块
+40af030 fix(game): 修复类型冲突和类型注解问题
+eba6c6a fix(game): 修复 character.gd 规格合规问题
+b817621 fix(game): 修复 passive.gd 类型注解
+e3a4354 feat(game): 添加内功类
+79af859 feat(game): 添加武功招式类
+a107f4e fix(game): 修复 card.gd 类型注解
+e9367bb feat(game): 添加卡牌类
+9ac38b8 feat(game): 添加核心类型定义文件
+b8c8bcf docs: 添加 PixiJS 到 Godot 战斗系统迁移设计文档
+444e1c7 feat(game): 实现游戏核心功能模块
+a4b4674 feat: 迁移项目到 Godot 4.6
+---
+
+## Session End: 20260511_180054
+### Commits
+6ba24e7 fix(game): 修复 battle_manager.gd 使用正确的工厂方法
+82326cc feat(game): 完成 Phase 1 核心逻辑模块
+40af030 fix(game): 修复类型冲突和类型注解问题
+eba6c6a fix(game): 修复 character.gd 规格合规问题
+b817621 fix(game): 修复 passive.gd 类型注解
+e3a4354 feat(game): 添加内功类
+79af859 feat(game): 添加武功招式类
+a107f4e fix(game): 修复 card.gd 类型注解
+e9367bb feat(game): 添加卡牌类
+9ac38b8 feat(game): 添加核心类型定义文件
+b8c8bcf docs: 添加 PixiJS 到 Godot 战斗系统迁移设计文档
+444e1c7 feat(game): 实现游戏核心功能模块
+a4b4674 feat: 迁移项目到 Godot 4.6
+### Uncommitted Changes
+production/session-logs/session-log.md
+---
+
+## Session End: 20260512_091006
+### Commits
+ae558dd fix(game): 重命名静态方法避免命名冲突
+2326c39 fix(game): 修复 effect_processor.gd 命名冲突
+### Uncommitted Changes
+production/session-logs/session-log.md
+---
+
