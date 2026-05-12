@@ -5,8 +5,8 @@ class_name GameState
 extends RefCounted
 
 # ==================== 属性 ====================
-## 所有参与战斗的角色
-var characters: Array[Character] = []
+## 所有参与战斗的角色（Dictionary 数组）
+var characters: Array[Dictionary] = []
 
 ## 当前游戏阶段
 var current_phase: Types.GamePhase = Types.GamePhase.SETUP
@@ -27,17 +27,17 @@ var distance_system = null  # DistanceSystem 类型，待实现
 # ==================== 核心方法 ====================
 
 ## 获取当前行动角色
-func get_current_actor() -> Character:
+func get_current_actor() -> Dictionary:
 	if characters.is_empty() or current_actor_index < 0 or current_actor_index >= characters.size():
-		return null
+		return {}
 	return characters[current_actor_index]
 
 
 ## 获取下一个行动角色
 ## 基于轻功值决定行动顺序：轻功高者优先行动
-func get_next_actor() -> Character:
+func get_next_actor() -> Dictionary:
 	if characters.is_empty():
-		return null
+		return {}
 
 	if characters.size() == 1:
 		return characters[0]
@@ -49,22 +49,23 @@ func get_next_actor() -> Character:
 
 	# 比较轻功值，轻功高者下一个行动
 	var current := get_current_actor()
-	if current == null:
+	if current.is_empty():
 		return characters[0]
 
 	# 找到存活的其他角色中轻功最高的
-	var next_actor: Character = null
+	var next_actor: Dictionary = {}
 	var highest_agility := -1
 
 	for character in alive_characters:
 		if character == current:
 			continue
-		if character.current_agility > highest_agility:
-			highest_agility = character.current_agility
+		var agility: int = character.get("agility", 0)
+		if agility > highest_agility:
+			highest_agility = agility
 			next_actor = character
 
 	# 如果没有其他存活角色，返回当前角色
-	if next_actor == null:
+	if next_actor.is_empty():
 		return current
 
 	return next_actor
@@ -77,7 +78,7 @@ func advance_turn() -> void:
 
 	# 重置所有角色的回合状态
 	for character in characters:
-		character.reset_turn()
+		CharacterState.reset_turn(character)
 
 	# 根据轻功值确定新的先手角色
 	_determine_first_actor()
@@ -92,22 +93,22 @@ func advance_turn() -> void:
 func is_battle_over() -> bool:
 	var alive_count := 0
 	for character in characters:
-		if not character.is_dead():
+		if not CharacterState.is_dead(character):
 			alive_count += 1
 	return alive_count <= 1
 
 
 ## 获取胜利者
-## 返回存活的角色，如果没有则返回null
-func get_winner() -> Character:
+## 返回存活的角色，如果没有则返回空字典
+func get_winner() -> Dictionary:
 	if not is_battle_over():
-		return null
+		return {}
 
 	for character in characters:
-		if not character.is_dead():
+		if not CharacterState.is_dead(character):
 			return character
 
-	return null
+	return {}
 
 
 ## 记录行动到历史
@@ -122,11 +123,11 @@ func record_action(action: Dictionary) -> void:
 
 ## 获取指定角色可攻击的目标
 ## 在对战模式下返回对手
-func get_targets_for(character: Character) -> Array[Character]:
-	var targets: Array[Character] = []
+func get_targets_for(character: Dictionary) -> Array[Dictionary]:
+	var targets: Array[Dictionary] = []
 
 	for c in characters:
-		if c != character and not c.is_dead():
+		if c != character and not CharacterState.is_dead(c):
 			targets.append(c)
 
 	return targets
@@ -135,10 +136,10 @@ func get_targets_for(character: Character) -> Array[Character]:
 # ==================== 辅助方法 ====================
 
 ## 获取所有存活角色
-func _get_alive_characters() -> Array[Character]:
-	var alive: Array[Character] = []
+func _get_alive_characters() -> Array[Dictionary]:
+	var alive: Array[Dictionary] = []
 	for character in characters:
-		if not character.is_dead():
+		if not CharacterState.is_dead(character):
 			alive.append(character)
 	return alive
 
@@ -150,12 +151,13 @@ func _determine_first_actor() -> void:
 		current_actor_index = 0
 		return
 
-	var first_actor: Character = alive_characters[0]
-	var highest_agility := first_actor.current_agility
+	var first_actor: Dictionary = alive_characters[0]
+	var highest_agility: int = first_actor.get("agility", 0)
 
 	for character in alive_characters:
-		if character.current_agility > highest_agility:
-			highest_agility = character.current_agility
+		var agility: int = character.get("agility", 0)
+		if agility > highest_agility:
+			highest_agility = agility
 			first_actor = character
 
 	# 更新索引
@@ -168,38 +170,38 @@ func _determine_first_actor() -> void:
 ## 当当前角色轻功低于对手时调用
 func switch_to_next_actor() -> void:
 	var next := get_next_actor()
-	if next != null:
+	if not next.is_empty():
 		var index := characters.find(next)
 		if index >= 0:
 			current_actor_index = index
 
 
 ## 获取当前角色的对手（在对战模式下）
-func get_opponent(character: Character) -> Character:
+func get_opponent(character: Dictionary) -> Dictionary:
 	var targets := get_targets_for(character)
 	if targets.is_empty():
-		return null
+		return {}
 	return targets[0]
 
 
 ## 检查是否轮到指定角色行动
-func is_character_turn(character: Character) -> bool:
+func is_character_turn(character: Dictionary) -> bool:
 	return get_current_actor() == character
 
 
 ## 获取角色索引
-func get_character_index(character: Character) -> int:
+func get_character_index(character: Dictionary) -> int:
 	return characters.find(character)
 
 
 ## 添加角色到战斗
-func add_character(character: Character) -> void:
-	if character != null and not characters.has(character):
+func add_character(character: Dictionary) -> void:
+	if not character.is_empty() and not characters.has(character):
 		characters.append(character)
 
 
 ## 移除角色从战斗
-func remove_character(character: Character) -> void:
+func remove_character(character: Dictionary) -> void:
 	var index := characters.find(character)
 	if index >= 0:
 		characters.remove_at(index)
@@ -232,7 +234,7 @@ func start_battle() -> void:
 
 	# 初始化所有角色
 	for character in characters:
-		character.reset_for_battle()
+		CharacterState.reset_for_battle(character)
 
 	# 确定先手
 	_determine_first_actor()
@@ -249,9 +251,10 @@ func end_battle() -> void:
 	current_phase = Types.GamePhase.GAME_OVER
 
 	var winner := get_winner()
+	var winner_name: String = winner.get("name", "none") if not winner.is_empty() else "none"
 	record_action({
 		"type": "battle_end",
-		"winner": winner.name if winner else "none",
+		"winner": winner_name,
 		"turns": turn_number
 	})
 
@@ -260,7 +263,7 @@ func end_battle() -> void:
 func get_battle_summary() -> Dictionary:
 	var winner := get_winner()
 	return {
-		"winner": winner.name if winner else "none",
+		"winner": winner.get("name", "none") if not winner.is_empty() else "none",
 		"turns": turn_number,
 		"actions": action_history.size(),
 		"characters": _get_characters_status()
@@ -272,10 +275,10 @@ func _get_characters_status() -> Array[Dictionary]:
 	var status: Array[Dictionary] = []
 	for character in characters:
 		status.append({
-			"name": character.name,
-			"hp": character.current_hp,
-			"max_hp": character.max_hp,
-			"is_alive": not character.is_dead()
+			"name": character.get("name", ""),
+			"hp": character.get("hp", 0),
+			"max_hp": character.get("max_hp", 60),
+			"is_alive": not CharacterState.is_dead(character)
 		})
 	return status
 
@@ -284,7 +287,7 @@ func _get_characters_status() -> Array[Dictionary]:
 func to_dict() -> Dictionary:
 	var characters_data: Array[Dictionary] = []
 	for character in characters:
-		characters_data.append(character.to_dict())
+		characters_data.append(CharacterState.to_dict(character))
 
 	var history_data: Array[Dictionary] = []
 	for action in action_history:

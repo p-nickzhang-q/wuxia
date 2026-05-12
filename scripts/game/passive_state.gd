@@ -84,7 +84,8 @@ func can_trigger() -> bool:
 
 
 ## 触发内功效果
-func trigger(owner: Character, game_state, args: Array = []) -> Dictionary:
+## owner: 角色状态字典
+func trigger(owner: Dictionary, game_state, args: Array = []) -> Dictionary:
 	if not can_trigger():
 		return {"triggered": false}
 
@@ -106,61 +107,65 @@ func trigger(owner: Character, game_state, args: Array = []) -> Dictionary:
 
 
 ## 处理单个效果
-func _process_effect(owner: Character, game_state, effect: Dictionary, args: Array) -> Dictionary:
+func _process_effect(owner: Dictionary, game_state, effect: Dictionary, args: Array) -> Dictionary:
 	var effect_type: String = effect.get("type", "")
 	var value: int = effect.get("value", 0)
 	var result: Dictionary = {"type": effect_type, "value": 0}
+	var owner_name: String = owner.get("name", "未知")
 
 	match effect_type:
 		"heal", "heal_self":
-			var heal_amount: int = owner.heal(value)
+			var heal_amount: int = CharacterState.heal(owner, value)
 			result.value = heal_amount
-			result.description = "%s 恢复 %d 点生命" % [owner.name, heal_amount]
+			result.description = "%s 恢复 %d 点生命" % [owner_name, heal_amount]
 
 		"shield", "add_shield":
-			owner.shield += value
+			var shield: int = owner.get("shield", 0)
+			owner["shield"] = shield + value
 			result.value = value
-			result.description = "%s 获得 %d 点护盾" % [owner.name, value]
+			result.description = "%s 获得 %d 点护盾" % [owner_name, value]
 
 		"damage", "damage_target":
-			if args.size() > 0 and args[0] is Character:
-				var target: Character = args[0]
-				var damage_result: Dictionary = target.take_damage(value, owner)
+			if args.size() > 0 and args[0] is Dictionary:
+				var target: Dictionary = args[0]
+				var damage_result: Dictionary = CharacterState.take_damage(target, value, owner)
 				result.value = damage_result.actual_damage
-				result.description = "%s 对 %s 造成 %d 点伤害" % [owner.name, target.name, damage_result.actual_damage]
+				var target_name: String = target.get("name", "未知")
+				result.description = "%s 对 %s 造成 %d 点伤害" % [owner_name, target_name, damage_result.actual_damage]
 
 		"mp_recover", "recover_mp":
-			owner.recover_mp(value)
+			CharacterState.recover_mp(owner, value)
 			result.value = value
-			result.description = "%s 恢复 %d 点内力" % [owner.name, value]
+			result.description = "%s 恢复 %d 点内力" % [owner_name, value]
 
 		"agility_boost", "boost_agility":
-			owner.current_agility += value
+			var agility: int = owner.get("agility", 0)
+			owner["agility"] = agility + value
 			result.value = value
-			result.description = "%s 轻功提升 %d" % [owner.name, value]
+			result.description = "%s 轻功提升 %d" % [owner_name, value]
 
 		"draw_cards", "draw":
-			var drawn: Array = owner.draw_cards(value)
+			var drawn: Array = CharacterState.draw_cards(owner, value)
 			result.value = drawn.size()
-			result.description = "%s 抽取 %d 张牌" % [owner.name, drawn.size()]
+			result.description = "%s 抽取 %d 张牌" % [owner_name, drawn.size()]
 
 		"damage_boost":
 			# 伤害加成，需要在伤害计算时应用
 			result.value = value
 			result.is_modifier = true
-			result.description = "%s 伤害提升 %d%%" % [owner.name, value]
+			result.description = "%s 伤害提升 %d%%" % [owner_name, value]
 
 		"damage_reduction":
 			# 伤害减免
 			result.value = value
 			result.is_modifier = true
-			result.description = "%s 伤害减免 %d%%" % [owner.name, value]
+			result.description = "%s 伤害减免 %d%%" % [owner_name, value]
 
 		"reflect_damage":
 			# 反弹伤害
 			result.value = value
 			result.is_modifier = true
-			result.description = "%s 反弹 %d%% 伤害" % [owner.name, value]
+			result.description = "%s 反弹 %d%% 伤害" % [owner_name, value]
 
 		_:
 			result.description = "未知效果: %s" % effect_type

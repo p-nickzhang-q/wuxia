@@ -28,10 +28,10 @@ class EffectResult:
 	var modifier_type: String = ""
 
 	## 目标角色
-	var target = null  # Character 类型
+	var target: Dictionary = {}
 
 	## 来源角色
-	var source = null  # Character 类型
+	var source: Dictionary = {}
 
 	## 额外数据（如反弹伤害信息）
 	var extra_data: Dictionary = {}
@@ -69,6 +69,8 @@ class EffectResult:
 
 	## 转换为字典
 	func to_dict() -> Dictionary:
+		var target_name: String = target.get("name", "") if not target.is_empty() else ""
+		var source_name: String = source.get("name", "") if not source.is_empty() else ""
 		return {
 			"success": success,
 			"effect_type": effect_type,
@@ -76,8 +78,8 @@ class EffectResult:
 			"description": description,
 			"is_modifier": is_modifier,
 			"modifier_type": modifier_type,
-			"target": target.name if target else null,
-			"source": source.name if source else null,
+			"target": target_name,
+			"source": source_name,
 			"extra_data": extra_data
 		}
 
@@ -95,11 +97,11 @@ class DamageModifier:
 	var source_description: String = ""
 
 	## 拥有者
-	var owner = null  # Character 类型
+	var owner: Dictionary = {}
 
 
 	## 创建伤害加成修饰符
-	static func damage_boost(percentage_val: int, owner_char, source_desc: String = "") -> DamageModifier:
+	static func damage_boost(percentage_val: int, owner_char: Dictionary, source_desc: String = "") -> DamageModifier:
 		var mod := DamageModifier.new()
 		mod.modifier_type = "damage_boost"
 		mod.percentage = percentage_val
@@ -109,7 +111,7 @@ class DamageModifier:
 
 
 	## 创建伤害减免修饰符
-	static func damage_reduction(percentage_val: int, owner_char, source_desc: String = "") -> DamageModifier:
+	static func damage_reduction(percentage_val: int, owner_char: Dictionary, source_desc: String = "") -> DamageModifier:
 		var mod := DamageModifier.new()
 		mod.modifier_type = "damage_reduction"
 		mod.percentage = percentage_val
@@ -139,11 +141,12 @@ class DamageModifier:
 
 	## 转换为字典
 	func to_dict() -> Dictionary:
+		var owner_name: String = owner.get("name", "") if not owner.is_empty() else ""
 		return {
 			"modifier_type": modifier_type,
 			"percentage": percentage,
 			"source_description": source_description,
-			"owner": owner.name if owner else null
+			"owner": owner_name
 		}
 
 
@@ -154,7 +157,7 @@ class ReflectDamageInfo:
 	var percentage_value: int = 0
 
 	## 拥有者（反弹伤害的角色）
-	var owner = null  # Character 类型
+	var owner: Dictionary = {}
 
 	## 来源描述
 	var source_description: String = ""
@@ -167,7 +170,7 @@ class ReflectDamageInfo:
 
 
 	## 创建百分比反弹
-	static func create_percentage(pct: int, owner_char, source_desc: String = "") -> ReflectDamageInfo:
+	static func create_percentage(pct: int, owner_char: Dictionary, source_desc: String = "") -> ReflectDamageInfo:
 		var info := ReflectDamageInfo.new()
 		info.percentage_value = pct
 		info.owner = owner_char
@@ -177,7 +180,7 @@ class ReflectDamageInfo:
 
 
 	## 创建固定值反弹
-	static func create_fixed(amount: int, owner_char, source_desc: String = "") -> ReflectDamageInfo:
+	static func create_fixed(amount: int, owner_char: Dictionary, source_desc: String = "") -> ReflectDamageInfo:
 		var info := ReflectDamageInfo.new()
 		info.fixed_amount = amount
 		info.owner = owner_char
@@ -196,9 +199,10 @@ class ReflectDamageInfo:
 
 	## 转换为字典
 	func to_dict() -> Dictionary:
+		var owner_name: String = owner.get("name", "") if not owner.is_empty() else ""
 		return {
 			"percentage": percentage_value,
-			"owner": owner.name if owner else null,
+			"owner": owner_name,
 			"source_description": source_description,
 			"fixed_amount": fixed_amount,
 			"use_fixed": use_fixed
@@ -209,7 +213,7 @@ class ReflectDamageInfo:
 
 ## 处理效果列表
 ## 返回所有效果的处理结果
-static func process_effects(source, target, effects: Array, game_state) -> Array:
+static func process_effects(source: Dictionary, target: Dictionary, effects: Array, game_state) -> Array:
 	"""处理多个效果，返回结果数组"""
 	var results: Array = []
 
@@ -222,20 +226,23 @@ static func process_effects(source, target, effects: Array, game_state) -> Array
 
 
 ## 处理单个效果
-## source: 效果来源角色 (Character)
-## target: 效果目标角色 (Character)
+## source: 效果来源角色 (Dictionary)
+## target: 效果目标角色 (Dictionary)
 ## effect: 效果数据字典
 ## game_state: 游戏状态（无类型）
-static func process_effect(source, target, effect: Dictionary, game_state) -> EffectResult:
+static func process_effect(source: Dictionary, target: Dictionary, effect: Dictionary, game_state) -> EffectResult:
 	"""处理单个效果，返回效果结果"""
 	var effect_type: String = effect.get("type", "")
 	var value: int = effect.get("value", 0)
 	var duration: int = effect.get("duration", 0)
 
 	# 获取可选的目标覆盖
-	var actual_target = effect.get("target_override", null)
-	if actual_target == null:
+	var actual_target: Dictionary = effect.get("target_override", {})
+	if actual_target.is_empty():
 		actual_target = target
+
+	var source_name: String = source.get("name", "未知")
+	var target_name: String = actual_target.get("name", "未知")
 
 	match effect_type:
 		# 直接效果 - 立即应用
@@ -299,15 +306,18 @@ static func process_effect(source, target, effect: Dictionary, game_state) -> Ef
 # ==================== 直接效果处理 ====================
 
 ## 处理伤害效果
-static func _process_damage(source, target, value: int, effect: Dictionary, _game_state) -> EffectResult:
-	if target == null:
+static func _process_damage(source: Dictionary, target: Dictionary, value: int, effect: Dictionary, _game_state) -> EffectResult:
+	if target.is_empty():
 		return EffectResult.failed("无有效目标")
 
+	var source_name: String = source.get("name", "未知")
+	var target_name: String = target.get("name", "未知")
+
 	# 应用伤害
-	var damage_result: Dictionary = target.take_damage(value, source)
+	var damage_result: Dictionary = CharacterState.take_damage(target, value, source)
 
 	var result := EffectResult.ok("damage", damage_result.actual_damage,
-		"%s 对 %s 造成 %d 点伤害" % [source.name, target.name, damage_result.actual_damage])
+		"%s 对 %s 造成 %d 点伤害" % [source_name, target_name, damage_result.actual_damage])
 	result.target = target
 	result.source = source
 	result.extra_data = {
@@ -318,97 +328,115 @@ static func _process_damage(source, target, value: int, effect: Dictionary, _gam
 
 
 ## 处理治疗效果
-static func _process_heal(target, value: int, effect: Dictionary) -> EffectResult:
-	if target == null:
+static func _process_heal(target: Dictionary, value: int, effect: Dictionary) -> EffectResult:
+	if target.is_empty():
 		return EffectResult.failed("无有效目标")
 
-	var actual_heal: int = target.heal(value)
+	var target_name: String = target.get("name", "未知")
+	var actual_heal: int = CharacterState.heal(target, value)
 
 	return EffectResult.ok("heal", actual_heal,
-		"%s 恢复 %d 点生命" % [target.name, actual_heal])
+		"%s 恢复 %d 点生命" % [target_name, actual_heal])
 
 
 ## 处理护盾效果
-static func _process_shield(target, value: int, effect: Dictionary) -> EffectResult:
-	if target == null:
+static func _process_shield(target: Dictionary, value: int, effect: Dictionary) -> EffectResult:
+	if target.is_empty():
 		return EffectResult.failed("无有效目标")
 
-	target.shield += value
+	var target_name: String = target.get("name", "未知")
+	var shield: int = target.get("shield", 0)
+	target["shield"] = shield + value
 
 	return EffectResult.ok("shield", value,
-		"%s 获得 %d 点护盾" % [target.name, value])
+		"%s 获得 %d 点护盾" % [target_name, value])
 
 
 ## 处理内力恢复效果
-static func _process_mp_recover(target, value: int, effect: Dictionary) -> EffectResult:
-	if target == null:
+static func _process_mp_recover(target: Dictionary, value: int, effect: Dictionary) -> EffectResult:
+	if target.is_empty():
 		return EffectResult.failed("无有效目标")
 
-	target.recover_mp(value)
+	var target_name: String = target.get("name", "未知")
+	CharacterState.recover_mp(target, value)
 
 	return EffectResult.ok("mp_recover", value,
-		"%s 恢复 %d 点内力" % [target.name, value])
+		"%s 恢复 %d 点内力" % [target_name, value])
 
 
 ## 处理轻功提升效果
-static func _process_agility_boost(target, value: int, effect: Dictionary) -> EffectResult:
-	if target == null:
+static func _process_agility_boost(target: Dictionary, value: int, effect: Dictionary) -> EffectResult:
+	if target.is_empty():
 		return EffectResult.failed("无有效目标")
 
-	target.current_agility += value
+	var target_name: String = target.get("name", "未知")
+	var agility: int = target.get("agility", 0)
+	target["agility"] = agility + value
 
 	return EffectResult.ok("agility_boost", value,
-		"%s 轻功提升 %d" % [target.name, value])
+		"%s 轻功提升 %d" % [target_name, value])
 
 
 ## 处理轻功降低效果
-static func _process_agility_reduce(target, value: int, effect: Dictionary) -> EffectResult:
-	if target == null:
+static func _process_agility_reduce(target: Dictionary, value: int, effect: Dictionary) -> EffectResult:
+	if target.is_empty():
 		return EffectResult.failed("无有效目标")
 
-	target.current_agility = maxi(0, target.current_agility - value)
+	var target_name: String = target.get("name", "未知")
+	var agility: int = target.get("agility", 0)
+	target["agility"] = maxi(0, agility - value)
 
 	return EffectResult.ok("agility_reduce", value,
-		"%s 轻功降低 %d" % [target.name, value])
+		"%s 轻功降低 %d" % [target_name, value])
 
 
 ## 处理抽牌效果
-static func _process_draw_cards(target, value: int, effect: Dictionary, _game_state) -> EffectResult:
-	if target == null:
+static func _process_draw_cards(target: Dictionary, value: int, effect: Dictionary, _game_state) -> EffectResult:
+	if target.is_empty():
 		return EffectResult.failed("无有效目标")
 
-	var drawn: Array = target.draw_cards(value)
+	var target_name: String = target.get("name", "未知")
+	var drawn: Array = CharacterState.draw_cards(target, value)
 
 	return EffectResult.ok("draw_cards", drawn.size(),
-		"%s 抽取 %d 张牌" % [target.name, drawn.size()])
+		"%s 抽取 %d 张牌" % [target_name, drawn.size()])
 
 
 ## 处理弃牌效果
-static func _process_discard(target, value: int, effect: Dictionary) -> EffectResult:
-	if target == null:
+static func _process_discard(target: Dictionary, value: int, effect: Dictionary) -> EffectResult:
+	if target.is_empty():
 		return EffectResult.failed("无有效目标")
+
+	var target_name: String = target.get("name", "未知")
+	var hand: Array = target.get("hand", [])
+	var discard_pile: Array = target.get("discard_pile", [])
 
 	# 随机弃牌
 	var discarded_count := 0
 	for i in range(value):
-		if target.hand.is_empty():
+		if hand.is_empty():
 			break
-		var card = target.hand.pop_at(randi() % target.hand.size())
+		var card = hand.pop_at(randi() % hand.size())
 		if card:
-			target.discard_pile.append(card)
+			discard_pile.append(card)
 			discarded_count += 1
 
+	target["hand"] = hand
+	target["discard_pile"] = discard_pile
+
 	return EffectResult.ok("discard", discarded_count,
-		"%s 弃掉 %d 张牌" % [target.name, discarded_count])
+		"%s 弃掉 %d 张牌" % [target_name, discarded_count])
 
 
 # ==================== 修饰符效果处理 ====================
 
 ## 处理伤害加成效果
 ## 返回 DamageModifier 供调用者在伤害计算时应用
-static func _process_damage_boost(source, value: int, effect: Dictionary) -> EffectResult:
-	if source == null:
+static func _process_damage_boost(source: Dictionary, value: int, effect: Dictionary) -> EffectResult:
+	if source.is_empty():
 		return EffectResult.failed("无有效来源")
+
+	var source_name: String = source.get("name", "未知")
 
 	# 创建伤害加成修饰符
 	var modifier := DamageModifier.damage_boost(value, source,
@@ -416,7 +444,7 @@ static func _process_damage_boost(source, value: int, effect: Dictionary) -> Eff
 
 	# 返回修饰符结果
 	var result := EffectResult.modifier("damage_boost", value,
-		"%s 伤害提升 %d%%" % [source.name, value])
+		"%s 伤害提升 %d%%" % [source_name, value])
 	result.source = source
 	result.extra_data = {
 		"modifier": modifier
@@ -427,9 +455,11 @@ static func _process_damage_boost(source, value: int, effect: Dictionary) -> Eff
 
 ## 处理伤害减免效果
 ## 返回 DamageModifier 供调用者在受到伤害时应用
-static func _process_damage_reduction(source, value: int, effect: Dictionary) -> EffectResult:
-	if source == null:
+static func _process_damage_reduction(source: Dictionary, value: int, effect: Dictionary) -> EffectResult:
+	if source.is_empty():
 		return EffectResult.failed("无有效来源")
+
+	var source_name: String = source.get("name", "未知")
 
 	# 创建伤害减免修饰符
 	var modifier := DamageModifier.damage_reduction(value, source,
@@ -437,7 +467,7 @@ static func _process_damage_reduction(source, value: int, effect: Dictionary) ->
 
 	# 返回修饰符结果
 	var result := EffectResult.modifier("damage_reduction", value,
-		"%s 伤害减免 %d%%" % [source.name, value])
+		"%s 伤害减免 %d%%" % [source_name, value])
 	result.source = source
 	result.extra_data = {
 		"modifier": modifier
@@ -448,9 +478,11 @@ static func _process_damage_reduction(source, value: int, effect: Dictionary) ->
 
 ## 处理反弹伤害效果
 ## 返回 ReflectDamageInfo 供伤害系统在计算伤害后处理
-static func _process_reflect_damage(source, value: int, effect: Dictionary) -> EffectResult:
-	if source == null:
+static func _process_reflect_damage(source: Dictionary, value: int, effect: Dictionary) -> EffectResult:
+	if source.is_empty():
 		return EffectResult.failed("无有效来源")
+
+	var source_name: String = source.get("name", "未知")
 
 	# 检查是否为固定值反弹
 	var is_fixed: bool = effect.get("is_fixed", false)
@@ -465,7 +497,7 @@ static func _process_reflect_damage(source, value: int, effect: Dictionary) -> E
 
 	# 返回反弹信息
 	var result := EffectResult.ok("reflect_damage", value,
-		"%s 反弹 %d%% 伤害" % [source.name, value])
+		"%s 反弹 %d%% 伤害" % [source_name, value])
 	result.source = source
 	result.is_modifier = true
 	result.extra_data = {
@@ -479,19 +511,21 @@ static func _process_reflect_damage(source, value: int, effect: Dictionary) -> E
 
 ## 处理眩晕效果
 ## 眩晕状态需要在角色类中实现状态管理
-static func _process_stun(target, value: int, duration: int, effect: Dictionary) -> EffectResult:
-	if target == null:
+static func _process_stun(target: Dictionary, value: int, duration: int, effect: Dictionary) -> EffectResult:
+	if target.is_empty():
 		return EffectResult.failed("无有效目标")
 
+	var target_name: String = target.get("name", "未知")
+
 	# 检查目标是否有状态管理
-	if target.has_method("apply_status"):
-		target.apply_status("stun", duration, {"intensity": value})
+	if target.has("apply_status"):
+		# target.apply_status("stun", duration, {"intensity": value})
 		return EffectResult.ok("stun", duration,
-			"%s 被眩晕 %d 回合" % [target.name, duration])
+			"%s 被眩晕 %d 回合" % [target_name, duration])
 	else:
 		# 如果没有状态系统，记录到 extra_data 供外部处理
 		var result := EffectResult.ok("stun", duration,
-			"%s 被眩晕 %d 回合" % [target.name, duration])
+			"%s 被眩晕 %d 回合" % [target_name, duration])
 		result.target = target
 		result.extra_data = {
 			"status_type": "stun",
@@ -502,17 +536,19 @@ static func _process_stun(target, value: int, duration: int, effect: Dictionary)
 
 
 ## 处理中毒效果
-static func _process_poison(target, value: int, duration: int, effect: Dictionary) -> EffectResult:
-	if target == null:
+static func _process_poison(target: Dictionary, value: int, duration: int, effect: Dictionary) -> EffectResult:
+	if target.is_empty():
 		return EffectResult.failed("无有效目标")
 
-	if target.has_method("apply_status"):
-		target.apply_status("poison", duration, {"damage_per_turn": value})
+	var target_name: String = target.get("name", "未知")
+
+	if target.has("apply_status"):
+		# target.apply_status("poison", duration, {"damage_per_turn": value})
 		return EffectResult.ok("poison", value,
-			"%s 中毒，每回合受到 %d 点伤害，持续 %d 回合" % [target.name, value, duration])
+			"%s 中毒，每回合受到 %d 点伤害，持续 %d 回合" % [target_name, value, duration])
 	else:
 		var result := EffectResult.ok("poison", value,
-			"%s 中毒，每回合受到 %d 点伤害，持续 %d 回合" % [target.name, value, duration])
+			"%s 中毒，每回合受到 %d 点伤害，持续 %d 回合" % [target_name, value, duration])
 		result.target = target
 		result.extra_data = {
 			"status_type": "poison",
@@ -523,17 +559,19 @@ static func _process_poison(target, value: int, duration: int, effect: Dictionar
 
 
 ## 处理流血效果
-static func _process_bleed(target, value: int, duration: int, effect: Dictionary) -> EffectResult:
-	if target == null:
+static func _process_bleed(target: Dictionary, value: int, duration: int, effect: Dictionary) -> EffectResult:
+	if target.is_empty():
 		return EffectResult.failed("无有效目标")
 
-	if target.has_method("apply_status"):
-		target.apply_status("bleed", duration, {"damage_per_turn": value})
+	var target_name: String = target.get("name", "未知")
+
+	if target.has("apply_status"):
+		# target.apply_status("bleed", duration, {"damage_per_turn": value})
 		return EffectResult.ok("bleed", value,
-			"%s 流血，每回合受到 %d 点伤害，持续 %d 回合" % [target.name, value, duration])
+			"%s 流血，每回合受到 %d 点伤害，持续 %d 回合" % [target_name, value, duration])
 	else:
 		var result := EffectResult.ok("bleed", value,
-			"%s 流血，每回合受到 %d 点伤害，持续 %d 回合" % [target.name, value, duration])
+			"%s 流血，每回合受到 %d 点伤害，持续 %d 回合" % [target_name, value, duration])
 		result.target = target
 		result.extra_data = {
 			"status_type": "bleed",
@@ -547,7 +585,7 @@ static func _process_bleed(target, value: int, duration: int, effect: Dictionary
 
 ## 处理条件效果
 ## 根据条件决定执行哪个效果
-static func _process_conditional(source, target, effect: Dictionary, game_state) -> EffectResult:
+static func _process_conditional(source: Dictionary, target: Dictionary, effect: Dictionary, game_state) -> EffectResult:
 	var condition: String = effect.get("condition", "")
 	var on_true: Dictionary = effect.get("on_true", {})
 	var on_false: Dictionary = effect.get("on_false", {})
@@ -565,20 +603,29 @@ static func _process_conditional(source, target, effect: Dictionary, game_state)
 
 
 ## 评估条件
-static func _evaluate_condition(source, target, condition: String, game_state) -> bool:
+static func _evaluate_condition(source: Dictionary, target: Dictionary, condition: String, game_state) -> bool:
 	match condition:
 		"hp_below_50":
-			return target != null and target.current_hp < target.max_hp * 0.5
+			var hp: int = target.get("hp", 0)
+			var max_hp: int = target.get("max_hp", 60)
+			return not target.is_empty() and hp < max_hp * 0.5
 		"hp_below_30":
-			return target != null and target.current_hp < target.max_hp * 0.3
+			var hp: int = target.get("hp", 0)
+			var max_hp: int = target.get("max_hp", 60)
+			return not target.is_empty() and hp < max_hp * 0.3
 		"hp_full":
-			return target != null and target.current_hp >= target.max_hp
+			var hp: int = target.get("hp", 0)
+			var max_hp: int = target.get("max_hp", 60)
+			return not target.is_empty() and hp >= max_hp
 		"mp_above_10":
-			return source != null and source.current_mp > 10
+			var mp: int = source.get("mp", 0)
+			return not source.is_empty() and mp > 10
 		"target_shielded":
-			return target != null and target.shield > 0
+			var shield: int = target.get("shield", 0)
+			return not target.is_empty() and shield > 0
 		"has_shield":
-			return source != null and source.shield > 0
+			var shield: int = source.get("shield", 0)
+			return not source.is_empty() and shield > 0
 		"first_turn":
 			return game_state != null and game_state.turn_number == 1
 		_:
@@ -589,7 +636,7 @@ static func _evaluate_condition(source, target, condition: String, game_state) -
 
 ## 处理链式效果
 ## 按顺序执行多个效果
-static func _process_chain(source, target, effect: Dictionary, game_state) -> EffectResult:
+static func _process_chain(source: Dictionary, target: Dictionary, effect: Dictionary, game_state) -> EffectResult:
 	var effects: Array = effect.get("effects", [])
 
 	if effects.is_empty():

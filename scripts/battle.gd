@@ -52,9 +52,9 @@ var effects: BattleEffects = null
 
 # ==================== 内部状态 ====================
 ## 玩家角色引用
-var _player: Character = null
+var _player: Dictionary = {}
 ## 敌人角色引用
-var _enemy: Character = null
+var _enemy: Dictionary = {}
 ## 是否正在处理 AI 回合
 var _is_ai_turn: bool = false
 ## UI 刷新计时器
@@ -128,9 +128,9 @@ func _sync_game_state_from_battle_manager() -> void:
 	_player = battle_manager.player
 	_enemy = battle_manager.enemy
 
-	if _player:
+	if not _player.is_empty():
 		game_state.add_character(_player)
-	if _enemy:
+	if not _enemy.is_empty():
 		game_state.add_character(_enemy)
 
 	# 同步回合数
@@ -168,12 +168,12 @@ func _check_ai_turn() -> void:
 	if _is_ai_turn:
 		return
 
-	var current_actor: Character = game_state.get_current_actor()
-	if current_actor == null:
+	var current_actor: Dictionary = game_state.get_current_actor()
+	if current_actor.is_empty():
 		return
 
 	# 如果当前行动者是敌人，触发 AI
-	if current_actor == _enemy and not _enemy.is_dead():
+	if current_actor == _enemy and not CharacterState.is_dead(_enemy):
 		_is_ai_turn = true
 		_execute_ai_turn()
 
@@ -183,7 +183,7 @@ func _execute_ai_turn() -> void:
 	# 等待一小段时间让玩家看到状态变化
 	await get_tree().create_timer(AI_DECISION_DELAY).timeout
 
-	if battle_manager.enemy == null or battle_manager.enemy.is_dead():
+	if battle_manager.enemy.is_empty() or CharacterState.is_dead(battle_manager.enemy):
 		_is_ai_turn = false
 		return
 
@@ -216,10 +216,10 @@ func _update_ui() -> void:
 		actor_label.text = "行动: %s" % actor_name
 
 	# 更新角色面板
-	if player_panel and battle_manager.player:
+	if player_panel and not battle_manager.player.is_empty():
 		player_panel.character = battle_manager.player
 		player_panel.setup()
-	if enemy_panel and battle_manager.enemy:
+	if enemy_panel and not battle_manager.enemy.is_empty():
 		enemy_panel.character = battle_manager.enemy
 		enemy_panel.setup()
 
@@ -237,10 +237,14 @@ func _update_agility_axis() -> void:
 		return
 
 	var character_ids: Array[String] = []
-	if battle_manager.player:
-		character_ids.append(battle_manager.player.id)
-	if battle_manager.enemy:
-		character_ids.append(battle_manager.enemy.id)
+	if not battle_manager.player.is_empty():
+		var player_id: String = battle_manager.player.get("id", "")
+		if not player_id.is_empty():
+			character_ids.append(player_id)
+	if not battle_manager.enemy.is_empty():
+		var enemy_id: String = battle_manager.enemy.get("id", "")
+		if not enemy_id.is_empty():
+			character_ids.append(enemy_id)
 
 	agility_axis.setup(character_ids, _get_character_data_for_axis)
 
@@ -250,24 +254,29 @@ func _get_character_data_for_axis(char_id: String) -> Dictionary:
 	if battle_manager == null:
 		return {}
 
-	if battle_manager.player and battle_manager.player.id == char_id:
-		var p = battle_manager.player
-		return {
-			"name": p.name,
-			"current_agility": p.current_agility,
-			"base_agility": p.base_agility,
-			"is_player": true,
-			"is_current_actor": battle_manager.current_actor == p
-		}
-	elif battle_manager.enemy and battle_manager.enemy.id == char_id:
-		var e = battle_manager.enemy
-		return {
-			"name": e.name,
-			"current_agility": e.current_agility,
-			"base_agility": e.base_agility,
-			"is_player": false,
-			"is_current_actor": battle_manager.current_actor == e
-		}
+	if not battle_manager.player.is_empty():
+		var player_id: String = battle_manager.player.get("id", "")
+		if player_id == char_id:
+			var p = battle_manager.player
+			return {
+				"name": p.get("name", ""),
+				"current_agility": p.get("agility", 0),
+				"base_agility": p.get("base_agility", 10),
+				"is_player": true,
+				"is_current_actor": battle_manager.current_actor == p
+			}
+
+	if not battle_manager.enemy.is_empty():
+		var enemy_id: String = battle_manager.enemy.get("id", "")
+		if enemy_id == char_id:
+			var e = battle_manager.enemy
+			return {
+				"name": e.get("name", ""),
+				"current_agility": e.get("agility", 0),
+				"base_agility": e.get("base_agility", 10),
+				"is_player": false,
+				"is_current_actor": battle_manager.current_actor == e
+			}
 
 	return {}
 
@@ -282,7 +291,11 @@ func _render_skills() -> void:
 		child.queue_free()
 
 	# 渲染玩家的武功
-	var skills: Array[SkillState] = battle_manager.player.skills
+	var skills: Array = battle_manager.player.get("skills", [])
+	var mp: int = battle_manager.player.get("mp", 0)
+	var agility: int = battle_manager.player.get("agility", 0)
+	var hand: Array = battle_manager.player.get("hand", [])
+
 	for i in range(skills.size()):
 		var skill: SkillState = skills[i]
 		# 使用 SkillButton 组件
@@ -295,11 +308,7 @@ func _render_skills() -> void:
 
 		# 然后设置和更新状态
 		skill_button.setup()
-		skill_button.set_state(
-			battle_manager.player.current_mp,
-			battle_manager.player.current_agility,
-			battle_manager.player.hand
-		)
+		skill_button.set_state(mp, agility, hand)
 
 		skill_button.skill_pressed.connect(_on_skill_pressed)
 
@@ -314,7 +323,9 @@ func _render_hand() -> void:
 		child.queue_free()
 
 	# 渲染手牌
-	var hand: Array = battle_manager.player.hand
+	var hand: Array = battle_manager.player.get("hand", [])
+	var agility: int = battle_manager.player.get("agility", 0)
+
 	for i in range(hand.size()):
 		var card: CardState = hand[i]
 		# 使用 CardUI 组件
@@ -329,7 +340,7 @@ func _render_hand() -> void:
 		card_ui.setup()
 
 		# 检查是否可用（轻功足够）
-		var is_playable: bool = card.agility_cost <= battle_manager.player.current_agility
+		var is_playable: bool = card.agility_cost <= agility
 		card_ui.set_playable(is_playable)
 
 		# 连接点击信号
@@ -357,9 +368,10 @@ func _on_card_ui_clicked(card: CardState) -> void:
 		return
 
 	# 找到卡牌在手牌中的索引
+	var hand: Array = battle_manager.player.get("hand", [])
 	var card_index: int = -1
-	for i in range(battle_manager.player.hand.size()):
-		var hand_card: CardState = battle_manager.player.hand[i]
+	for i in range(hand.size()):
+		var hand_card: CardState = hand[i]
 		if hand_card.instance_id == card.instance_id:
 			card_index = i
 			break
@@ -405,15 +417,15 @@ func _on_action_requested(action: Dictionary) -> void:
 
 	match action_type:
 		"play_card":
-			_execute_play_card(action.get("card_index", -1), action.get("target", null))
+			_execute_play_card(action.get("card_index", -1), action.get("target", {}))
 		"use_skill":
-			_execute_use_skill(action.get("skill_index", -1), action.get("card_index", -1), action.get("target", null))
+			_execute_use_skill(action.get("skill_index", -1), action.get("card_index", -1), action.get("target", {}))
 		"end_turn":
 			_execute_end_turn()
 
 
 ## 执行打出卡牌
-func _execute_play_card(card_index: int, target) -> void:
+func _execute_play_card(card_index: int, target: Dictionary) -> void:
 	if card_index < 0:
 		return
 
@@ -427,11 +439,15 @@ func _execute_play_card(card_index: int, target) -> void:
 
 
 ## 执行使用武功
-func _execute_use_skill(skill_index: int, card_index: int, target) -> void:
+func _execute_use_skill(skill_index: int, card_index: int, target: Dictionary) -> void:
 	if skill_index < 0 or card_index < 0:
 		return
 
-	var skill: SkillState = battle_manager.current_actor.skills[skill_index]
+	var skills: Array = battle_manager.current_actor.get("skills", [])
+	if skill_index >= skills.size():
+		return
+
+	var skill: SkillState = skills[skill_index]
 	if skill == null:
 		return
 
@@ -481,9 +497,11 @@ func _on_skill_pressed(skill: Skill, button: SkillButton) -> void:
 		return
 
 	# 找到武功在列表中的索引
+	var skills: Array = battle_manager.player.get("skills", [])
 	var skill_index: int = -1
-	for i in range(battle_manager.player.skills.size()):
-		if battle_manager.player.skills[i].skill_id == skill.skill_id:
+	for i in range(skills.size()):
+		var s: SkillState = skills[i]
+		if s.skill_id == skill.skill_id:
 			skill_index = i
 			break
 
@@ -497,7 +515,8 @@ func _on_skill_pressed(skill: Skill, button: SkillButton) -> void:
 
 ## 回合改变处理（来自 BattleManager）
 func _on_turn_changed(actor_id: String) -> void:
-	var actor_name: String = "玩家" if actor_id == battle_manager.player.id else "敌人"
+	var player_id: String = battle_manager.player.get("id", "")
+	var actor_name: String = "玩家" if actor_id == player_id else "敌人"
 	_log("轮到 %s 行动" % actor_name)
 
 	# 同步状态
@@ -505,8 +524,9 @@ func _on_turn_changed(actor_id: String) -> void:
 
 
 ## 伤害处理（来自 BattleManager）
-func _on_damage_dealt(target: Character, amount: int) -> void:
-	_log("%s 受到 %d 点伤害" % [target.name, amount])
+func _on_damage_dealt(target: Dictionary, amount: int) -> void:
+	var target_name: String = target.get("name", "未知")
+	_log("%s 受到 %d 点伤害" % [target_name, amount])
 
 	# 播放伤害动画
 	if animator:
@@ -514,8 +534,9 @@ func _on_damage_dealt(target: Character, amount: int) -> void:
 
 
 ## 战斗结束处理（来自 BattleManager）
-func _on_battle_ended(winner: Character, loser: Character) -> void:
-	_log("%s 获胜!" % winner.name)
+func _on_battle_ended(winner: Dictionary, loser: Dictionary) -> void:
+	var winner_name: String = winner.get("name", "未知")
+	_log("%s 获胜!" % winner_name)
 
 	# 播放战斗结束动画
 	if animator:

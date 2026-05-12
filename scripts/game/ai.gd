@@ -63,8 +63,8 @@ func _init(manager: BattleManager, ai_difficulty: AIDifficulty = AIDifficulty.NO
 
 ## 执行 AI 回合
 func execute_turn() -> void:
-	var actor: Character = battle_manager.current_actor
-	if actor == null or actor != battle_manager.enemy:
+	var actor: Dictionary = battle_manager.current_actor
+	if actor.is_empty() or actor != battle_manager.enemy:
 		return
 
 	# 延迟执行，让玩家看到 AI 思考
@@ -74,8 +74,8 @@ func execute_turn() -> void:
 
 	while _can_continue_action(actor) and action_count < MAX_ACTIONS_PER_TURN:
 		# 检查是否有敌人存活
-		var target: Character = _get_target()
-		if target == null:
+		var target: Dictionary = _get_target()
+		if target.is_empty():
 			break
 
 		# 决定行动
@@ -93,7 +93,7 @@ func execute_turn() -> void:
 			break
 
 		# 检查战斗是否结束
-		if battle_manager.player.is_dead() or battle_manager.enemy.is_dead():
+		if CharacterState.is_dead(battle_manager.player) or CharacterState.is_dead(battle_manager.enemy):
 			break
 
 		await _delay(_get_action_delay())
@@ -101,9 +101,9 @@ func execute_turn() -> void:
 
 ## 决定行动 - 返回标准 Dictionary
 ## 返回格式: { "type": "card"|"skill"|"pass", "card_index": int, "skill_index": int }
-func decide_action(actor: Character, target: Character) -> Dictionary:
+func decide_action(actor: Dictionary, target: Dictionary) -> Dictionary:
 	# 获取所有可用行动
-	var available_actions: Dictionary = actor.get_available_actions()
+	var available_actions: Dictionary = CharacterState.get_available_actions(actor)
 
 	# 如果没有可用行动，跳过
 	if available_actions.cards.is_empty() and available_actions.skills.is_empty():
@@ -134,46 +134,57 @@ func decide_action(actor: Character, target: Character) -> Dictionary:
 		if score > best_score:
 			best_score = score
 			# 找到合适的媒介卡牌
-			var skill: SkillState = actor.skills[skill_index]
-			var card_indices: Array[int] = skill.get_available_card_indices(actor.hand)
-			if not card_indices.is_empty():
-				best_action = {
-					"type": "skill",
-					"skill_index": skill_index,
-					"card_index": card_indices[0]  # 选择第一张可用卡牌
-				}
+			var skills: Array = actor.get("skills", [])
+			if skill_index >= 0 and skill_index < skills.size():
+				var skill: SkillState = skills[skill_index]
+				var hand: Array = actor.get("hand", [])
+				var card_indices: Array[int] = skill.get_available_card_indices(hand)
+				if not card_indices.is_empty():
+					best_action = {
+						"type": "skill",
+						"skill_index": skill_index,
+						"card_index": card_indices[0]  # 选择第一张可用卡牌
+					}
 
 	return best_action
 
 
 ## 评估卡牌 - 返回 float 分数
-func evaluate_card(actor: Character, target: Character, card_index: int) -> float:
-	if card_index < 0 or card_index >= actor.hand.size():
+func evaluate_card(actor: Dictionary, target: Dictionary, card_index: int) -> float:
+	var hand: Array = actor.get("hand", [])
+	if card_index < 0 or card_index >= hand.size():
 		return -INF
 
-	var card: CardState = actor.hand[card_index]
+	var card: CardState = hand[card_index]
 	var score: float = 0.0
+
+	var target_shield: int = target.get("shield", 0)
+	var target_hp: int = target.get("hp", 0)
+	var actor_hp: int = actor.get("hp", 0)
+	var actor_max_hp: int = actor.get("max_hp", 60)
+	var actor_mp: int = actor.get("mp", 0)
+	var actor_max_mp: int = actor.get("max_mp", 20)
 
 	# 伤害评分
 	var damage: int = card.base_damage
 	if damage > 0:
 		# 考虑护盾
 		var effective_damage: int = damage
-		if target.shield > 0:
-			effective_damage = maxi(0, damage - target.shield)
+		if target_shield > 0:
+			effective_damage = maxi(0, damage - target_shield)
 
 		# 伤害价值：越高越好
 		score += effective_damage * 10.0
 
 		# 击杀奖励
-		if effective_damage >= target.current_hp:
+		if effective_damage >= target_hp:
 			score += 100.0
 
 	# 防御评分
 	var defense: int = card.base_shield
 	if defense > 0:
 		# 低血量时防御更有价值
-		var hp_ratio: float = float(actor.current_hp) / float(actor.max_hp)
+		var hp_ratio: float = float(actor_hp) / float(actor_max_hp)
 		if hp_ratio < 0.5:
 			score += defense * 8.0
 		else:
@@ -183,8 +194,8 @@ func evaluate_card(actor: Character, target: Character, card_index: int) -> floa
 	var heal: int = card.base_heal
 	if heal > 0:
 		# 低血量时治疗更有价值
-		var hp_ratio: float = float(actor.current_hp) / float(actor.max_hp)
-		var heal_value: int = mini(heal, actor.max_hp - actor.current_hp)
+		var hp_ratio: float = float(actor_hp) / float(actor_max_hp)
+		var heal_value: int = mini(heal, actor_max_hp - actor_hp)
 		if hp_ratio < 0.3:
 			score += heal_value * 12.0
 		elif hp_ratio < 0.6:
@@ -202,29 +213,37 @@ func evaluate_card(actor: Character, target: Character, card_index: int) -> floa
 
 
 ## 评估武功招式 - 返回 float 分数
-func evaluate_skill(actor: Character, target: Character, skill_index: int) -> float:
-	if skill_index < 0 or skill_index >= actor.skills.size():
+func evaluate_skill(actor: Dictionary, target: Dictionary, skill_index: int) -> float:
+	var skills: Array = actor.get("skills", [])
+	if skill_index < 0 or skill_index >= skills.size():
 		return -INF
 
-	var skill: SkillState = actor.skills[skill_index]
+	var skill: SkillState = skills[skill_index]
+	var actor_mp: int = actor.get("mp", 0)
+	var actor_max_mp: int = actor.get("max_mp", 20)
+	var actor_agility: int = actor.get("agility", 0)
+	var hand: Array = actor.get("hand", [])
 
 	# 检查是否可用
-	if not skill.is_available(actor.current_mp, actor.current_agility, actor.hand):
+	if not skill.is_available(actor_mp, actor_agility, hand):
 		return -INF
 
 	var score: float = 0.0
+
+	var target_shield: int = target.get("shield", 0)
+	var target_hp: int = target.get("hp", 0)
 
 	# 伤害评分
 	var damage: int = skill.damage
 	if damage > 0:
 		var effective_damage: int = damage
-		if target.shield > 0:
-			effective_damage = maxi(0, damage - target.shield)
+		if target_shield > 0:
+			effective_damage = maxi(0, damage - target_shield)
 
 		score += effective_damage * 12.0  # 武功伤害权重更高
 
 		# 击杀奖励
-		if effective_damage >= target.current_hp:
+		if effective_damage >= target_hp:
 			score += 150.0
 
 	# 特殊效果评分
@@ -236,7 +255,7 @@ func evaluate_skill(actor: Character, target: Character, skill_index: int) -> fl
 	# 内力消耗惩罚
 	var mp_cost: int = skill.mp_cost
 	if mp_cost > 0:
-		var mp_ratio: float = float(actor.current_mp) / float(actor.max_mp)
+		var mp_ratio: float = float(actor_mp) / float(actor_max_mp)
 		# 内力不足时惩罚更大
 		if mp_ratio < 0.3:
 			score -= mp_cost * 3.0
@@ -255,14 +274,19 @@ func evaluate_skill(actor: Character, target: Character, skill_index: int) -> fl
 # ==================== 内部方法 ====================
 
 ## 评估特殊效果
-func _evaluate_effect(actor: Character, target: Character, effect: Dictionary) -> float:
+func _evaluate_effect(actor: Dictionary, target: Dictionary, effect: Dictionary) -> float:
 	var effect_type: String = effect.get("type", "")
 	var value: int = effect.get("value", 0)
 	var score: float = 0.0
 
+	var actor_hp: int = actor.get("hp", 0)
+	var actor_max_hp: int = actor.get("max_hp", 60)
+	var actor_mp: int = actor.get("mp", 0)
+	var actor_max_mp: int = actor.get("max_mp", 20)
+
 	match effect_type:
 		"heal":
-			var hp_ratio: float = float(actor.current_hp) / float(actor.max_hp)
+			var hp_ratio: float = float(actor_hp) / float(actor_max_hp)
 			if hp_ratio < 0.3:
 				score += value * 15.0
 			elif hp_ratio < 0.6:
@@ -271,7 +295,7 @@ func _evaluate_effect(actor: Character, target: Character, effect: Dictionary) -
 				score += value * 3.0
 
 		"shield":
-			var hp_ratio: float = float(actor.current_hp) / float(actor.max_hp)
+			var hp_ratio: float = float(actor_hp) / float(actor_max_hp)
 			if hp_ratio < 0.5:
 				score += value * 10.0
 			else:
@@ -281,7 +305,7 @@ func _evaluate_effect(actor: Character, target: Character, effect: Dictionary) -
 			score += value * 8.0
 
 		"mp_recover":
-			var mp_ratio: float = float(actor.current_mp) / float(actor.max_mp)
+			var mp_ratio: float = float(actor_mp) / float(actor_max_mp)
 			if mp_ratio < 0.3:
 				score += value * 12.0
 			else:
@@ -318,19 +342,20 @@ func _get_action_delay() -> float:
 
 
 ## 检查是否可以继续行动
-func _can_continue_action(actor: Character) -> bool:
-	return actor.current_agility > 0 and not actor.is_dead()
+func _can_continue_action(actor: Dictionary) -> bool:
+	var agility: int = actor.get("agility", 0)
+	return agility > 0 and not CharacterState.is_dead(actor)
 
 
 ## 获取目标（玩家）
-func _get_target() -> Character:
-	if battle_manager.player.is_dead():
-		return null
+func _get_target() -> Dictionary:
+	if CharacterState.is_dead(battle_manager.player):
+		return {}
 	return battle_manager.player
 
 
 ## 执行行动
-func _execute_action(action: Dictionary, target: Character) -> void:
+func _execute_action(action: Dictionary, target: Dictionary) -> void:
 	if action.is_empty():
 		return
 
@@ -346,8 +371,10 @@ func _execute_action(action: Dictionary, target: Character) -> void:
 			var skill_index: int = action.get("skill_index", -1)
 			var card_index: int = action.get("card_index", -1)
 			if skill_index >= 0 and card_index >= 0:
-				var skill: SkillState = battle_manager.enemy.skills[skill_index]
-				battle_manager.use_skill(skill.skill_id, card_index)
+				var skills: Array = battle_manager.enemy.get("skills", [])
+				if skill_index < skills.size():
+					var skill: SkillState = skills[skill_index]
+					battle_manager.use_skill(skill.skill_id, card_index)
 
 		"pass":
 			# 不执行任何行动

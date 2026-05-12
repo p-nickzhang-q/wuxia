@@ -19,8 +19,8 @@ const HIGHLIGHT_TARGETED: Color = Color(1.0, 0.5, 0.5, 0.5)
 const HIGHLIGHT_ACTOR: Color = Color(0.5, 1.0, 0.5, 0.4)
 
 # ==================== 导出属性 ====================
-## 绑定的角色（使用 Resource 类型避免导出限制）
-var character = null  # Character 类型，运行时赋值
+## 绑定的角色（Dictionary）
+var character: Dictionary = {}
 
 # ==================== 子节点引用 ====================
 ## 立绘容器
@@ -67,38 +67,45 @@ func _ready() -> void:
 	_default_modulate = self_modulate
 
 	# 如果已有角色，进行初始化
-	if character:
+	if not character.is_empty():
 		setup()
 
 
 ## 设置面板，绑定角色数据
 func setup() -> void:
-	if not character:
+	if character.is_empty():
 		return
 
 	# 更新名称和称号
-	name_label.text = character.name
-	title_label.text = character.title
+	name_label.text = character.get("name", "未知")
+	title_label.text = character.get("title", "")
 
 	# 更新HP条
-	hp_bar.max_value = character.max_hp
-	hp_bar.value = character.current_hp
-	hp_label.text = "%d / %d" % [character.current_hp, character.max_hp]
+	var max_hp: int = character.get("max_hp", 60)
+	var hp: int = character.get("hp", 0)
+	hp_bar.max_value = max_hp
+	hp_bar.value = hp
+	hp_label.text = "%d / %d" % [hp, max_hp]
 
 	# 更新MP条
-	mp_bar.max_value = character.max_mp
-	mp_bar.value = character.current_mp
-	mp_label.text = "%d / %d" % [character.current_mp, character.max_mp]
+	var max_mp: int = character.get("max_mp", 20)
+	var mp: int = character.get("mp", 0)
+	mp_bar.max_value = max_mp
+	mp_bar.value = mp
+	mp_label.text = "%d / %d" % [mp, max_mp]
 
 	# 更新护盾
-	if character.shield > 0:
-		shield_label.text = "护盾: %d" % character.shield
+	var shield: int = character.get("shield", 0)
+	if shield > 0:
+		shield_label.text = "护盾: %d" % shield
 		shield_label.visible = true
 	else:
 		shield_label.visible = false
 
 	# 更新轻功
-	agility_label.text = "轻功: %d / %d" % [character.current_agility, character.base_agility]
+	var agility: int = character.get("agility", 0)
+	var base_agility: int = character.get("base_agility", 10)
+	agility_label.text = "轻功: %d / %d" % [agility, base_agility]
 
 	# 更新武功标签
 	_update_skill_tags()
@@ -114,23 +121,25 @@ func _update_skill_tags() -> void:
 		child.queue_free()
 
 	# 为每个武功创建标签
-	for skill in character.skills:
-		var tag := Label.new()
-		tag.text = skill.name
-		tag.add_theme_font_size_override("font_size", 12)
+	var skills: Array = character.get("skills", [])
+	for skill in skills:
+		if skill is SkillState:
+			var tag := Label.new()
+			tag.text = skill.name
+			tag.add_theme_font_size_override("font_size", 12)
 
-		# 根据武功等级设置颜色
-		match skill.level:
-			Types.SkillLevel.BEGINNER:
-				tag.add_theme_color_override("font_color", Color.GRAY)
-			Types.SkillLevel.INTERMEDIATE:
-				tag.add_theme_color_override("font_color", Color.WHITE)
-			Types.SkillLevel.ADVANCED:
-				tag.add_theme_color_override("font_color", Color.CYAN)
-			Types.SkillLevel.MASTER:
-				tag.add_theme_color_override("font_color", Color.GOLD)
+			# 根据武功等级设置颜色
+			match skill.level:
+				Types.SkillLevel.BEGINNER:
+					tag.add_theme_color_override("font_color", Color.GRAY)
+				Types.SkillLevel.INTERMEDIATE:
+					tag.add_theme_color_override("font_color", Color.WHITE)
+				Types.SkillLevel.ADVANCED:
+					tag.add_theme_color_override("font_color", Color.CYAN)
+				Types.SkillLevel.MASTER:
+					tag.add_theme_color_override("font_color", Color.GOLD)
 
-		skill_tags.add_child(tag)
+			skill_tags.add_child(tag)
 
 
 ## 设置是否可作为目标
@@ -166,28 +175,35 @@ func _update_highlight() -> void:
 
 ## 刷新显示（外部调用以更新数据）
 func refresh() -> void:
-	if not character:
+	if character.is_empty():
 		return
 
 	# 更新HP条
-	hp_bar.max_value = character.max_hp
-	hp_bar.value = character.current_hp
-	hp_label.text = "%d / %d" % [character.current_hp, character.max_hp]
+	var max_hp: int = character.get("max_hp", 60)
+	var hp: int = character.get("hp", 0)
+	hp_bar.max_value = max_hp
+	hp_bar.value = hp
+	hp_label.text = "%d / %d" % [hp, max_hp]
 
 	# 更新MP条
-	mp_bar.max_value = character.max_mp
-	mp_bar.value = character.current_mp
-	mp_label.text = "%d / %d" % [character.current_mp, character.max_mp]
+	var max_mp: int = character.get("max_mp", 20)
+	var mp: int = character.get("mp", 0)
+	mp_bar.max_value = max_mp
+	mp_bar.value = mp
+	mp_label.text = "%d / %d" % [mp, max_mp]
 
 	# 更新护盾
-	if character.shield > 0:
-		shield_label.text = "护盾: %d" % character.shield
+	var shield: int = character.get("shield", 0)
+	if shield > 0:
+		shield_label.text = "护盾: %d" % shield
 		shield_label.visible = true
 	else:
 		shield_label.visible = false
 
 	# 更新轻功
-	agility_label.text = "轻功: %d / %d" % [character.current_agility, character.base_agility]
+	var agility: int = character.get("agility", 0)
+	var base_agility: int = character.get("base_agility", 10)
+	agility_label.text = "轻功: %d / %d" % [agility, base_agility]
 
 
 # ==================== 事件处理 ====================
@@ -202,4 +218,4 @@ func _on_mouse_entered() -> void:
 
 
 func _on_mouse_exited() -> void:
-	hovered.emit(null)
+	hovered.emit({})

@@ -11,8 +11,8 @@ signal clicked(character)
 signal hovered(character)
 
 # ==================== 导出属性 ====================
-## 绑定的角色（使用无类型避免导出限制）
-var character = null  # Character 类型，运行时赋值
+## 绑定的角色（Dictionary）
+var character: Dictionary = {}
 
 # ==================== 子节点引用 ====================
 ## 头像容器
@@ -57,21 +57,21 @@ func _ready() -> void:
 	_default_modulate = self_modulate
 
 	# 如果已有角色，进行初始化
-	if character:
+	if not character.is_empty():
 		setup()
 
 
 ## 设置面板，绑定角色数据
 func setup() -> void:
-	if not character:
+	if character.is_empty():
 		return
 
 	# 更新名称
-	name_label.text = character.name
+	name_label.text = character.get("name", "未知")
 
 	# 更新精力（使用 MP 作为精力代理，或根据实际系统调整）
-	current_vitality = character.current_mp
-	max_vitality = character.max_mp
+	current_vitality = character.get("mp", 0)
+	max_vitality = character.get("max_mp", 100)
 	vitality_label.text = "精力 %d" % current_vitality
 
 	# 更新状态图标
@@ -155,12 +155,12 @@ func _update_task_info() -> void:
 
 ## 刷新显示（外部调用以更新数据）
 func refresh() -> void:
-	if not character:
+	if character.is_empty():
 		return
 
 	# 更新精力
-	current_vitality = character.current_mp
-	max_vitality = character.max_mp
+	current_vitality = character.get("mp", 0)
+	max_vitality = character.get("max_mp", 100)
 	vitality_label.text = "精力 %d" % current_vitality
 
 	# 更新状态图标
@@ -182,7 +182,7 @@ func _on_mouse_entered() -> void:
 
 
 func _on_mouse_exited() -> void:
-	hovered.emit(null)
+	hovered.emit({})
 	# 离开时隐藏点击提示
 	if click_hint:
 		click_hint.modulate.a = 0.5

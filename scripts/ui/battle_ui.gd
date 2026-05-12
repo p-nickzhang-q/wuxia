@@ -16,7 +16,7 @@ signal skill_hovered(skill: SkillState)
 ## 结束回合按钮点击信号
 signal end_turn_pressed()
 ## 角色面板点击信号
-signal character_panel_clicked(character: Character)
+signal character_panel_clicked(character: Dictionary)
 
 # ==================== 导出属性 ====================
 ## 游戏状态引用（使用无类型避免导出限制）
@@ -64,9 +64,9 @@ var skill_buttons: Dictionary = {}
 
 # ==================== 内部状态 ====================
 ## 当前玩家角色
-var _player_character: Character = null
+var _player_character: Dictionary = {}
 ## 当前敌人角色
-var _enemy_character: Character = null
+var _enemy_character: Dictionary = {}
 ## 当前选中的卡牌数据
 var _selected_card_data: Dictionary = {}
 ## 当前选中的技能
@@ -85,10 +85,14 @@ func _ready() -> void:
 ## 初始化组件引用字典
 func _initialize_component_dicts() -> void:
 	# 注册角色面板
-	if player_panel and _player_character:
-		character_panels[_player_character.id] = player_panel
-	if enemy_panel and _enemy_character:
-		character_panels[_enemy_character.id] = enemy_panel
+	if player_panel and not _player_character.is_empty():
+		var player_id: String = _player_character.get("id", "")
+		if not player_id.is_empty():
+			character_panels[player_id] = player_panel
+	if enemy_panel and not _enemy_character.is_empty():
+		var enemy_id: String = _enemy_character.get("id", "")
+		if not enemy_id.is_empty():
+			character_panels[enemy_id] = enemy_panel
 
 
 ## 设置UI，绑定游戏状态
@@ -124,20 +128,24 @@ func setup(gs: GameState) -> void:
 ## 设置角色面板
 func _setup_character_panels() -> void:
 	# 设置玩家面板
-	if player_panel and _player_character:
+	if player_panel and not _player_character.is_empty():
 		player_panel.character = _player_character
 		player_panel.setup()
 		player_panel.clicked.connect(_on_character_panel_clicked)
 		player_panel.hovered.connect(_on_character_panel_hovered)
-		character_panels[_player_character.id] = player_panel
+		var player_id: String = _player_character.get("id", "")
+		if not player_id.is_empty():
+			character_panels[player_id] = player_panel
 
 	# 设置敌人面板
-	if enemy_panel and _enemy_character:
+	if enemy_panel and not _enemy_character.is_empty():
 		enemy_panel.character = _enemy_character
 		enemy_panel.setup()
 		enemy_panel.clicked.connect(_on_character_panel_clicked)
 		enemy_panel.hovered.connect(_on_character_panel_hovered)
-		character_panels[_enemy_character.id] = enemy_panel
+		var enemy_id: String = _enemy_character.get("id", "")
+		if not enemy_id.is_empty():
+			character_panels[enemy_id] = enemy_panel
 
 
 ## 设置轻功轴
@@ -148,15 +156,18 @@ func _setup_agility_axis() -> void:
 	# 收集角色ID
 	var character_ids: Array[String] = []
 	for character in game_state.characters:
-		character_ids.append(character.id)
+		var char_id: String = character.get("id", "")
+		if not char_id.is_empty():
+			character_ids.append(char_id)
 
 	# 设置轻功轴
 	agility_axis.setup(character_ids, _get_character_data_callback)
 
 	# 设置当前行动者
-	var current_actor: Character = game_state.get_current_actor()
-	if current_actor:
-		agility_axis.set_current_actor(current_actor.id)
+	var current_actor: Dictionary = game_state.get_current_actor()
+	var actor_id: String = current_actor.get("id", "")
+	if not actor_id.is_empty():
+		agility_axis.set_current_actor(actor_id)
 
 
 ## 获取角色数据的回调函数
@@ -165,12 +176,13 @@ func _get_character_data_callback(character_id: String) -> Dictionary:
 		return {}
 
 	for character in game_state.characters:
-		if character.id == character_id:
+		var char_id: String = character.get("id", "")
+		if char_id == character_id:
 			return {
-				"name": character.name,
+				"name": character.get("name", ""),
 				"is_player": character == _player_character,
-				"current_agility": character.current_agility,
-				"base_agility": character.base_agility
+				"current_agility": character.get("agility", 0),
+				"base_agility": character.get("base_agility", 10)
 			}
 
 	return {}
@@ -178,7 +190,7 @@ func _get_character_data_callback(character_id: String) -> Dictionary:
 
 ## 设置技能按钮
 func _setup_skill_buttons() -> void:
-	if not skill_container or not _player_character:
+	if not skill_container or _player_character.is_empty():
 		return
 
 	# 清除现有技能按钮
@@ -187,10 +199,12 @@ func _setup_skill_buttons() -> void:
 	skill_buttons.clear()
 
 	# 为每个武功创建按钮
-	for skill in _player_character.skills:
-		var button := _create_skill_button(skill)
-		skill_container.add_child(button)
-		skill_buttons[skill.skill_id] = button
+	var skills: Array = _player_character.get("skills", [])
+	for skill in skills:
+		if skill is SkillState:
+			var button := _create_skill_button(skill)
+			skill_container.add_child(button)
+			skill_buttons[skill.skill_id] = button
 
 
 ## 创建技能按钮
@@ -218,16 +232,16 @@ func _update_top_bar() -> void:
 
 	# 更新当前行动者
 	if actor_label:
-		var current_actor: Character = game_state.get_current_actor()
-		if current_actor:
-			actor_label.text = "行动: %s" % current_actor.name
+		var current_actor: Dictionary = game_state.get_current_actor()
+		if not current_actor.is_empty():
+			actor_label.text = "行动: %s" % current_actor.get("name", "")
 		else:
 			actor_label.text = "行动: -"
 
 
 ## 更新手牌显示
 func update_hand_display() -> void:
-	if not hand_container or not _player_character:
+	if not hand_container or _player_character.is_empty():
 		return
 
 	# 清除现有卡牌UI
@@ -236,8 +250,9 @@ func update_hand_display() -> void:
 	card_uis.clear()
 
 	# 为每张手牌创建UI
-	for i in range(_player_character.hand.size()):
-		var card: CardState = _player_character.hand[i]
+	var hand: Array = _player_character.get("hand", [])
+	for i in range(hand.size()):
+		var card: CardState = hand[i]
 		var card_ui := _create_card_ui(card, i)
 		hand_container.add_child(card_ui)
 		card_uis[card.instance_id.hash()] = card_ui
@@ -251,8 +266,9 @@ func _create_card_ui(card: CardState, index: int) -> CardUI:
 	card_ui.setup()
 
 	# 检查是否可用（轻功足够）
-	if _player_character:
-		var is_playable := card.agility_cost <= _player_character.current_agility
+	if not _player_character.is_empty():
+		var agility: int = _player_character.get("agility", 0)
+		var is_playable := card.agility_cost <= agility
 		card_ui.set_playable(is_playable)
 
 	# 连接信号
@@ -264,17 +280,19 @@ func _create_card_ui(card: CardState, index: int) -> CardUI:
 
 ## 更新技能按钮
 func update_skill_buttons() -> void:
-	if not _player_character:
+	if _player_character.is_empty():
 		return
 
-	for skill in _player_character.skills:
-		var button: SkillButton = skill_buttons.get(skill.skill_id)
-		if button:
-			button.set_state(
-				_player_character.current_mp,
-				_player_character.current_agility,
-				_player_character.hand
-			)
+	var mp: int = _player_character.get("mp", 0)
+	var agility: int = _player_character.get("agility", 0)
+	var hand: Array = _player_character.get("hand", [])
+
+	var skills: Array = _player_character.get("skills", [])
+	for skill in skills:
+		if skill is SkillState:
+			var button: SkillButton = skill_buttons.get(skill.skill_id)
+			if button:
+				button.set_state(mp, agility, hand)
 
 
 ## 刷新所有UI组件
@@ -291,9 +309,10 @@ func refresh() -> void:
 	# 刷新轻功轴
 	if agility_axis:
 		agility_axis.refresh(_get_character_data_callback)
-		var current_actor: Character = game_state.get_current_actor()
-		if current_actor:
-			agility_axis.set_current_actor(current_actor.id)
+		var current_actor: Dictionary = game_state.get_current_actor()
+		var actor_id: String = current_actor.get("id", "")
+		if not actor_id.is_empty():
+			agility_axis.set_current_actor(actor_id)
 
 	# 刷新手牌显示
 	update_hand_display()
@@ -313,14 +332,14 @@ func _update_panel_highlights() -> void:
 	if not game_state:
 		return
 
-	var current_actor: Character = game_state.get_current_actor()
+	var current_actor: Dictionary = game_state.get_current_actor()
 
 	# 更新玩家面板
-	if player_panel and _player_character:
+	if player_panel and not _player_character.is_empty():
 		player_panel.set_current_actor(_player_character == current_actor)
 
 	# 更新敌人面板
-	if enemy_panel and _enemy_character:
+	if enemy_panel and not _enemy_character.is_empty():
 		enemy_panel.set_current_actor(_enemy_character == current_actor)
 
 
@@ -476,11 +495,11 @@ func _on_skill_hovered(skill: SkillState) -> void:
 		hide_tooltip()
 
 
-func _on_character_panel_clicked(character: Character) -> void:
+func _on_character_panel_clicked(character: Dictionary) -> void:
 	character_panel_clicked.emit(character)
 
 
-func _on_character_panel_hovered(character: Character) -> void:
-	if character:
+func _on_character_panel_hovered(character: Dictionary) -> void:
+	if not character.is_empty():
 		# 可以显示角色详细信息
 		pass
