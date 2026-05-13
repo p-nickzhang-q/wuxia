@@ -17,6 +17,10 @@ signal skill_hovered(skill: SkillState)
 signal end_turn_pressed()
 ## 角色面板点击信号
 signal character_panel_clicked(character: Dictionary)
+## 确认按钮点击信号
+signal confirm_pressed()
+## 取消按钮点击信号
+signal cancel_pressed()
 
 # ==================== 导出属性 ====================
 ## 游戏状态引用（使用无类型避免导出限制）
@@ -30,26 +34,36 @@ var game_state = null  # GameState 类型，运行时赋值
 ## 行动者标签
 @onready var actor_label: Label = $TopBar/ActorLabel
 
+## 战斗区域
+@onready var battle_field: VBoxContainer = $MainArea/BattleField
+## 敌人团队容器
+@onready var enemy_team: HBoxContainer = $MainArea/BattleField/EnemyTeam
+## 玩家团队容器
+@onready var player_team: HBoxContainer = $MainArea/BattleField/PlayerTeam
 ## 玩家面板
-@onready var player_panel: CharacterPanel = $PlayerPanel
+@onready var player_panel: CharacterPanel = $MainArea/BattleField/PlayerTeam/PlayerPanel
 ## 敌人面板
-@onready var enemy_panel: CharacterPanel = $EnemyPanel
+@onready var enemy_panel: CharacterPanel = $MainArea/BattleField/EnemyTeam/EnemyPanel
 
-## 右侧容器
-@onready var right_container: VBoxContainer = $RightContainer
+## 右侧边栏
+@onready var sidebar: VBoxContainer = $MainArea/Sidebar
 ## 轻功轴
-@onready var agility_axis: AgilityAxis = $RightContainer/AgilityAxis
+@onready var agility_axis: AgilityAxis = $MainArea/Sidebar/AgilityAxis
 ## 战斗日志
-@onready var battle_log: BattleLog = $RightContainer/BattleLog
+@onready var battle_log: BattleLog = $MainArea/Sidebar/BattleLog
 
-## 底部栏
+## 底部栏（现在是 VBoxContainer）
 @onready var bottom_bar: VBoxContainer = $BottomBar
-## 技能容器
-@onready var skill_container: HBoxContainer = $BottomBar/SkillContainer
-## 手牌容器
-@onready var hand_container: HBoxContainer = $BottomBar/HandContainer
-## 结束回合按钮
-@onready var end_turn_button: Button = $BottomBar/EndTurnButton
+## 技能容器（在第二行）
+@onready var skill_container: HBoxContainer = $BottomBar/SkillRow/SkillContainer
+## 手牌容器（在第一行）
+@onready var hand_container: HBoxContainer = $BottomBar/HandRow/HandArea/HandContainer
+## 结束回合按钮（在第一行右边）
+@onready var end_turn_button: Button = $BottomBar/HandRow/EndTurnButton
+## 确认按钮
+@onready var confirm_button: Button = $BottomBar/HandRow/ActionButtons/ConfirmButton
+## 取消按钮
+@onready var cancel_button: Button = $BottomBar/HandRow/ActionButtons/CancelButton
 
 ## 提示框
 @onready var tooltip: Tooltip = $Tooltip
@@ -78,6 +92,12 @@ func _ready() -> void:
 	if end_turn_button:
 		end_turn_button.pressed.connect(_on_end_turn_pressed)
 
+	# 连接确认/取消按钮
+	if confirm_button:
+		confirm_button.pressed.connect(_on_confirm_pressed)
+	if cancel_button:
+		cancel_button.pressed.connect(_on_cancel_pressed)
+
 	# 初始化组件引用字典
 	_initialize_component_dicts()
 
@@ -103,11 +123,12 @@ func setup(gs: GameState) -> void:
 
 	game_state = gs
 
-	# 获取玩家和敌人角色（约定：索引0为玩家，索引1为敌人）
-	if gs.characters.size() >= 1:
-		_player_character = gs.characters[0]
-	if gs.characters.size() >= 2:
-		_enemy_character = gs.characters[1]
+	# 使用 get_characters() 方法获取角色列表
+	var characters: Array = gs.get_characters()
+	if characters.size() >= 1:
+		_player_character = characters[0]
+	if characters.size() >= 2:
+		_enemy_character = characters[1]
 
 	# 设置角色面板
 	_setup_character_panels()
@@ -155,7 +176,7 @@ func _setup_agility_axis() -> void:
 
 	# 收集角色ID
 	var character_ids: Array[String] = []
-	for character in game_state.characters:
+	for character in game_state.get_characters():
 		var char_id: String = character.get("id", "")
 		if not char_id.is_empty():
 			character_ids.append(char_id)
@@ -175,7 +196,7 @@ func _get_character_data_callback(character_id: String) -> Dictionary:
 	if not game_state:
 		return {}
 
-	for character in game_state.characters:
+	for character in game_state.get_characters():
 		var char_id: String = character.get("id", "")
 		if char_id == character_id:
 			return {
@@ -363,6 +384,17 @@ func set_target_selection_mode(enabled: bool) -> void:
 	if player_panel:
 		player_panel.set_targetable(false)
 
+	# 更新按钮状态
+	_update_action_buttons(enabled)
+
+
+## 更新行动按钮状态
+func _update_action_buttons(in_target_mode: bool = false) -> void:
+	if confirm_button:
+		confirm_button.disabled = not in_target_mode
+	if cancel_button:
+		cancel_button.disabled = not in_target_mode and _selected_card_data.is_empty()
+
 
 ## 设置选中的卡牌
 func set_selected_card(card_data: Dictionary) -> void:
@@ -456,6 +488,14 @@ func clear_battle_log() -> void:
 
 func _on_end_turn_pressed() -> void:
 	end_turn_pressed.emit()
+
+
+func _on_confirm_pressed() -> void:
+	confirm_pressed.emit()
+
+
+func _on_cancel_pressed() -> void:
+	cancel_pressed.emit()
 
 
 func _on_card_clicked(card: CardState) -> void:

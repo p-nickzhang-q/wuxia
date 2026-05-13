@@ -27,6 +27,4 @@ Thumbs.db
 *.Zone.Identifier
 *:Zone.Identifier*
 
-# Old PixiJS (keep for reference)
-# node_modules/
-# coverage/
+/node_modules

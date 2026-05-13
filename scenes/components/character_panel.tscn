@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://character_panel"]
+[gd_scene format=3 uid="uid://drn8tuupv1vpu"]
 
-[ext_resource type="Script" path="res://scripts/ui/character_panel.gd" id="1"]
+[ext_resource type="Script" uid="uid://b1jp3v5gkklmu" path="res://scripts/ui/character_panel.gd" id="1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_bg"]
 bg_color = Color(0.3, 0.1, 0.1, 1)
@@ -30,69 +30,81 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
-[node name="CharacterPanel" type="Control"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_highlight_border"]
+bg_color = Color(0.15, 0.15, 0.2, 0.9)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(1, 0.3, 0.3, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="CharacterPanel" type="Control" unique_id=1158224649]
+custom_minimum_size = Vector2(300, 269)
 layout_mode = 3
 anchors_preset = 0
-offset_right = 200.0
-offset_bottom = 280.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
+offset_right = 300.0
+offset_bottom = 269.0
+size_flags_horizontal = 0
+size_flags_vertical = 0
 script = ExtResource("1")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="PanelContainer" parent="." unique_id=390148990]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.15, 0.15, 0.2, 0.9)
 
-[node name="Portrait" type="TextureRect" parent="."]
+[node name="Portrait" type="TextureRect" parent="." unique_id=793028451]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 120.0
+offset_bottom = 169.0
 grow_horizontal = 2
 stretch_mode = 5
 
-[node name="NameLabel" type="Label" parent="."]
+[node name="NameLabel" type="Label" parent="." unique_id=434664028]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 125.0
-offset_bottom = 148.0
+offset_top = 174.0
+offset_bottom = 196.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.7, 1)
 theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
 
-[node name="TitleLabel" type="Label" parent="."]
+[node name="TitleLabel" type="Label" parent="." unique_id=1321701712]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 148.0
-offset_bottom = 168.0
+offset_top = 196.0
+offset_bottom = 212.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
 
-[node name="HPBar" type="ProgressBar" parent="."]
+[node name="HPBar" type="ProgressBar" parent="." unique_id=2089439467]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = 10.0
-offset_top = 175.0
+offset_top = 215.0
 offset_right = -10.0
-offset_bottom = 195.0
+offset_bottom = 232.0
 grow_horizontal = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_hp_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
 value = 60.0
 show_percentage = false
 
-[node name="HPLabel" type="Label" parent="HPBar"]
+[node name="HPLabel" type="Label" parent="HPBar" unique_id=1605197379]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -104,21 +116,21 @@ theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="MPBar" type="ProgressBar" parent="."]
+[node name="MPBar" type="ProgressBar" parent="." unique_id=1854621762]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = 10.0
-offset_top = 200.0
+offset_top = 235.0
 offset_right = -10.0
-offset_bottom = 220.0
+offset_bottom = 252.0
 grow_horizontal = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_mp_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_mp_fill")
 value = 20.0
 show_percentage = false
 
-[node name="MPLabel" type="Label" parent="MPBar"]
+[node name="MPLabel" type="Label" parent="MPBar" unique_id=1503719360]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -130,39 +142,46 @@ theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ShieldLabel" type="Label" parent="."]
+[node name="ShieldLabel" type="Label" parent="." unique_id=807129639]
 layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
+anchors_preset = 9
+anchor_bottom = 1.0
 offset_left = 10.0
-offset_top = 225.0
-offset_right = -10.0
-offset_bottom = 245.0
-grow_horizontal = 2
+offset_top = -14.0
+offset_right = 140.0
+offset_bottom = 0.0
+grow_vertical = 0
 theme_override_colors/font_color = Color(0.5, 0.8, 1, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="AgilityLabel" type="Label" parent="."]
+[node name="AgilityLabel" type="Label" parent="." unique_id=2053464942]
 layout_mode = 1
-anchors_preset = 10
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
 anchor_right = 1.0
-offset_left = 10.0
-offset_top = 245.0
+anchor_bottom = 1.0
+offset_left = -140.0
+offset_top = -14.0
 offset_right = -10.0
-offset_bottom = 265.0
-grow_horizontal = 2
+offset_bottom = 0.0
+grow_horizontal = 0
+grow_vertical = 0
 theme_override_colors/font_color = Color(0.8, 1, 0.8, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="SkillTags" type="HBoxContainer" parent="."]
+[node name="SkillTags" type="HBoxContainer" parent="." unique_id=498025170]
+visible = false
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = 5.0
-offset_top = 265.0
+offset_top = 205.0
 offset_right = -5.0
-offset_bottom = 280.0
+offset_bottom = 220.0
 grow_horizontal = 2
 alignment = 1

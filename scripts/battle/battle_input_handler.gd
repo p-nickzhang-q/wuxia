@@ -141,21 +141,27 @@ func handle_skill_click(skill_index: int) -> bool:
 
 	# 获取当前行动角色
 	var actor = game_state.get_current_actor()
-	if actor == null:
+	if actor == null or actor.is_empty():
 		return false
 
 	# 只在选择武功状态下处理
 	if current_state != InputState.NONE and current_state != InputState.SELECTING_SKILL:
 		return false
 
-	# 验证武功索引
-	if skill_index < 0 or skill_index >= actor.skills.size():
+	# 获取武功列表
+	var skills: Array = actor.get("skills", [])
+	if skill_index < 0 or skill_index >= skills.size():
 		return false
 
-	var skill = actor.skills[skill_index]
+	var skill = skills[skill_index]
+
+	# 获取角色属性
+	var mp: int = actor.get("mp", 0)
+	var agility: int = actor.get("agility", 0)
+	var hand: Array = actor.get("hand", [])
 
 	# 检查武功是否可用
-	if not skill.is_available(actor.current_mp, actor.current_agility, actor.hand):
+	if not skill.is_available(mp, agility, hand):
 		return false
 
 	# 记录选中的武功
@@ -163,7 +169,7 @@ func handle_skill_click(skill_index: int) -> bool:
 	_current_actor = actor
 
 	# 获取可用媒介卡牌
-	_medium_candidates = skill.get_available_card_indices(actor.hand)
+	_medium_candidates = skill.get_available_card_indices(hand)
 
 	# 如果需要选择媒介卡牌
 	if _medium_candidates.size() > 1:
@@ -230,14 +236,18 @@ func handle_end_turn() -> bool:
 
 ## 处理卡牌选择
 func _handle_card_selection(card_index: int, actor) -> bool:
-	# 验证卡牌索引
-	if card_index < 0 or card_index >= actor.hand.size():
+	# 获取手牌
+	var hand: Array = actor.get("hand", [])
+	if card_index < 0 or card_index >= hand.size():
 		return false
 
-	var card = actor.hand[card_index]
+	var card = hand[card_index]
+
+	# 获取角色属性
+	var agility: int = actor.get("agility", 0)
 
 	# 检查轻功是否足够
-	if card.agility_cost > actor.current_agility:
+	if card.agility_cost > agility:
 		return false
 
 	# 记录选中的卡牌
@@ -263,8 +273,11 @@ func _handle_medium_selection(card_index: int, actor) -> bool:
 	# 记录选中的媒介卡牌
 	selected_card = card_index
 
-	# 获取选中的武功
-	var skill = actor.skills[selected_skill]
+	# 获取武功列表和选中的武功
+	var skills: Array = actor.get("skills", [])
+	if selected_skill < 0 or selected_skill >= skills.size():
+		return false
+	var skill = skills[selected_skill]
 
 	# 继续目标选择或执行
 	return _proceed_to_target_or_execute(actor, skill)
@@ -349,10 +362,14 @@ func get_selected_card():
 		return null
 
 	var actor = game_state.get_current_actor()
-	if actor == null or selected_card >= actor.hand.size():
+	if actor == null or actor.is_empty():
 		return null
 
-	return actor.hand[selected_card]
+	var hand: Array = actor.get("hand", [])
+	if selected_card >= hand.size():
+		return null
+
+	return hand[selected_card]
 
 
 ## 获取当前选中武功
@@ -361,10 +378,14 @@ func get_selected_skill():
 		return null
 
 	var actor = game_state.get_current_actor()
-	if actor == null or selected_skill >= actor.skills.size():
+	if actor == null or actor.is_empty():
 		return null
 
-	return actor.skills[selected_skill]
+	var skills: Array = actor.get("skills", [])
+	if selected_skill >= skills.size():
+		return null
+
+	return skills[selected_skill]
 
 
 ## 获取媒介卡牌候选列表

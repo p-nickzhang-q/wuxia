@@ -117,6 +117,7 @@
   },
   "enabledPlugins": {
     "minimalist-entrepreneur@minimalist-entrepreneur": true,
-    "superpowers@superpowers-marketplace": true
+    "superpowers@superpowers-marketplace": true,
+    "figma@claude-plugins-official": true
   }
 }

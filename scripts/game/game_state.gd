@@ -75,6 +75,10 @@ func start_battle() -> void:
 	CharacterState.reset_for_battle(player)
 	CharacterState.reset_for_battle(enemy)
 
+	# 双方抽初始手牌
+	CharacterState.draw_cards(player, Types.DEFAULT_DRAW_COUNT)
+	CharacterState.draw_cards(enemy, Types.DEFAULT_DRAW_COUNT)
+
 	# 确定先手
 	_determine_first_actor()
 
@@ -299,6 +303,26 @@ func pass_turn() -> void:
 
 # ==================== 查询方法 ====================
 
+## 获取所有角色列表（用于UI兼容）
+func get_characters() -> Array:
+	var chars: Array = []
+	if not player.is_empty():
+		chars.append(player)
+	if not enemy.is_empty():
+		chars.append(enemy)
+	return chars
+
+
+## 获取所有存活的战斗角色
+func get_alive_characters() -> Array:
+	var chars: Array = []
+	if not player.is_empty() and not CharacterState.is_dead(player):
+		chars.append(player)
+	if not enemy.is_empty() and not CharacterState.is_dead(enemy):
+		chars.append(enemy)
+	return chars
+
+
 ## 检查战斗是否结束
 func is_battle_over() -> bool:
 	return CharacterState.is_dead(player) or CharacterState.is_dead(enemy)
@@ -334,11 +358,25 @@ func is_character_turn(character: Dictionary) -> bool:
 	return current_actor == character
 
 
+## 获取当前行动角色
+func get_current_actor() -> Dictionary:
+	return current_actor
+
+
 ## 获取当前行动角色名称
 func get_current_actor_name() -> String:
 	if current_actor == player:
 		return "玩家"
 	return "敌人"
+
+
+## 获取指定角色的有效目标列表
+func get_targets_for(character: Dictionary) -> Array:
+	# 1v1 模式下，目标只有一个对手
+	var opponent := get_opponent(character)
+	if not opponent.is_empty() and not CharacterState.is_dead(opponent):
+		return [opponent]
+	return []
 
 
 ## 记录行动到历史

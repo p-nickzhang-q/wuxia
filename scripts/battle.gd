@@ -19,17 +19,17 @@ const UI_REFRESH_INTERVAL: float = 0.1
 @onready var actor_label: Label = $BattleUI/TopBar/ActorLabel
 
 ## 角色面板
-@onready var player_panel: CharacterPanel = $BattleUI/PlayerPanel
-@onready var enemy_panel: CharacterPanel = $BattleUI/EnemyPanel
+@onready var player_panel: CharacterPanel = $BattleUI/MainArea/BattleField/PlayerTeam/PlayerPanel
+@onready var enemy_panel: CharacterPanel = $BattleUI/MainArea/BattleField/EnemyTeam/EnemyPanel
 
-## 右侧容器
-@onready var agility_axis: AgilityAxis = $BattleUI/RightContainer/AgilityAxis
-@onready var battle_log: BattleLog = $BattleUI/RightContainer/BattleLog
+## 右侧边栏
+@onready var agility_axis: AgilityAxis = $BattleUI/MainArea/Sidebar/AgilityAxis
+@onready var battle_log: BattleLog = $BattleUI/MainArea/Sidebar/BattleLog
 
-## 底部栏
-@onready var skill_container: HBoxContainer = $BattleUI/BottomBar/SkillContainer
-@onready var hand_container: HBoxContainer = $BattleUI/BottomBar/HandContainer
-@onready var end_turn_button: Button = $BattleUI/BottomBar/EndTurnButton
+## 底部栏（新布局：HandRow + SkillRow）
+@onready var skill_container: HBoxContainer = $BattleUI/BottomBar/SkillRow/SkillContainer
+@onready var hand_container: HBoxContainer = $BattleUI/BottomBar/HandRow/HandArea/HandContainer
+@onready var end_turn_button: Button = $BattleUI/BottomBar/HandRow/EndTurnButton
 
 ## 提示框
 @onready var tooltip: Tooltip = $BattleUI/Tooltip
@@ -37,6 +37,9 @@ const UI_REFRESH_INTERVAL: float = 0.1
 # ==================== 核心模块 ====================
 ## 游戏状态（数据层）
 var game_state: GameState = null
+
+## UI管理器
+var ui_manager: BattleUIManager = null
 
 ## 输入处理器
 var input_handler: BattleInputHandler = null
@@ -55,6 +58,12 @@ func _ready() -> void:
 	# 连接结束回合按钮
 	if end_turn_button:
 		end_turn_button.pressed.connect(_on_end_turn_pressed)
+
+	# 连接角色面板点击信号
+	if player_panel:
+		player_panel.clicked.connect(_on_character_panel_clicked)
+	if enemy_panel:
+		enemy_panel.clicked.connect(_on_character_panel_clicked)
 
 	# 初始化模块
 	_initialize_modules()
@@ -79,9 +88,21 @@ func _initialize_modules() -> void:
 	animator.animation_started.connect(_on_animation_started)
 	animator.animation_completed.connect(_on_animation_completed)
 
+	# 创建UI管理器
+	ui_manager = BattleUIManager.new()
+	ui_manager.setup(game_state, battle_ui, input_handler, animator)
+	ui_manager.action_confirmed.connect(_on_ui_action_confirmed)
+	ui_manager.action_cancelled.connect(_on_ui_action_cancelled)
+
 
 ## 开始战斗
 func _start_battle() -> void:
+	# 如果没有选择角色，使用默认角色
+	if GameManager.player_character_id.is_empty():
+		GameManager.player_character_id = "qiaofeng"
+	if GameManager.enemy_character_id.is_empty():
+		GameManager.enemy_character_id = "duanyu"
+
 	# 获取角色数据
 	var player_data: Dictionary = GameManager.get_character_data(GameManager.player_character_id)
 	var enemy_data: Dictionary = GameManager.get_character_data(GameManager.enemy_character_id)
@@ -102,6 +123,7 @@ func _start_battle() -> void:
 
 	# 初始化 UI
 	_update_ui()
+	_render_skills()
 	_render_hand()
 
 	_log("战斗开始！")
@@ -201,8 +223,8 @@ func _update_ui() -> void:
 	if agility_axis:
 		_update_agility_axis()
 
-	# 更新武功按钮
-	_render_skills()
+	# 注意：不在这里调用 _render_skills() 和 _render_hand()
+	# 它们应该只在需要时被调用（如回合开始、打出卡牌后）
 
 
 ## 更新轻功轴
@@ -260,9 +282,10 @@ func _render_skills() -> void:
 	if skill_container == null or game_state == null:
 		return
 
-	# 清空武功容器
+	# 清空武功容器（使用 free() 立即删除）
 	for child in skill_container.get_children():
-		child.queue_free()
+		child.get_parent().remove_child(child)
+		child.free()
 
 	# 渲染玩家的武功
 	var skills: Array = game_state.player.get("skills", [])
@@ -292,9 +315,10 @@ func _render_hand() -> void:
 	if hand_container == null or game_state == null:
 		return
 
-	# 清空手牌容器
+	# 清空手牌容器（使用 free() 立即删除）
 	for child in hand_container.get_children():
-		child.queue_free()
+		child.get_parent().remove_child(child)
+		child.free()
 
 	# 渲染手牌
 	var hand: Array = game_state.player.get("hand", [])
@@ -372,6 +396,35 @@ func _on_end_turn_pressed() -> void:
 		input_handler.handle_end_turn()
 
 
+## 角色面板点击处理
+func _on_character_panel_clicked(character: Dictionary) -> void:
+	if game_state == null or input_handler == null:
+		return
+
+	# 检查是否在选择目标状态
+	if not input_handler.is_selecting_target():
+		return
+
+	# 获取有效目标列表
+	var targets: Array = input_handler.valid_targets
+	if targets.is_empty():
+		return
+
+	# 找到点击的角色在目标列表中的索引
+	var target_index: int = -1
+	for i in range(targets.size()):
+		if targets[i] == character:
+			target_index = i
+			break
+
+	if target_index < 0:
+		_log("无效的目标!")
+		return
+
+	# 使用输入处理器处理目标点击
+	input_handler.handle_target_click(target_index)
+
+
 ## 行动请求处理（来自输入处理器）
 func _on_action_requested(action: Dictionary) -> void:
 	var action_type: String = action.get("type", "")
@@ -427,16 +480,34 @@ func _execute_end_turn() -> void:
 func _on_target_selection_started(targets: Array) -> void:
 	_log("请选择目标...")
 
+	# 更新角色面板的高亮状态
+	if player_panel:
+		var is_targetable: bool = game_state.player in targets
+		player_panel.set_targetable(is_targetable)
+	if enemy_panel:
+		var is_targetable: bool = game_state.enemy in targets
+		enemy_panel.set_targetable(is_targetable)
+
 
 ## 目标选择完成处理
 func _on_target_selected(target) -> void:
 	_log("已选择目标")
 
+	# 清除角色面板的高亮状态
+	if player_panel:
+		player_panel.set_targetable(false)
+	if enemy_panel:
+		enemy_panel.set_targetable(false)
+
 
 ## 输入状态改变处理
 func _on_input_state_changed(new_state: int) -> void:
-	# 可以在这里更新 UI 提示
-	pass
+	# 如果退出目标选择状态，清除高亮
+	if new_state != BattleInputHandler.InputState.SELECTING_TARGET:
+		if player_panel:
+			player_panel.set_targetable(false)
+		if enemy_panel:
+			enemy_panel.set_targetable(false)
 
 
 ## 武功按钮点击处理
@@ -474,6 +545,7 @@ func _on_skill_pressed(skill: SkillState, button: SkillButton) -> void:
 func _on_turn_started(turn_num: int) -> void:
 	_log("第 %d 回合开始" % turn_num)
 	_update_ui()
+	_render_skills()
 	_render_hand()
 
 
@@ -559,3 +631,16 @@ func _on_animation_completed(animation_type: String, data: Dictionary) -> void:
 	# 通知动画器处理下一个动画
 	if animator:
 		animator.on_animation_finished()
+
+
+## UI行动确认处理
+func _on_ui_action_confirmed(card_index: int, skill_index: int, target_id: String) -> void:
+	if skill_index >= 0 and card_index >= 0:
+		_execute_use_skill(skill_index, card_index)
+	elif card_index >= 0:
+		_execute_play_card(card_index)
+
+
+## UI行动取消处理
+func _on_ui_action_cancelled() -> void:
+	_log("取消选择")

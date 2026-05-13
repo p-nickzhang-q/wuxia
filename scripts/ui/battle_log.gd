@@ -147,6 +147,7 @@ func _create_entry(text: String, color: Color) -> void:
 	entry.add_theme_font_size_override("font_size", 12)
 	entry.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	entry.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	entry.custom_minimum_size.y = 20  # 设置最小高度避免重叠
 
 	# 添加到容器
 	log_container.add_child(entry)
@@ -155,8 +156,8 @@ func _create_entry(text: String, color: Color) -> void:
 	# 检查是否超过最大条目数
 	_prune_old_entries()
 
-	# 滚动到底部
-	scroll_to_bottom()
+	# 延迟滚动到底部，确保布局已更新
+	call_deferred("scroll_to_bottom")
 
 
 ## 删除过旧的条目

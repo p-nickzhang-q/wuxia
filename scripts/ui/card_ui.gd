@@ -36,8 +36,8 @@ const TYPE_COLORS: Dictionary = {
 var card = null  # Card 类型，运行时赋值
 
 # ==================== 子节点引用 ====================
-## 卡牌背景
-@onready var background: ColorRect = $Background
+## 卡牌背景（PanelContainer，支持边框样式）
+@onready var background: PanelContainer = $Background
 ## 卡牌类型指示条
 @onready var type_bar: ColorRect = $TypeBar
 ## 名称标签
@@ -70,6 +70,10 @@ var is_dragging: bool = false
 var _default_modulate: Color = Color.WHITE
 ## 拖拽偏移
 var _drag_offset: Vector2 = Vector2.ZERO
+## 原始位置（用于选中上移）
+var _original_position: Vector2 = Vector2.ZERO
+## 是否已记录原始位置
+var _has_original_position: bool = false
 
 
 func _ready() -> void:
@@ -114,22 +118,22 @@ func setup() -> void:
 ## 更新效果标签显示
 func _update_effect_labels() -> void:
 	# 伤害
-	if card.damage > 0:
-		damage_label.text = str(card.damage)
+	if card.base_damage > 0:
+		damage_label.text = str(card.base_damage)
 		damage_label.visible = true
 	else:
 		damage_label.visible = false
 
 	# 护盾
-	if card.shield > 0:
-		shield_label.text = str(card.shield)
+	if card.base_shield > 0:
+		shield_label.text = str(card.base_shield)
 		shield_label.visible = true
 	else:
 		shield_label.visible = false
 
 	# 治疗
-	if card.heal > 0:
-		heal_label.text = str(card.heal)
+	if card.base_heal > 0:
+		heal_label.text = str(card.base_heal)
 		heal_label.visible = true
 	else:
 		heal_label.visible = false
@@ -144,6 +148,18 @@ func set_selectable(value: bool) -> void:
 ## 设置是否被选中
 func set_selected(value: bool) -> void:
 	is_selected = value
+
+	# 记录原始位置
+	if not _has_original_position:
+		_original_position = position
+		_has_original_position = true
+
+	# 选中时上移 20px
+	if is_selected:
+		position = _original_position + Vector2(0, -20)
+	else:
+		position = _original_position
+
 	_update_highlight()
 
 
@@ -158,12 +174,30 @@ func _update_highlight() -> void:
 	# 优先级：不可用 > 被选中 > 可选中
 	if not is_playable:
 		self_modulate = HIGHLIGHT_DISABLED
+		_update_border(Color.TRANSPARENT)
 	elif is_selected:
-		self_modulate = HIGHLIGHT_SELECTED
+		self_modulate = Color.WHITE
+		_update_border(Color(1.0, 0.8, 0.2, 1.0))  # 金色边框
 	elif is_selectable:
 		self_modulate = HIGHLIGHT_SELECTABLE
+		_update_border(Color.TRANSPARENT)
 	else:
 		self_modulate = _default_modulate
+		_update_border(Color.TRANSPARENT)
+
+
+## 更新边框颜色（通过修改背景的边框）
+func _update_border(border_color: Color) -> void:
+	if background == null:
+		return
+
+	# 创建带边框的样式
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.12, 0.12, 0.15, 0.95)
+	style.border_color = border_color
+	style.set_border_width_all(2 if border_color.a > 0 else 0)
+	style.set_corner_radius_all(8)
+	background.add_theme_stylebox_override("panel", style)
 
 
 ## 刷新显示（外部调用以更新数据）

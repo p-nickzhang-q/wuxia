@@ -11,18 +11,22 @@ signal clicked(character)
 signal hovered(character)
 
 # ==================== 高亮颜色常量 ====================
-## 可作为目标的高亮颜色
-const HIGHLIGHT_TARGETABLE: Color = Color(1.0, 1.0, 0.5, 0.3)
-## 被选为目标的高亮颜色
-const HIGHLIGHT_TARGETED: Color = Color(1.0, 0.5, 0.5, 0.5)
-## 当前行动者的高亮颜色
-const HIGHLIGHT_ACTOR: Color = Color(0.5, 1.0, 0.5, 0.4)
+## 可作为目标的高亮边框颜色（红色）
+const HIGHLIGHT_TARGETABLE: Color = Color(1.0, 0.3, 0.3, 1.0)
+## 被选为目标的高亮边框颜色（金色）
+const HIGHLIGHT_TARGETED: Color = Color(1.0, 0.8, 0.2, 1.0)
+## 当前行动者的高亮边框颜色（绿色）
+const HIGHLIGHT_ACTOR: Color = Color(0.3, 1.0, 0.3, 1.0)
+## 边框宽度
+const BORDER_WIDTH: int = 4
 
 # ==================== 导出属性 ====================
 ## 绑定的角色（Dictionary）
 var character: Dictionary = {}
 
 # ==================== 子节点引用 ====================
+## 背景（PanelContainer，支持边框样式）
+@onready var background: PanelContainer = $Background
 ## 立绘容器
 @onready var portrait: Control = $Portrait
 ## 名称标签
@@ -162,15 +166,32 @@ func set_current_actor(value: bool) -> void:
 
 ## 更新高亮状态
 func _update_highlight() -> void:
+	# 使用边框样式来显示高亮效果
+	if background == null:
+		return
+
+	# 默认无边框
+	var border_color: Color = Color.TRANSPARENT
+	var border_width: int = 0
+
 	# 优先级：当前行动者 > 被选为目标 > 可作为目标
 	if is_current_actor:
-		self_modulate = HIGHLIGHT_ACTOR
+		border_color = HIGHLIGHT_ACTOR
+		border_width = BORDER_WIDTH
 	elif is_targeted:
-		self_modulate = HIGHLIGHT_TARGETED
+		border_color = HIGHLIGHT_TARGETED
+		border_width = BORDER_WIDTH
 	elif is_targetable:
-		self_modulate = HIGHLIGHT_TARGETABLE
-	else:
-		self_modulate = _default_modulate
+		border_color = HIGHLIGHT_TARGETABLE
+		border_width = BORDER_WIDTH
+
+	# 创建边框样式
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.15, 0.15, 0.2, 0.9)
+	style.border_color = border_color
+	style.set_border_width_all(border_width)
+	style.set_corner_radius_all(8)
+	background.add_theme_stylebox_override("panel", style)
 
 
 ## 刷新显示（外部调用以更新数据）

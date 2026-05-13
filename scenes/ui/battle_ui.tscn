@@ -1,18 +1,58 @@
-[gd_scene load_steps=3 format=3 uid="uid://battle_ui"]
+[gd_scene format=3 uid="uid://bcr2fjnh6y4ap"]
 
-[ext_resource type="Script" path="res://scripts/ui/battle_ui.gd" id="1"]
-[ext_resource type="PackedScene" uid="uid://character_panel" path="res://scenes/components/character_panel.tscn" id="2"]
-[ext_resource type="PackedScene" uid="uid://agility_axis" path="res://scenes/components/agility_axis.tscn" id="3"]
-[ext_resource type="PackedScene" uid="uid://battle_log" path="res://scenes/components/battle_log.tscn" id="4"]
-[ext_resource type="PackedScene" uid="uid://skill_button" path="res://scenes/components/skill_button.tscn" id="5"]
-[ext_resource type="PackedScene" uid="uid://card_ui" path="res://scenes/components/card.tscn" id="6"]
-[ext_resource type="PackedScene" uid="uid://tooltip" path="res://scenes/components/tooltip.tscn" id="7"]
+[ext_resource type="Script" uid="uid://c60r3goaed3wc" path="res://scripts/ui/battle_ui.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://drn8tuupv1vpu" path="res://scenes/components/character_panel.tscn" id="2_character_panel"]
+[ext_resource type="PackedScene" uid="uid://62no6g0off7a" path="res://scenes/components/agility_axis.tscn" id="3_agility_axis"]
+[ext_resource type="PackedScene" path="res://scenes/components/battle_log.tscn" id="4_battle_log"]
+[ext_resource type="PackedScene" uid="uid://tooltip" path="res://scenes/components/tooltip.tscn" id="7_tooltip"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_top_bar"]
-bg_color = Color(0.1, 0.1, 0.12, 0.9)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel_normal"]
+bg_color = Color(0.2, 0.2, 0.25, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.4, 0.5, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bottom_bar"]
-bg_color = Color(0.1, 0.1, 0.12, 0.95)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel_hover"]
+bg_color = Color(0.25, 0.25, 0.3, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.5, 0.6, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_confirm_normal"]
+bg_color = Color(0.15, 0.3, 0.15, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.6, 0.3, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_confirm_hover"]
+bg_color = Color(0.2, 0.4, 0.2, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.8, 0.4, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_end_turn_normal"]
 bg_color = Color(0.3, 0.15, 0.15, 1)
@@ -21,18 +61,6 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.6, 0.3, 0.3, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_end_turn_hover"]
-bg_color = Color(0.4, 0.2, 0.2, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.8, 0.4, 0.4, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
@@ -50,7 +78,19 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[node name="BattleUI" type="Control"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_end_turn_hover"]
+bg_color = Color(0.4, 0.2, 0.2, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.4, 0.4, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="BattleUI" type="Control" unique_id=1187802524]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -59,125 +99,183 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-script = ExtResource("1")
+script = ExtResource("1_script")
 
-[node name="TopBar" type="HBoxContainer" parent="."]
+[node name="TopBar" type="HBoxContainer" parent="." unique_id=227365515]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 40.0
+offset_bottom = 50.0
 grow_horizontal = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_top_bar")
 alignment = 1
 
-[node name="TurnLabel" type="Label" parent="TopBar"]
+[node name="TurnLabel" type="Label" parent="TopBar" unique_id=1687890292]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
 theme_override_font_sizes/font_size = 18
 text = "第 1 回合"
 horizontal_alignment = 1
 
-[node name="Spacer" type="Control" parent="TopBar"]
+[node name="Spacer" type="Control" parent="TopBar" unique_id=1469076900]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ActorLabel" type="Label" parent="TopBar"]
+[node name="ActorLabel" type="Label" parent="TopBar" unique_id=287829141]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 1, 0.8, 1)
 theme_override_font_sizes/font_size = 16
 text = "行动: -"
 horizontal_alignment = 1
 
-[node name="PlayerPanel" parent="." instance=ExtResource("2")]
+[node name="MainArea" type="HBoxContainer" parent="." unique_id=1266617085]
 layout_mode = 1
-anchors_preset = 9
-anchor_bottom = 0.5
-offset_left = 20.0
-offset_top = 60.0
-offset_right = 220.0
-offset_bottom = 340.0
+anchors_preset = -1
+anchor_top = 0.07
+anchor_right = 1.0
+anchor_bottom = 0.65
+grow_horizontal = 2
 grow_vertical = 2
 
-[node name="EnemyPanel" parent="." instance=ExtResource("2")]
-layout_mode = 1
-anchors_preset = 11
-anchor_left = 1.0
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -220.0
-offset_top = 60.0
-offset_right = -20.0
-offset_bottom = 340.0
-grow_horizontal = 0
-grow_vertical = 2
+[node name="BattleField" type="VBoxContainer" parent="MainArea" unique_id=1860943547]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+alignment = 1
 
-[node name="RightContainer" type="VBoxContainer" parent="."]
+[node name="EnemyTeam" type="HBoxContainer" parent="MainArea/BattleField" unique_id=1238705105]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+alignment = 1
+
+[node name="EnemyPanel" parent="MainArea/BattleField/EnemyTeam" unique_id=1600635017 instance=ExtResource("2_character_panel")]
+layout_mode = 2
+
+[node name="CenterArea" type="Control" parent="MainArea/BattleField" unique_id=1755814096]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="TurnIndicator" type="Label" parent="MainArea/BattleField/CenterArea" unique_id=297837354]
+visible = false
 layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -320.0
-offset_top = 60.0
-offset_right = -230.0
-offset_bottom = 340.0
-grow_horizontal = 0
+offset_left = -100.0
+offset_top = -30.0
+offset_right = 100.0
+offset_bottom = 30.0
+grow_horizontal = 2
 grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlayerTeam" type="HBoxContainer" parent="MainArea/BattleField" unique_id=139071407]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+alignment = 1
+
+[node name="PlayerPanel" parent="MainArea/BattleField/PlayerTeam" unique_id=1246847855 instance=ExtResource("2_character_panel")]
+layout_mode = 2
+
+[node name="Sidebar" type="VBoxContainer" parent="MainArea" unique_id=1156416527]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 3
 theme_override_constants/separation = 16
 
-[node name="AgilityAxis" parent="RightContainer" instance=ExtResource("3")]
+[node name="BattleLog" parent="MainArea/Sidebar" unique_id=1583873794 instance=ExtResource("4_battle_log")]
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
 
-[node name="BattleLog" parent="RightContainer" instance=ExtResource("4")]
+[node name="AgilityAxis" parent="MainArea/Sidebar" unique_id=1192174776 instance=ExtResource("3_agility_axis")]
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
 
-[node name="BottomBar" type="VBoxContainer" parent="."]
+[node name="BottomBar" type="VBoxContainer" parent="." unique_id=1928369884]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -200.0
+offset_top = -220.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/separation = 8
-theme_override_styles/panel = SubResource("StyleBoxFlat_bottom_bar")
-alignment = 2
 
-[node name="SkillContainer" type="HBoxContainer" parent="BottomBar"]
-layout_mode = 2
-size_flags_horizontal = 3
-offset_top = 8.0
-offset_bottom = 78.0
-theme_override_constants/separation = 8
-alignment = 1
-
-[node name="HandContainer" type="HBoxContainer" parent="BottomBar"]
+[node name="HandRow" type="HBoxContainer" parent="BottomBar" unique_id=2004253042]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-offset_top = 86.0
-offset_bottom = 166.0
 theme_override_constants/separation = 8
+
+[node name="ActionButtons" type="HBoxContainer" parent="BottomBar/HandRow" unique_id=1716488165]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+theme_override_constants/separation = 8
+
+[node name="CancelButton" type="Button" parent="BottomBar/HandRow/ActionButtons" unique_id=423945391]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_cancel_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_cancel_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_cancel_normal")
+disabled = true
+text = "取消"
+
+[node name="ConfirmButton" type="Button" parent="BottomBar/HandRow/ActionButtons" unique_id=1274131345]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_confirm_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_confirm_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_confirm_normal")
+disabled = true
+text = "确认"
+
+[node name="HandArea" type="HBoxContainer" parent="BottomBar/HandRow" unique_id=171461454]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
 alignment = 1
 
-[node name="EndTurnButton" type="Button" parent="BottomBar"]
+[node name="HandContainer" type="HBoxContainer" parent="BottomBar/HandRow/HandArea" unique_id=668513064]
 layout_mode = 2
-size_flags_horizontal = 4
-offset_top = 174.0
-offset_bottom = 208.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="EndTurnButton" type="Button" parent="BottomBar/HandRow" unique_id=232285688]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
 theme_override_styles/normal = SubResource("StyleBoxFlat_end_turn_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_end_turn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_end_turn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_end_turn_hover")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_end_turn_normal")
 text = "结束回合"
 
-[node name="Tooltip" parent="." instance=ExtResource("7")]
+[node name="SkillRow" type="HBoxContainer" parent="BottomBar" unique_id=622521748]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="SkillContainer" type="HBoxContainer" parent="BottomBar/SkillRow" unique_id=1583611889]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Tooltip" parent="." unique_id=2045112329 instance=ExtResource("7_tooltip")]
 layout_mode = 1
-anchors_preset = 0
-offset_right = 300.0
-offset_bottom = 200.0
