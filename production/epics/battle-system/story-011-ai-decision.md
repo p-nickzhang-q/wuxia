@@ -1,7 +1,7 @@
 # Story 011: AI 决策逻辑
 
 > **Epic**: 战斗系统
-> **Status**: Ready
+> **Status**: Done
 > **Layer**: Core
 > **Type**: Logic
 > **Manifest Version**: N/A (control-manifest 不存在)
@@ -22,14 +22,14 @@
 
 *From GDD `design/gdd/battle-system.md`, scoped to this story:*
 
-- [ ] AI 类定义完成，包含 execute_turn, decide_action, select_best_target 方法
-- [ ] execute_turn(battle_manager) 方法：执行完整回合
-- [ ] decide_action(battle_manager) 方法：选择最优行动（武功优先、防御次之、攻击最后）
-- [ ] try_use_skill(battle_manager) 方法：尝试使用武功招式
-- [ ] should_defend(battle_manager) 方法：判断是否需要防御（HP 低、无攻击牌）
-- [ ] select_defend_card(battle_manager) 方法：选择防御卡牌
-- [ ] select_attack_card(battle_manager) 方法：选择攻击卡牌
-- [ ] select_best_target(battle_manager) 方法：选择最优目标（HP 最低、距离最近）
+- [x] AI 类定义完成，包含 execute_turn, decide_action, select_best_target 方法
+- [x] execute_turn(battle_manager) 方法：执行完整回合
+- [x] decide_action(battle_manager) 方法：选择最优行动（武功优先、防御次之、攻击最后）
+- [x] try_use_skill(battle_manager) 方法：尝试使用武功招式
+- [x] should_defend(battle_manager) 方法：判断是否需要防御（HP 低、无攻击牌）
+- [x] select_defend_card(battle_manager) 方法：选择防御卡牌
+- [x] select_attack_card(battle_manager) 方法：选择攻击卡牌
+- [x] select_best_target(battle_manager) 方法：选择最优目标（HP 最低、距离最近）
 
 ---
 
@@ -130,7 +130,7 @@ func select_best_target(battle_manager: BattleManager) -> Character:
 
 **Story Type**: Logic
 **Required evidence**: `tests/unit/ai_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Status**: [x] Created at `tests/unit/ai_test.gd` — 16 tests passing
 
 ---
 

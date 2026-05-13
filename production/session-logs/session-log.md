@@ -5730,3 +5730,14 @@ scripts/game/game_state.gd
 scripts/game/passive_state.gd
 ---
 
+## Session End: 20260513_180846
+### Commits
+c67b0bc feat(battle): 实现战斗系统的完整核心功能
+59fe7a7 feat(gui): 添加关于对话框和单元测试功能
+e648139 docs(templates): 添加无障碍需求模板并更新代理配置
+60595fe docs(gdd): 更新系统索引文档并创建战斗系统设计文档
+a42ed98 refactor(battle): 重构战斗界面UI结构和轻功轴组件
+### Uncommitted Changes
+production/epics/battle-system/story-011-ai-decision.md
+---
+
