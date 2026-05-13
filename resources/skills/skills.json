@@ -7,6 +7,7 @@
     "mp_cost": 4,
     "agility_cost": 3,
     "damage": 10,
+    "cooldown": 0,
     "effects": []
   },
   "dagou_bang": {
@@ -17,6 +18,7 @@
     "mp_cost": 4,
     "agility_cost": 4,
     "damage": 7,
+    "cooldown": 0,
     "effects": [
       {"type": "disable_card_type", "value": "kick", "duration": 1}
     ]
@@ -29,6 +31,7 @@
     "mp_cost": 5,
     "agility_cost": 3,
     "damage": 12,
+    "cooldown": 0,
     "ignore_shield": true,
     "effects": []
   },
@@ -36,11 +39,12 @@
     "id": "lingbo_weibu",
     "name": "凌波微步",
     "type": "passive",
-    "trigger": "turn_start",
+    "trigger_timing": "turn_start",
     "effects": [
-      {"type": "dodge_chance", "value": 25},
-      {"type": "agility_boost", "value": 1}
-    ]
+      {"type": "agility_boost", "value": 2}
+    ],
+    "trigger_chance": 1.0,
+    "description": "回合开始时轻功提升 2"
   },
   "beiming_shengong": {
     "id": "beiming_shengong",
@@ -50,6 +54,7 @@
     "mp_cost": 0,
     "agility_cost": 3,
     "damage": 0,
+    "cooldown": 0,
     "effects": [
       {"type": "steal_mp", "value": 6}
     ]
@@ -58,10 +63,12 @@
     "id": "beiming_shengong_passive",
     "name": "北冥神功",
     "type": "passive",
-    "trigger": "on_damage",
+    "trigger_timing": "on_damage",
     "effects": [
-      {"type": "mp_recover_percent", "value": 30}
-    ]
+      {"type": "recover_mp", "value": 2}
+    ],
+    "trigger_chance": 1.0,
+    "description": "造成伤害时恢复 2 点内力"
   },
   "tianshan_zhemeishou": {
     "id": "tianshan_zhemeishou",
@@ -71,6 +78,7 @@
     "mp_cost": 3,
     "agility_cost": 2,
     "damage": 7,
+    "cooldown": 0,
     "effects": [
       {"type": "extra_attack", "value": 1}
     ]
@@ -83,6 +91,7 @@
     "mp_cost": 4,
     "agility_cost": 3,
     "damage": 8,
+    "cooldown": 0,
     "effects": []
   },
   "shengsifu": {
@@ -93,6 +102,7 @@
     "mp_cost": 3,
     "agility_cost": 2,
     "damage": 0,
+    "cooldown": 0,
     "effects": [
       {"type": "dot", "value": 3, "duration": 3}
     ]
@@ -105,6 +115,7 @@
     "mp_cost": 3,
     "agility_cost": 2,
     "damage": 6,
+    "cooldown": 0,
     "effects": [
       {"type": "shield", "value": 3}
     ]

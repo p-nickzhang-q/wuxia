@@ -1,7 +1,7 @@
 # Story 006: 武功招式使用验证
 
 > **Epic**: 战斗系统
-> **Status**: Ready
+> **Status**: Done
 > **Layer**: Core
 > **Type**: Logic
 > **Manifest Version**: N/A (control-manifest 不存在)
@@ -22,16 +22,16 @@
 
 *From GDD `design/gdd/battle-system.md`, scoped to this story:*
 
-- [ ] use_skill(skill_id, card_index, target_id) 方法
-- [ ] 验证条件：轻功足够 (actor.agility >= skill.agilityCost)
-- [ ] 验证条件：内力足够 (actor.mp >= skill.mpCost)
-- [ ] 验证条件：手牌类型匹配 (card.type === skill.requiredCardType 或 requiredCardType === 'any')
-- [ ] 验证条件：目标有效且存活
-- [ ] 验证条件：距离合法（有伤害效果时：distance <= skill.range）
-- [ ] 消耗：轻功值、内力、手牌
-- [ ] 处理武功效果列表（damage, shield, drainMp, dot, debuffAgility 等）
-- [ ] 处理特殊效果（extraAction, followUp, mimic）
-- [ ] 返回 Dictionary：{success: bool, message: String, effects: Array}
+- [x] use_skill(skill_id, card_index, target_id) 方法
+- [x] 验证条件：轻功足够 (actor.agility >= skill.agilityCost)
+- [x] 验证条件：内力足够 (actor.mp >= skill.mpCost)
+- [x] 验证条件：手牌类型匹配 (card.type === skill.requiredCardType 或 requiredCardType === 'any')
+- [x] 验证条件：目标有效且存活
+- [x] 验证条件：距离合法（有伤害效果时：distance <= skill.range） — 1v1 模式下跳过距离检查
+- [x] 消耗：轻功值、内力、手牌
+- [x] 处理武功效果列表（damage, shield, drainMp, dot, debuffAgility 等）
+- [x] 处理特殊效果（extraAction, followUp, mimic）
+- [x] 返回 Dictionary：{success: bool, message: String, effects: Array}
 
 ---
 
@@ -146,8 +146,21 @@ func _process_skill_effects(target: Character, skill_data: Dictionary, result: D
 ## Test Evidence
 
 **Story Type**: Logic
-**Required evidence**: `tests/unit/battle_manager_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Required evidence**: `tests/unit/skill_validation_test.gd` — must exist and pass
+**Status**: [x] Created
+
+### Implementation Notes
+
+**Existing Implementation**: `scripts/game/game_state.gd`
+
+修改 `use_skill` 方法签名：
+- 添加 `target_id` 参数（可选，默认自动选择对手）
+- 添加目标验证（存在且存活）
+- 返回 `error` 字段用于错误信息
+
+**距离验证说明**：
+- Story 012/013 负责多人战斗距离计算
+- 当前 1v1 模式下，距离始终为近身（有效），跳过距离检查
 
 ---
 

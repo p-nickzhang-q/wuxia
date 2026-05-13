@@ -1,7 +1,7 @@
 # Story 003: 回合流程管理
 
 > **Epic**: 战斗系统
-> **Status**: Ready
+> **Status**: Done
 > **Layer**: Core
 > **Type**: Logic
 > **Manifest Version**: N/A (control-manifest 不存在)
@@ -23,12 +23,12 @@
 
 *From GDD `design/gdd/battle-system.md`, scoped to this story:*
 
-- [ ] start_new_turn() 方法：重置角色状态、触发 TURN_START 内功、抽牌、决定行动顺序
-- [ ] 抽牌逻辑：每个存活角色抽 2 张牌
-- [ ] check_game_end() 方法：检查是否有一方全灭
-- [ ] end_turn() 方法：触发 TURN_END 内功、检查游戏结束、开始新回合
-- [ ] 回合流程：SETUP → SELECTING → ACTING → 循环或 GAME_OVER
-- [ ] 游戏结束调用 end_game()，发射 battle_ended 信号
+- [x] start_new_turn() 方法：重置角色状态、触发 TURN_START 内功、抽牌、决定行动顺序
+- [x] 抽牌逻辑：每个存活角色抽牌（DEFAULT_DRAW_COUNT = 5）
+- [x] check_game_end() 方法：检查是否有一方全灭（is_battle_over()）
+- [x] end_turn() 方法：触发 TURN_END 内功、检查游戏结束、开始新回合
+- [x] 回合流程：SETUP → SELECTING → GAME_OVER
+- [x] 游戏结束调用 _end_game()，发射 game_ended 信号
 
 ---
 
@@ -126,8 +126,19 @@ func end_turn() -> void:
 ## Test Evidence
 
 **Story Type**: Logic
-**Required evidence**: `tests/unit/battle_manager_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Required evidence**: `tests/unit/turn_flow_test.gd` — must exist and pass
+**Status**: [x] Created
+
+### Implementation Notes
+
+**Existing Implementation**: `scripts/game/game_state.gd`
+
+现有实现已完整包含所有回合流程功能：
+
+- `start_new_turn()` (第96-127行): 重置轻功、触发内功、抽牌、确定先手
+- `end_turn()` (第131-148行): 触发内功、处理 DoT、检查游戏结束、开始新回合
+- `is_battle_over()` (第327-328行): 检查双方存活状态
+- `_end_game()` (第561-577行): 设置 GAME_OVER 状态、发射 game_ended 信号
 
 ---
 

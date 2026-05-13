@@ -419,6 +419,44 @@ func _log(message: String) -> void:
 	print("[Battle] %s" % message)
 
 
+## 高亮媒介卡牌
+func _highlight_medium_cards() -> void:
+	if hand_container == null or input_handler == null:
+		return
+
+	var medium_candidates: Array[int] = input_handler.get_medium_candidates()
+	var children: Array = hand_container.get_children()
+
+	for i in range(children.size()):
+		var card_ui: CardUI = children[i]
+		if i in medium_candidates:
+			# 可作为媒介的卡牌高亮
+			card_ui.set_selectable(true)
+			card_ui.set_playable(true)
+		else:
+			# 其他卡牌变灰
+			card_ui.set_playable(false)
+
+
+## 清除媒介卡牌高亮
+func _clear_medium_highlight() -> void:
+	if hand_container == null or game_state == null:
+		return
+
+	var agility: int = game_state.player.get("agility", 0)
+	var children: Array = hand_container.get_children()
+
+	for child in children:
+		if child is CardUI:
+			var card_ui: CardUI = child
+			# 恢复正常的可用性状态
+			if card_ui.card and card_ui.card.agility_cost <= agility:
+				card_ui.set_playable(true)
+			else:
+				card_ui.set_playable(false)
+			card_ui.set_selectable(true)
+
+
 # ==================== 事件处理 ====================
 
 ## 卡牌UI点击处理
@@ -569,8 +607,17 @@ func _on_target_selected(target) -> void:
 
 ## 输入状态改变处理
 func _on_input_state_changed(new_state: int) -> void:
-	# 如果退出目标选择状态，清除高亮
-	if new_state != BattleInputHandler.InputState.SELECTING_TARGET:
+	# 处理媒介卡牌选择状态
+	if new_state == BattleInputHandler.InputState.SELECTING_MEDIUM:
+		_log("请选择媒介卡牌...")
+		_highlight_medium_cards()
+	elif new_state == BattleInputHandler.InputState.SELECTING_TARGET:
+		_log("请选择目标...")
+		# 清除媒介卡牌高亮
+		_clear_medium_highlight()
+	else:
+		# 清除所有高亮
+		_clear_medium_highlight()
 		if player_panel:
 			player_panel.set_targetable(false)
 		if enemy_panel:

@@ -1,7 +1,7 @@
 # Story 001: Character 类基础实现
 
 > **Epic**: 战斗系统
-> **Status**: Ready
+> **Status**: Done
 > **Layer**: Core
 > **Type**: Logic
 > **Manifest Version**: N/A (control-manifest 不存在)
@@ -28,15 +28,15 @@
 
 *From GDD `design/gdd/battle-system.md`, scoped to this story:*
 
-- [ ] Character 类定义完成，包含 id, name, max_hp, current_hp, current_mp, shield, current_agility 属性
-- [ ] 卡组管理：deck, hand, discard_pile 数组
-- [ ] draw_cards(count) 方法：从 deck 抽牌到 hand，牌组空时洗入弃牌堆
-- [ ] play_card(card_index) 方法：从 hand 打出卡牌到 discard_pile
-- [ ] take_damage(amount) 方法：扣除 HP，返回实际伤害值
-- [ ] heal(amount) 方法：恢复 HP，不超过 max_hp
-- [ ] recover_mp(amount) 方法：恢复 MP
-- [ ] is_dead() 方法：判断 HP <= 0
-- [ ] reset_for_new_turn() 方法：重置护盾、恢复轻功、处理 Debuff 递减
+- [x] Character 类定义完成，包含 id, name, max_hp, current_hp, current_mp, shield, current_agility 属性
+- [x] 卡组管理：deck, hand, discard_pile 数组
+- [x] draw_cards(count) 方法：从 deck 抽牌到 hand，牌组空时洗入弃牌堆
+- [x] play_card(card_index) 方法：从 hand 打出卡牌到 discard_pile
+- [x] take_damage(amount) 方法：扣除 HP，返回实际伤害值
+- [x] heal(amount) 方法：恢复 HP，不超过 max_hp
+- [x] recover_mp(amount) 方法：恢复 MP
+- [x] is_dead() 方法：判断 HP <= 0
+- [x] reset_for_new_turn() 方法：重置护盾、恢复轻功、处理 Debuff 递减
 
 ---
 
@@ -130,8 +130,23 @@ func _init(data: Dictionary) -> void:
 ## Test Evidence
 
 **Story Type**: Logic
-**Required evidence**: `tests/unit/character_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Required evidence**: `tests/unit/character_state_test.gd` — must exist and pass
+**Status**: [x] Created
+
+### Implementation Notes
+
+**Existing Implementation**: `scripts/game/character_state.gd`
+
+现有实现使用**静态方法 + Dictionary**模式（函数式设计），而非 ADR-001 推荐的 `class_name` 类实例模式。两种模式功能等价：
+
+- `CharacterState.from_data(data)` → 创建状态字典
+- `CharacterState.draw_cards(state, count)` → 抽牌
+- `CharacterState.take_damage(state, amount)` → 受伤
+- `CharacterState.heal(state, amount)` → 治疗
+- `CharacterState.is_dead(state)` → 判断死亡
+- `CharacterState.reset_turn(state)` → 回合重置
+
+此设计符合函数式编程原则，状态不可变性更好，测试更简单。
 
 ---
 

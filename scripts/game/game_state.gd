@@ -149,11 +149,13 @@ func end_turn() -> void:
 
 
 ## 使用基础招式卡牌
-func use_basic_card(card_index: int) -> Dictionary:
+## target_id: 目标角色 ID，空字符串表示自动选择对手
+func use_basic_card(card_index: int, target_id: String = "") -> Dictionary:
 	var result := {
 		"success": false,
 		"card": null,
-		"effects": []
+		"effects": [],
+		"error": ""
 	}
 
 	if not is_character_turn(current_actor):
@@ -173,6 +175,26 @@ func use_basic_card(card_index: int) -> Dictionary:
 		result["error"] = "not_enough_agility"
 		return result
 
+	# 验证目标
+	var target: Dictionary
+	if target_id.is_empty():
+		# 自动选择对手
+		target = get_opponent(current_actor)
+	else:
+		# 根据 ID 查找目标
+		if target_id == player.get("id", ""):
+			target = player
+		elif target_id == enemy.get("id", ""):
+			target = enemy
+		else:
+			result["error"] = "invalid_target"
+			return result
+
+	# 验证目标存活
+	if CharacterState.is_dead(target):
+		result["error"] = "target_dead"
+		return result
+
 	# 消耗轻功
 	current_actor["agility"] = agility - card.agility_cost
 
@@ -184,9 +206,6 @@ func use_basic_card(card_index: int) -> Dictionary:
 
 	result.card = played_card
 	result.success = true
-
-	# 获取目标
-	var target: Dictionary = get_opponent(current_actor)
 
 	# 执行卡牌效果
 	_execute_card_effects(current_actor, target, played_card)
@@ -210,12 +229,16 @@ func use_basic_card(card_index: int) -> Dictionary:
 
 
 ## 使用武功招式
-func use_skill(skill_index: int, card_index: int) -> Dictionary:
+## skill_index: 武功索引
+## card_index: 作为媒介的手牌索引
+## target_id: 目标角色 ID，空字符串表示自动选择对手
+func use_skill(skill_index: int, card_index: int, target_id: String = "") -> Dictionary:
 	var result := {
 		"success": false,
 		"skill": null,
 		"card": null,
-		"effects": []
+		"effects": [],
+		"error": ""
 	}
 
 	if not is_character_turn(current_actor):
@@ -243,6 +266,26 @@ func use_skill(skill_index: int, card_index: int) -> Dictionary:
 		result["error"] = "invalid_card_for_skill"
 		return result
 
+	# 验证目标
+	var target: Dictionary
+	if target_id.is_empty():
+		# 自动选择对手
+		target = get_opponent(current_actor)
+	else:
+		# 根据 ID 查找目标
+		if target_id == player.get("id", ""):
+			target = player
+		elif target_id == enemy.get("id", ""):
+			target = enemy
+		else:
+			result["error"] = "invalid_target"
+			return result
+
+	# 验证目标存活
+	if CharacterState.is_dead(target):
+		result["error"] = "target_dead"
+		return result
+
 	# 消耗资源
 	current_actor["mp"] = mp - skill.mp_cost
 	current_actor["agility"] = agility - skill.agility_cost
@@ -262,9 +305,6 @@ func use_skill(skill_index: int, card_index: int) -> Dictionary:
 	result.skill = skill
 	result.card = card
 	result.success = true
-
-	# 获取目标
-	var target: Dictionary = get_opponent(current_actor)
 
 	# 执行武功效果
 	_execute_skill_effects(current_actor, target, skill)
@@ -330,6 +370,9 @@ func is_battle_over() -> bool:
 
 ## 获取胜利者
 func get_winner() -> Dictionary:
+	# 先检查平局情况
+	if CharacterState.is_dead(player) and CharacterState.is_dead(enemy):
+		return {}  # 平局，无胜利者
 	if CharacterState.is_dead(player):
 		return enemy
 	if CharacterState.is_dead(enemy):
@@ -339,6 +382,9 @@ func get_winner() -> Dictionary:
 
 ## 获取失败者
 func get_loser() -> Dictionary:
+	# 先检查平局情况
+	if CharacterState.is_dead(player) and CharacterState.is_dead(enemy):
+		return {}  # 平局，无失败者
 	if CharacterState.is_dead(player):
 		return player
 	if CharacterState.is_dead(enemy):
@@ -368,6 +414,27 @@ func get_current_actor_name() -> String:
 	if current_actor == player:
 		return "玩家"
 	return "敌人"
+
+
+## 获取行动顺序（按轻功降序）
+func get_turn_order() -> Array:
+	var order: Array = []
+	var player_agility: int = player.get("agility", 0)
+	var enemy_agility: int = enemy.get("agility", 0)
+
+	# 按轻功降序排列
+	if player_agility >= enemy_agility:
+		if not CharacterState.is_dead(player):
+			order.append(player)
+		if not CharacterState.is_dead(enemy):
+			order.append(enemy)
+	else:
+		if not CharacterState.is_dead(enemy):
+			order.append(enemy)
+		if not CharacterState.is_dead(player):
+			order.append(player)
+
+	return order
 
 
 ## 获取指定角色的有效目标列表
@@ -416,18 +483,51 @@ func _determine_first_actor() -> void:
 
 ## 检查是否需要切换行动方
 func _check_actor_switch() -> void:
+	if should_switch_actor():
+		switch_actor()
+
+		# 如果双方都无轻功，结束回合
+		var current_agility: int = current_actor.get("agility", 0)
+		var opponent := get_opponent(current_actor)
+		var opponent_agility: int = opponent.get("agility", 0)
+
+		if current_agility <= 0 and opponent_agility <= 0:
+			end_turn()
+
+
+## 判断是否应该切换行动方
+## 当前角色轻功 <= 敌方最高轻功时切换
+func should_switch_actor() -> bool:
+	if current_actor.is_empty():
+		return false
+
 	var opponent := get_opponent(current_actor)
+	if opponent.is_empty() or CharacterState.is_dead(opponent):
+		return false
+
 	var current_agility: int = current_actor.get("agility", 0)
 	var opponent_agility: int = opponent.get("agility", 0)
 
-	# 如果当前行动方轻功低于对手，切换
-	if current_agility < opponent_agility:
-		current_actor = opponent
-		actor_changed.emit(current_actor)
+	return current_agility <= opponent_agility
 
-		# 如果双方都无轻功，结束回合
-		if current_agility <= 0 and opponent_agility <= 0:
-			end_turn()
+
+## 切换到下一个轻功最高的存活角色
+func switch_actor() -> void:
+	var next_actor: Dictionary = {}
+	var max_agility: int = -1
+
+	# 找下一个轻功最高的存活角色
+	var alive_chars := get_alive_characters()
+	for char_state in alive_chars:
+		if char_state != current_actor:
+			var agility: int = char_state.get("agility", 0)
+			if agility > max_agility:
+				max_agility = agility
+				next_actor = char_state
+
+	if not next_actor.is_empty():
+		current_actor = next_actor
+		actor_changed.emit(current_actor)
 
 
 ## 执行卡牌效果
@@ -435,16 +535,18 @@ func _execute_card_effects(source: Dictionary, target: Dictionary, card: CardSta
 	# 伤害
 	if card.base_damage > 0:
 		var damage_result: Dictionary = CharacterState.take_damage(target, card.base_damage, source)
-		damage_dealt.emit(target, damage_result.actual_damage, source)
+		# 只有实际伤害 > 0 时才发射信号
+		if damage_result.actual_damage > 0:
+			damage_dealt.emit(target, damage_result.actual_damage, source)
 
-		# 触发造成伤害内功
-		CharacterState.trigger_on_damage(source, self, target, damage_result.actual_damage)
+			# 触发造成伤害内功
+			CharacterState.trigger_on_damage(source, self, target, damage_result.actual_damage)
 
-		# 触发受到伤害内功
-		CharacterState.trigger_on_take_damage(target, self, source, damage_result.actual_damage)
+			# 触发受到伤害内功
+			CharacterState.trigger_on_take_damage(target, self, source, damage_result.actual_damage)
 
-		var target_name: String = target.get("name", "未知")
-		log_message.emit("%s 对 %s 造成 %d 点伤害" % [source.get("name", "未知"), target_name, damage_result.actual_damage])
+			var target_name: String = target.get("name", "未知")
+			log_message.emit("%s 对 %s 造成 %d 点伤害" % [source.get("name", "未知"), target_name, damage_result.actual_damage])
 
 	# 护盾
 	if card.base_shield > 0:
@@ -492,7 +594,7 @@ func _execute_skill_effects(source: Dictionary, target: Dictionary, skill: Skill
 ## 处理单个效果
 func _process_effect(source: Dictionary, target: Dictionary, effect: Dictionary) -> void:
 	var effect_type: String = effect.get("type", "")
-	var value: int = effect.get("value", 0)
+	var value = effect.get("value", 0)  # Variant: can be int or String
 
 	match effect_type:
 		"heal", "heal_self":

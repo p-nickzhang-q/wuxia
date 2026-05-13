@@ -1,7 +1,7 @@
 # Story 004: 轻功行动顺序系统
 
 > **Epic**: 战斗系统
-> **Status**: Ready
+> **Status**: Done
 > **Layer**: Core
 > **Type**: Logic
 > **Manifest Version**: N/A (control-manifest 不存在)
@@ -22,12 +22,12 @@
 
 *From GDD `design/gdd/battle-system.md`, scoped to this story:*
 
-- [ ] _decide_turn_order() 方法：按当前轻功降序排列存活角色
-- [ ] should_switch_actor() 方法：判断当前轻功 ≤ 敌方最高轻功时切换
-- [ ] switch_actor() 方法：切换到下一个轻功最高的存活角色
-- [ ] 行动消耗：使用卡牌/招式扣除 agility（agilityCost）
-- [ ] 回合结束条件：所有角色轻功耗尽或无法行动
-- [ ] 轻功相同时按座位顺序行动
+- [x] _decide_turn_order() 方法：按当前轻功降序排列存活角色
+- [x] should_switch_actor() 方法：判断当前轻功 ≤ 敌方最高轻功时切换
+- [x] switch_actor() 方法：切换到下一个轻功最高的存活角色
+- [x] 行动消耗：使用卡牌/招式扣除 agility（agilityCost）
+- [x] 回合结束条件：所有角色轻功耗尽或无法行动
+- [x] 轻功相同时按座位顺序行动
 
 ---
 
@@ -123,8 +123,21 @@ func switch_actor() -> void:
 ## Test Evidence
 
 **Story Type**: Logic
-**Required evidence**: `tests/unit/battle_manager_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Required evidence**: `tests/unit/agility_turn_order_test.gd` — must exist and pass
+**Status**: [x] Created
+
+### Implementation Notes
+
+**Existing Implementation**: `scripts/game/game_state.gd`
+
+新增方法：
+- `should_switch_actor()` (第439-453行): 判断是否应切换行动方
+- `switch_actor()` (第456-471行): 切换到下一个轻功最高的存活角色
+
+现有实现已包含：
+- `_determine_first_actor()` (第426-435行): 按轻功决定先手
+- `get_turn_order()` (第374-391行): 按轻功降序返回行动顺序
+- `_check_actor_switch()` (第438-451行): 内部方法，调用 should_switch_actor 和 switch_actor
 
 ---
 

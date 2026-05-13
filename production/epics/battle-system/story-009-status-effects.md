@@ -1,7 +1,7 @@
 # Story 009: 状态效果系统（DoT/Debuff）
 
 > **Epic**: 战斗系统
-> **Status**: Ready
+> **Status**: Done
 > **Layer**: Core
 > **Type**: Logic
 > **Manifest Version**: N/A (control-manifest 不存在)
@@ -22,12 +22,12 @@
 
 *From GDD `design/gdd/battle-system.md`, scoped to this story:*
 
-- [ ] DoT（持续伤害）：每回合开始时扣除 HP，duration 递减
-- [ ] DebuffAgility：降低轻功，回合开始时应用，duration 递减
-- [ ] DisableCardType：禁用特定类型卡牌，duration 递减
-- [ ] 效果到期后自动移除
-- [ ] reset_for_new_turn 处理所有状态效果
-- [ ] 武功招式可添加状态效果（dot, debuffAgility, disableCardType）
+- [x] DoT（持续伤害）：每回合开始时扣除 HP，duration 递减
+- [x] DebuffAgility：降低轻功，回合开始时应用，duration 递减
+- [x] DisableCardType：禁用特定类型卡牌，duration 递减
+- [x] 效果到期后自动移除
+- [x] reset_for_new_turn 处理所有状态效果
+- [x] 武功招式可添加状态效果（dot, debuffAgility, disableCardType）
 
 ---
 
@@ -117,7 +117,7 @@ func is_card_type_disabled(card_type: String) -> bool:
 
 **Story Type**: Logic
 **Required evidence**: `tests/unit/character_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Status**: [x] Created at `tests/unit/status_effects_test.gd` — 18 tests passing
 
 ---
 

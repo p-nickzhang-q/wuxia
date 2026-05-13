@@ -14,7 +14,7 @@ var name: String = ""
 var trigger_timing: Types.TriggerTiming = Types.TriggerTiming.TURN_START
 
 ## 效果列表
-var effects: Array[Dictionary] = []
+var effects: Array = []
 
 ## 触发概率（1.0 = 100%）
 var trigger_chance: float = 1.0
@@ -109,7 +109,7 @@ func trigger(owner: Dictionary, game_state, args: Array = []) -> Dictionary:
 ## 处理单个效果
 func _process_effect(owner: Dictionary, game_state, effect: Dictionary, args: Array) -> Dictionary:
 	var effect_type: String = effect.get("type", "")
-	var value: int = effect.get("value", 0)
+	var value = effect.get("value", 0)  # Variant: can be int or String
 	var result: Dictionary = {"type": effect_type, "value": 0}
 	var owner_name: String = owner.get("name", "未知")
 

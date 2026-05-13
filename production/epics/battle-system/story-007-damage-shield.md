@@ -1,7 +1,7 @@
 # Story 007: 伤害计算与护盾系统
 
 > **Epic**: 战斗系统
-> **Status**: Ready
+> **Status**: Done
 > **Layer**: Core
 > **Type**: Logic
 > **Manifest Version**: N/A (control-manifest 不存在)
@@ -22,14 +22,14 @@
 
 *From GDD `design/gdd/battle-system.md`, scoped to this story:*
 
-- [ ] 基础伤害计算：baseDamage * strengthMultiplier
-- [ ] 力量加成公式：strengthMultiplier = 1 + (strength - 1) * 0.05
-- [ ] 护盾吸收：伤害先扣除护盾，剩余伤害扣除 HP
-- [ ] 无视护盾伤害：直接扣除 HP（ignoreShield=true）
-- [ ] 伤害为 0 时不触发伤害相关内功
-- [ ] 护盾不跨回合保留（reset_for_new_turn 清除）
-- [ ] selfDamage 处理：自身伤害不触发内功
-- [ ] 发射 damage_dealt 信号
+- [x] 基础伤害计算：baseDamage * strengthMultiplier
+- [x] 力量加成公式：strengthMultiplier = 1 + (strength - 1) * 0.05
+- [x] 护盾吸收：伤害先扣除护盾，剩余伤害扣除 HP
+- [x] 无视护盾伤害：直接扣除 HP（ignoreShield=true）
+- [x] 伤害为 0 时不触发伤害相关内功
+- [x] 护盾不跨回合保留（reset_for_new_turn 清除）
+- [x] selfDamage 处理：自身伤害不触发内功
+- [x] 发射 damage_dealt 信号
 
 ---
 
@@ -120,8 +120,8 @@ func _apply_damage(target: Character, base_damage: int, actor: Character, ignore
 ## Test Evidence
 
 **Story Type**: Logic
-**Required evidence**: `tests/unit/character_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Required evidence**: `tests/unit/damage_shield_test.gd` — must exist and pass
+**Status**: [x] Created — 17 tests passing
 
 ---
 

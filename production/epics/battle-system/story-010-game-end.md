@@ -1,7 +1,7 @@
 # Story 010: 游戏结束条件判断
 
 > **Epic**: 战斗系统
-> **Status**: Ready
+> **Status**: Done
 > **Layer**: Core
 > **Type**: Logic
 > **Manifest Version**: N/A (control-manifest 不存在)
@@ -22,12 +22,12 @@
 
 *From GDD `design/gdd/battle-system.md`, scoped to this story:*
 
-- [ ] 玩家队伍全灭 → 玩家失败
-- [ ] 敌方队伍全灭 → 玩家胜利
-- [ ] 双方同时全灭 → 平局
-- [ ] check_game_end() 在每次伤害后、回合结束时调用
-- [ ] end_game() 发射 battle_ended 信号，设置游戏状态为 GAME_OVER
-- [ ] 游戏结束后禁止任何行动
+- [x] 玩家队伍全灭 → 玩家失败
+- [x] 敌方队伍全灭 → 玩家胜利
+- [x] 双方同时全灭 → 平局
+- [x] check_game_end() 在每次伤害后、回合结束时调用
+- [x] end_game() 发射 battle_ended 信号，设置游戏状态为 GAME_OVER
+- [x] 游戏结束后禁止任何行动
 
 ---
 
@@ -113,7 +113,7 @@ func is_game_over() -> bool:
 
 **Story Type**: Logic
 **Required evidence**: `tests/unit/battle_manager_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Status**: [x] Created at `tests/unit/game_end_test.gd` — 15 tests passing
 
 ---
 

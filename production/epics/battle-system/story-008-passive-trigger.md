@@ -1,7 +1,7 @@
 # Story 008: 内功触发时机系统
 
 > **Epic**: 战斗系统
-> **Status**: Ready
+> **Status**: Done
 > **Layer**: Core
 > **Type**: Integration
 > **Manifest Version**: N/A (control-manifest 不存在)
@@ -23,14 +23,14 @@
 
 *From GDD `design/gdd/battle-system.md`, scoped to this story:*
 
-- [ ] TURN_START 触发：回合开始，重置状态后
-- [ ] TURN_END 触发：回合结束
-- [ ] ON_DAMAGE 触发：造成伤害后
-- [ ] ON_TAKE_DAMAGE 触发：受到伤害前（可修改伤害）
-- [ ] ON_PLAY_CARD 触发：使用基础招式时
-- [ ] ON_SKILL_USE 触发：使用武功招式时
-- [ ] 多内功同时触发时按 passives 数组顺序依次触发
-- [ ] 内功效果类型：恢复体力/内力、获得护盾、提升轻功、减伤、闪避、反弹、增加伤害
+- [x] TURN_START 触发：回合开始，重置状态后
+- [x] TURN_END 触发：回合结束
+- [x] ON_DAMAGE 触发：造成伤害后
+- [x] ON_TAKE_DAMAGE 触发：受到伤害前（可修改伤害）
+- [x] ON_PLAY_CARD 触发：使用基础招式时
+- [x] ON_SKILL_USE 触发：使用武功招式时
+- [x] 多内功同时触发时按 passives 数组顺序依次触发
+- [x] 内功效果类型：恢复体力/内力、获得护盾、提升轻功、减伤、闪避、反弹、增加伤害
 
 ---
 
@@ -139,7 +139,7 @@ func _trigger_on_take_damage_passive(target: Character, damage: int, attacker: C
 
 **Story Type**: Integration
 **Required evidence**: `tests/integration/passive_trigger_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Status**: [x] Created — 12 tests passing
 
 ---
 

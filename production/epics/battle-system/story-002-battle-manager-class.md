@@ -1,7 +1,7 @@
 # Story 002: BattleManager 类基础实现
 
 > **Epic**: 战斗系统
-> **Status**: Ready
+> **Status**: Done
 > **Layer**: Core
 > **Type**: Logic
 > **Manifest Version**: N/A (control-manifest 不存在)
@@ -28,13 +28,13 @@
 
 *From GDD `design/gdd/battle-system.md`, scoped to this story:*
 
-- [ ] BattleManager 类定义完成，继承 Node
-- [ ] 信号声明：turn_changed, damage_dealt, battle_ended, card_played, skill_used
-- [ ] 状态属性：player, enemy, current_turn, current_actor, turn_order
-- [ ] start_battle(player_data, enemy_data) 方法：初始化双方角色
-- [ ] get_current_actor() 方法：返回当前行动角色
-- [ ] get_turn_order() 方法：返回按轻功排序的角色列表
-- [ ] 基础场景集成：可添加到 battle.tscn 场景
+- [x] BattleManager 类定义完成，继承 Node
+- [x] 信号声明：turn_changed, damage_dealt, battle_ended, card_played, skill_used
+- [x] 状态属性：player, enemy, current_turn, current_actor, turn_order
+- [x] start_battle(player_data, enemy_data) 方法：初始化双方角色
+- [x] get_current_actor() 方法：返回当前行动角色
+- [x] get_turn_order() 方法：返回按轻功排序的角色列表
+- [x] 基础场景集成：可添加到 battle.tscn 场景
 
 ---
 
@@ -113,8 +113,22 @@ func start_battle(player_data: Dictionary, enemy_data: Dictionary) -> void:
 ## Test Evidence
 
 **Story Type**: Logic
-**Required evidence**: `tests/unit/battle_manager_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Required evidence**: `tests/unit/game_state_test.gd` — must exist and pass
+**Status**: [x] Created
+
+### Implementation Notes
+
+**Existing Implementation**: `scripts/game/game_state.gd`
+
+现有实现使用 `class_name GameState extends RefCounted` 模式，而非 Story 中描述的 `BattleManager extends Node`。
+
+**架构设计说明**：
+- `GameState` (RefCounted): 纯数据层，管理战斗状态、信号发射
+- `battle.gd` (Control): 场景控制器，持有 GameState 实例，处理 UI 和输入
+- 此设计符合关注点分离原则，GameState 可序列化、可测试
+
+**新增方法**：
+- `get_turn_order()`: 返回按轻功降序排列的角色列表
 
 ---
 

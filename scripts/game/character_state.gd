@@ -17,6 +17,7 @@ static func from_data(data: Dictionary) -> Dictionary:
 		"max_hp": data.get("hp", 60),
 		"max_mp": data.get("mp", 20),
 		"base_agility": data.get("agility", 10),
+		"strength": data.get("strength", 1),  # 力量属性，默认 1
 
 		# 当前状态
 		"hp": data.get("hp", 60),  # 初始化为最大值
@@ -34,6 +35,10 @@ static func from_data(data: Dictionary) -> Dictionary:
 
 		# 内功系统 - 存储 PassiveState 实例
 		"passives": [],
+
+		# 状态效果系统
+		"dots": [],      # 持续伤害效果
+		"debuffs": [],   # 减益效果
 	}
 
 	# 加载卡牌
@@ -105,30 +110,36 @@ static func play_card(state: Dictionary, card_index: int) -> CardState:
 
 
 ## 受到伤害
+## amount: 伤害值
+## source: 伤害来源角色（可选）
+## ignore_shield: 是否无视护盾
 ## 返回伤害结果字典
-static func take_damage(state: Dictionary, amount: int, source: Dictionary = {}) -> Dictionary:
+static func take_damage(state: Dictionary, amount: int, source: Dictionary = {}, ignore_shield: bool = false) -> Dictionary:
 	var result := {
 		"actual_damage": 0,
 		"shield_absorbed": 0,
-		"source": source
+		"source": source,
+		"ignore_shield": ignore_shield
 	}
 
-	var actual_damage := amount
+	var remaining_damage := amount
 	var shield: int = state.get("shield", 0)
 	var hp: int = state.get("hp", 0)
 
-	# 先扣护盾
-	if shield > 0:
-		if shield >= amount:
-			result.shield_absorbed = amount
-			state["shield"] = shield - amount
+	# 先扣护盾（除非无视护盾）
+	if not ignore_shield and shield > 0:
+		if shield >= remaining_damage:
+			result.shield_absorbed = remaining_damage
+			state["shield"] = shield - remaining_damage
 			return result
 		else:
 			result.shield_absorbed = shield
-			actual_damage = amount - shield
+			remaining_damage -= shield
 			state["shield"] = 0
 
-	hp -= actual_damage
+	# 计算实际伤害（不超过剩余 HP）
+	var actual_damage := mini(remaining_damage, hp)
+	hp -= remaining_damage
 	if hp < 0:
 		hp = 0
 	state["hp"] = hp
@@ -184,6 +195,14 @@ static func recover_agility(state: Dictionary, amount: int) -> void:
 	state["agility"] = mini(agility + amount, base_agility)
 
 
+## 计算力量加成后的伤害
+## 公式：base_damage * (1 + (strength - 1) * 0.05)
+static func calculate_damage_with_strength(state: Dictionary, base_damage: int) -> int:
+	var strength: int = state.get("strength", 1)
+	var multiplier := 1.0 + (strength - 1) * 0.05
+	return int(base_damage * multiplier)
+
+
 ## 是否死亡
 static func is_dead(state: Dictionary) -> bool:
 	return state.get("hp", 0) <= 0
@@ -204,6 +223,8 @@ static func reset_for_battle(state: Dictionary) -> void:
 	state["agility"] = state.get("base_agility", 10)
 	state["hand"] = []
 	state["discard_pile"] = []
+	state["dots"] = []
+	state["debuffs"] = []
 
 	# 重置所有武功冷却
 	var skills: Array = state.get("skills", [])
@@ -223,6 +244,9 @@ static func reset_for_battle(state: Dictionary) -> void:
 
 ## 回合开始处理
 static func on_turn_start(state: Dictionary, game_state) -> void:
+	# 处理持续伤害和减益
+	process_effects_for_new_turn(state)
+
 	# 重置内功触发次数
 	var passives: Array = state.get("passives", [])
 	for passive in passives:
@@ -378,6 +402,9 @@ static func reset_turn(state: Dictionary) -> void:
 	# 重置轻功
 	state["agility"] = state.get("base_agility", 10)
 
+	# 重置护盾
+	state["shield"] = 0
+
 	# 重置内功触发次数
 	var passives: Array = state.get("passives", [])
 	for passive in passives:
@@ -442,3 +469,102 @@ static func to_dict(state: Dictionary) -> Dictionary:
 		"skills": skill_ids,
 		"passives": passive_ids
 	}
+
+
+# ==================== 状态效果系统 ====================
+
+## 应用持续伤害
+## value: 每回合伤害值
+## duration: 持续回合数
+## source: 伤害来源（可选）
+static func apply_dot(state: Dictionary, value: int, duration: int, source: Dictionary = {}) -> void:
+	if duration <= 0:
+		return
+
+	var dots: Array = state.get("dots", [])
+	dots.append({
+		"value": value,
+		"duration": duration,
+		"source": source
+	})
+	state["dots"] = dots
+
+
+## 应用减益效果
+## debuff_type: 效果类型（agility, disable_fist, disable_leg 等）
+## value: 效果值
+## duration: 持续回合数
+static func apply_debuff(state: Dictionary, debuff_type: String, value: int, duration: int) -> void:
+	if duration <= 0:
+		return
+
+	var debuffs: Array = state.get("debuffs", [])
+	debuffs.append({
+		"type": debuff_type,
+		"value": value,
+		"duration": duration
+	})
+	state["debuffs"] = debuffs
+
+
+## 处理回合开始的状态效果
+static func process_effects_for_new_turn(state: Dictionary) -> void:
+	# 处理 DoT
+	var dots: Array = state.get("dots", [])
+	for dot in dots:
+		var dot_value: int = dot.get("value", 0)
+		if dot_value > 0:
+			take_damage(state, dot_value, dot.get("source", {}))
+		dot["duration"] = dot.get("duration", 0) - 1
+
+	# 移除到期的 DoT
+	dots = dots.filter(func(d): return d.get("duration", 0) > 0)
+	state["dots"] = dots
+
+	# 处理 Debuff
+	var debuffs: Array = state.get("debuffs", [])
+	for debuff in debuffs:
+		var debuff_type: String = debuff.get("type", "")
+		var debuff_value: int = debuff.get("value", 0)
+
+		if debuff_type == "agility":
+			var agility: int = state.get("agility", 0)
+			state["agility"] = maxi(0, agility - debuff_value)
+
+		debuff["duration"] = debuff.get("duration", 0) - 1
+
+	# 移除到期的 Debuff
+	debuffs = debuffs.filter(func(d): return d.get("duration", 0) > 0)
+	state["debuffs"] = debuffs
+
+
+## 检查卡牌类型是否被禁用
+static func is_card_type_disabled(state: Dictionary, card_type: Types.CardType) -> bool:
+	var debuffs: Array = state.get("debuffs", [])
+
+	var type_name: String = ""
+	match card_type:
+		Types.CardType.EMPTY_HAND:
+			type_name = "fist"
+		Types.CardType.SHORT_WEAPON:
+			type_name = "short_weapon"
+		Types.CardType.LONG_WEAPON:
+			type_name = "long_weapon"
+		Types.CardType.LEG:
+			type_name = "leg"
+		_:
+			return false
+
+	var disable_key: String = "disable_" + type_name
+
+	for debuff in debuffs:
+		if debuff.get("type", "") == disable_key:
+			return true
+
+	return false
+
+
+## 清除所有状态效果
+static func clear_all_effects(state: Dictionary) -> void:
+	state["dots"] = []
+	state["debuffs"] = []
