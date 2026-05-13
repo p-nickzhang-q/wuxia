@@ -52,6 +52,10 @@ var animator: BattleAnimator = null
 var _is_ai_turn: bool = false
 ## UI 刷新计时器
 var _ui_refresh_timer: float = 0.0
+## AI 延迟计时器
+var _ai_delay_timer: float = 0.0
+## AI 是否在等待延迟
+var _ai_waiting: bool = false
 
 
 func _ready() -> void:
@@ -151,6 +155,13 @@ func _process(delta: float) -> void:
 		_ui_refresh_timer = 0.0
 		_poll_and_refresh()
 
+	# 处理 AI 延迟
+	if _ai_waiting:
+		_ai_delay_timer -= delta
+		if _ai_delay_timer <= 0.0:
+			_ai_waiting = false
+			_execute_ai_action()
+
 
 ## 轮询刷新 UI
 func _poll_and_refresh() -> void:
@@ -166,7 +177,7 @@ func _poll_and_refresh() -> void:
 
 ## 检查是否轮到 AI 行动
 func _check_ai_turn() -> void:
-	if _is_ai_turn:
+	if _is_ai_turn or _ai_waiting:
 		return
 
 	if game_state == null or game_state.current_actor.is_empty():
@@ -175,26 +186,82 @@ func _check_ai_turn() -> void:
 	# 如果当前行动者是敌人，触发 AI
 	if game_state.current_actor == game_state.enemy and not CharacterState.is_dead(game_state.enemy):
 		_is_ai_turn = true
-		_execute_ai_turn()
+		_ai_waiting = true
+		_ai_delay_timer = AI_DECISION_DELAY
+		print("[Battle] AI 开始等待决策延迟...")
 
 
-## 执行 AI 回合
-func _execute_ai_turn() -> void:
-	# 等待一小段时间让玩家看到状态变化
-	await get_tree().create_timer(AI_DECISION_DELAY).timeout
+## 执行 AI 行动（延迟后）
+func _execute_ai_action() -> void:
+	print("[Battle] AI 执行行动...")
 
 	if game_state == null or game_state.enemy.is_empty() or CharacterState.is_dead(game_state.enemy):
 		_is_ai_turn = false
+		print("[Battle] AI 回合取消 - 敌人已死亡或无效")
 		return
 
-	# 使用静态 AI 系统执行回合
-	await AI.execute_turn(game_state, AI.AIDifficulty.NORMAL)
+	# 使用静态 AI 决策
+	var actor: Dictionary = game_state.enemy
+	var target: Dictionary = game_state.player
+
+	var action: Dictionary = AI.decide_action(actor, target, game_state, AI.AIDifficulty.NORMAL)
+	print("[Battle] AI 决策: %s" % action)
+
+	if action.is_empty():
+		print("[Battle] AI 无可用行动")
+		_is_ai_turn = false
+		return
+
+	# 执行行动
+	_execute_ai_decision(action)
 
 	# 刷新 UI
 	_update_ui()
 	_render_hand()
 
-	_is_ai_turn = false
+	# 检查是否需要继续行动
+	if game_state.current_actor == game_state.enemy and not game_state.is_battle_over():
+		# 继续等待下一次行动
+		_ai_waiting = true
+		_ai_delay_timer = AI_DECISION_DELAY * 0.5  # 连续行动更快
+	else:
+		_is_ai_turn = false
+		print("[Battle] AI 回合结束")
+
+
+## 执行 AI 决策
+func _execute_ai_decision(action: Dictionary) -> void:
+	var action_type: String = action.get("type", "")
+
+	match action_type:
+		"card":
+			var card_index: int = action.get("card_index", -1)
+			if card_index >= 0:
+				var result: Dictionary = game_state.use_basic_card(card_index)
+				if result.success:
+					_log("敌人打出 %s" % result.card.name)
+				else:
+					print("[Battle] AI 出牌失败: %s" % result.get("error", "未知"))
+
+		"skill":
+			var skill_index: int = action.get("skill_index", -1)
+			var card_index: int = action.get("card_index", -1)
+			if skill_index >= 0 and card_index >= 0:
+				var result: Dictionary = game_state.use_skill(skill_index, card_index)
+				if result.success:
+					_log("敌人使用 %s" % result.skill.name)
+				else:
+					print("[Battle] AI 使用武功失败: %s" % result.get("error", "未知"))
+
+		"pass":
+			_log("敌人结束回合")
+			game_state.pass_turn()
+
+
+## 延迟执行 AI 行动（已废弃，使用 _process 计时器）
+func _do_ai_delayed_action() -> void:
+	# 此方法已废弃
+	pass
 
 
 # ==================== UI 更新方法 ====================

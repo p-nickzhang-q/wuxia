@@ -1,5 +1,9 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "statusLine": {
+    "type": "command",
+    "command": "bash .claude/statusline.sh"
+  },
   "permissions": {
     "allow": [
       "Bash(git status*)",
@@ -70,6 +74,23 @@
             "type": "command",
             "command": "bash .claude/hooks/validate-assets.sh",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/validate-skill-change.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/notify.sh",
+            "timeout": 10
           }
         ]
       }
@@ -81,6 +102,18 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/pre-compact.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/post-compact.sh",
             "timeout": 10
           }
         ]
@@ -109,15 +142,18 @@
           }
         ]
       }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/log-agent-stop.sh",
+            "timeout": 5
+          }
+        ]
+      }
     ]
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "bash .claude/statusline.sh"
-  },
-  "enabledPlugins": {
-    "minimalist-entrepreneur@minimalist-entrepreneur": true,
-    "superpowers@superpowers-marketplace": true,
-    "figma@claude-plugins-official": true
   }
 }

@@ -4,7 +4,7 @@
       "command": "npx",
       "args": [
         "mcp-remote",
-        "http://localhost:19080/mcp"
+        "http://localhost:9080/mcp"
       ]
     }
   }

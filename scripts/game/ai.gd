@@ -48,14 +48,18 @@ const MAX_ACTIONS_PER_TURN: int = 10
 ## difficulty: AI 难度
 ## on_complete: 完成回调
 static func execute_turn(game_state: GameState, difficulty: AIDifficulty = AIDifficulty.NORMAL, on_complete: Callable = Callable()) -> void:
+	print("[AI] execute_turn 开始")
 	var actor: Dictionary = game_state.current_actor
 	if actor.is_empty() or actor != game_state.enemy:
+		print("[AI] 不是敌人回合，跳过")
 		if on_complete.is_valid():
 			on_complete.call()
 		return
 
 	# 延迟执行，让玩家看到 AI 思考
+	print("[AI] 等待决策延迟...")
 	await _delay(_get_decision_delay(difficulty))
+	print("[AI] 决策延迟完成")
 
 	var action_count := 0
 
@@ -63,28 +67,36 @@ static func execute_turn(game_state: GameState, difficulty: AIDifficulty = AIDif
 		# 检查是否有目标存活
 		var target: Dictionary = game_state.get_opponent(actor)
 		if target.is_empty() or CharacterState.is_dead(target):
+			print("[AI] 目标已死亡，结束")
 			break
 
 		# 决定行动
+		print("[AI] 决定行动...")
 		var action: Dictionary = decide_action(actor, target, game_state, difficulty)
 		if action.is_empty():
+			print("[AI] 无可用行动，结束")
 			break
 
 		action_count += 1
+		print("[AI] 执行行动 #%d: %s" % [action_count, action.get("type", "unknown")])
 
 		# 执行行动
 		_execute_action(game_state, action, target)
 
 		# 检查是否切换行动方
 		if game_state.current_actor != actor:
+			print("[AI] 行动方已切换")
 			break
 
 		# 检查战斗是否结束
 		if game_state.is_battle_over():
+			print("[AI] 战斗结束")
 			break
 
+		print("[AI] 等待行动延迟...")
 		await _delay(_get_action_delay(difficulty))
 
+	print("[AI] execute_turn 完成，共 %d 次行动" % action_count)
 	if on_complete.is_valid():
 		on_complete.call()
 
@@ -363,9 +375,15 @@ static func _execute_action(game_state: GameState, action: Dictionary, target: D
 
 ## 延迟函数
 static func _delay(seconds: float) -> void:
-	var scene_tree: SceneTree = Engine.get_main_loop() as SceneTree
+	var main_loop = Engine.get_main_loop()
+	print("[AI] _delay - main_loop type: %s" % main_loop.get_class() if main_loop else "null")
+	var scene_tree: SceneTree = main_loop as SceneTree
 	if scene_tree != null:
+		print("[AI] _delay - 等待 %s 秒..." % seconds)
 		await scene_tree.create_timer(seconds).timeout
+		print("[AI] _delay - 等待完成")
+	else:
+		print("[AI] _delay - scene_tree 为 null，跳过等待")
 
 
 # ==================== 工具方法 ====================

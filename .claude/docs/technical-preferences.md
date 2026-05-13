@@ -1,55 +1,87 @@
 # Technical Preferences
 
-<!-- Engine configuration for Godot 4.6 + GDScript project -->
+<!-- Populated by /setup-engine. Updated as the user makes decisions throughout development. -->
+<!-- All agents reference this file for project-specific standards and conventions. -->
 
 ## Engine & Language
 
-- **Engine**: Godot 4.6
-- **Language**: GDScript
-- **Rendering**: Forward Plus
-- **Runtime**: Desktop (Windows/Linux/Mac), Mobile (future)
+- **Engine**: [TO BE CONFIGURED — run /setup-engine]
+- **Language**: [TO BE CONFIGURED]
+- **Rendering**: [TO BE CONFIGURED]
+- **Physics**: [TO BE CONFIGURED]
+
+## Input & Platform
+
+<!-- Written by /setup-engine. Read by /ux-design, /ux-review, /test-setup, /team-ui, and /dev-story -->
+<!-- to scope interaction specs, test helpers, and implementation to the correct input methods. -->
+
+- **Target Platforms**: [TO BE CONFIGURED — e.g., PC, Console, Mobile, Web]
+- **Input Methods**: [TO BE CONFIGURED — e.g., Keyboard/Mouse, Gamepad, Touch, Mixed]
+- **Primary Input**: [TO BE CONFIGURED — the dominant input for this game]
+- **Gamepad Support**: [TO BE CONFIGURED — Full / Partial / None]
+- **Touch Support**: [TO BE CONFIGURED — Full / Partial / None]
+- **Platform Notes**: [TO BE CONFIGURED — any platform-specific UX constraints]
 
 ## Naming Conventions
 
-- **Classes**: PascalCase with `class_name` (e.g., `Character`, `BattleManager`)
-- **Functions/Methods**: snake_case (e.g., `take_damage`, `draw_cards`)
-- **Private Methods**: `_snake_case` (e.g., `_shuffle_deck`, `_check_battle_end`)
-- **Signals**: snake_case (e.g., `turn_changed`, `damage_dealt`, `battle_ended`)
-- **Constants**: UPPER_SNAKE_CASE (e.g., `MAX_HP`, `CARD_SIZE`)
-- **Enums**: PascalCase for enum name, UPPER_SNAKE_CASE for members
-- **Files**: snake_case.gd for scripts, snake_case.tscn for scenes
-- **Nodes**: PascalCase in scene tree (e.g., `PlayerPanel`, `HandContainer`)
+- **Classes**: [TO BE CONFIGURED]
+- **Variables**: [TO BE CONFIGURED]
+- **Signals/Events**: [TO BE CONFIGURED]
+- **Files**: [TO BE CONFIGURED]
+- **Scenes/Prefabs**: [TO BE CONFIGURED]
+- **Constants**: [TO BE CONFIGURED]
 
 ## Performance Budgets
 
-- **Target Framerate**: 60 FPS
-- **Frame Budget**: 16.6ms
-- **Draw Calls**: Minimize via batching, use Sprite2D for static elements
-- **Texture Memory**: Use Texture2D, AtlasTexture for spritesheets
-- **Memory Ceiling**: Monitor via Godot profiler
+- **Target Framerate**: [TO BE CONFIGURED]
+- **Frame Budget**: [TO BE CONFIGURED]
+- **Draw Calls**: [TO BE CONFIGURED]
+- **Memory Ceiling**: [TO BE CONFIGURED]
 
 ## Testing
 
-- **Framework**: Godot Built-in Unit Tests (GUT or GDUnit4)
+- **Framework**: [TO BE CONFIGURED]
 - **Minimum Coverage**: [TO BE CONFIGURED]
-- **Required Tests**: Battle state transitions, card/skill effects, damage calculation
+- **Required Tests**: Balance formulas, gameplay systems, networking (if applicable)
 
 ## Forbidden Patterns
 
-- Avoid `@onready` for nodes that may be null — use `get_node_or_null()`
-- Avoid direct `call_deferred()` chains — use signals instead
-- Avoid creating nodes in `_process()` — pool when possible
-- Avoid blocking operations in main thread
+<!-- Add patterns that should never appear in this project's codebase -->
+- [None configured yet — add as architectural decisions are made]
 
 ## Allowed Libraries / Addons
 
-- **godot**: Core engine (v4.6)
-- Additional addons to be evaluated as needed
+<!-- Add approved third-party dependencies here -->
+- [None configured yet — add as dependencies are approved]
 
 ## Architecture Decisions Log
 
-- **2026-05-11**: Migrated from PixiJS to Godot 4.6
-- `class_name` for core classes (`Character`, `BattleManager`)
-- Autoload singleton for global state (`GameManager`)
-- Scene-based game flow with signal-driven UI updates
-- JSON files for game data (characters, skills, cards)
+<!-- Quick reference linking to full ADRs in docs/architecture/ -->
+- [No ADRs yet — use /architecture-decision to create one]
+
+## Engine Specialists
+
+<!-- Written by /setup-engine when engine is configured. -->
+<!-- Read by /code-review, /architecture-decision, /architecture-review, and team skills -->
+<!-- to know which specialist to spawn for engine-specific validation. -->
+
+- **Primary**: [TO BE CONFIGURED — run /setup-engine]
+- **Language/Code Specialist**: [TO BE CONFIGURED]
+- **Shader Specialist**: [TO BE CONFIGURED]
+- **UI Specialist**: [TO BE CONFIGURED]
+- **Additional Specialists**: [TO BE CONFIGURED]
+- **Routing Notes**: [TO BE CONFIGURED]
+
+### File Extension Routing
+
+<!-- Skills use this table to select the right specialist per file type. -->
+<!-- If a row says [TO BE CONFIGURED], fall back to Primary for that file type. -->
+
+| File Extension / Type | Specialist to Spawn |
+|-----------------------|---------------------|
+| Game code (primary language) | [TO BE CONFIGURED] |
+| Shader / material files | [TO BE CONFIGURED] |
+| UI / screen files | [TO BE CONFIGURED] |
+| Scene / prefab / level files | [TO BE CONFIGURED] |
+| Native extension / plugin files | [TO BE CONFIGURED] |
+| General architecture review | Primary |
