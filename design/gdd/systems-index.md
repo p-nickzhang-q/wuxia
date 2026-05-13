@@ -26,13 +26,13 @@
 | 7 | 伤害计算系统 | Core | MVP | ✅ Implemented | design/gdd/game-design.md | 角色系统 |
 | 8 | 状态效果系统 | Core | MVP | ✅ Implemented | design/gdd/game-design.md | 角色系统 |
 | 9 | 回合管理系统 | Core | MVP | ✅ Implemented | design/gdd/game-design.md | 角色系统 |
-| 10 | 轻功行动顺序系统 | Core | MVP | ✅ Implemented | design/gdd/game-design.md | 回合管理系统, 角色系统 |
-| 11 | 战斗流程系统 | Core | MVP | ✅ Implemented | design/gdd/game-design.md | 回合管理系统, 伤害计算系统 |
-| 12 | AI系统 | Core | MVP | ✅ Implemented | design/gdd/game-design.md | 卡牌系统, 武功招式系统, 伤害计算系统 |
+| 10 | 轻功行动顺序系统 | Core | MVP | ✅ Implemented | design/gdd/battle-system.md | 回合管理系统, 角色系统 |
+| 11 | 战斗流程系统 | Core | MVP | ✅ Implemented | design/gdd/battle-system.md | 回合管理系统, 伤害计算系统 |
+| 12 | AI系统 | Core | MVP | ✅ Implemented | design/gdd/battle-system.md | 卡牌系统, 武功招式系统, 伤害计算系统 |
 | 13 | UI系统 | UI | MVP | ✅ Implemented | design/gdd/game-design.md | 渲染系统, 角色系统, 卡牌系统, 战斗流程系统 |
-| 14 | 多人战斗系统 | Gameplay | Phase 1 | ✅ Implemented | design/gdd/game-expansion-design.md | 战斗流程系统 |
-| 15 | 距离系统 | Gameplay | Phase 1 | ✅ Implemented | design/gdd/game-expansion-design.md | 多人战斗系统 |
-| 16 | 目标选择系统 | Gameplay | Phase 1 | ✅ Implemented | design/gdd/game-expansion-design.md | 距离系统, 武功攻击范围 |
+| 14 | 多人战斗系统 | Gameplay | Phase 1 | ✅ Implemented | design/gdd/battle-system.md | 战斗流程系统 |
+| 15 | 距离系统 | Gameplay | Phase 1 | ✅ Implemented | design/gdd/battle-system.md | 多人战斗系统 |
+| 16 | 目标选择系统 | Gameplay | Phase 1 | ✅ Implemented | design/gdd/battle-system.md | 距离系统, 武功攻击范围 |
 | 17 | 武功攻击范围 | Gameplay | Phase 1 | ✅ Implemented | design/gdd/game-expansion-design.md | 武功招式系统 |
 | 18 | 弟子系统 | Progression | Phase 2 | ✅ Implemented | design/gdd/game-expansion-design.md | 角色系统 |
 | 19 | 武功学习系统 | Progression | Phase 2 | ✅ Approved | design/gdd/martial-arts-learning-system.md | 弟子系统, 武功招式系统, 门派设施系统, 精力系统 |
