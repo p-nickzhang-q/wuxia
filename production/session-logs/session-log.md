@@ -5741,3 +5741,127 @@ a42ed98 refactor(battle): 重构战斗界面UI结构和轻功轴组件
 production/epics/battle-system/story-011-ai-decision.md
 ---
 
+## Session End: 20260514_092514
+### Uncommitted Changes
+production/epics/battle-system/story-012-distance-system.md
+---
+
+## Session End: 20260514_095939
+### Uncommitted Changes
+production/epics/battle-system/EPIC.md
+production/epics/battle-system/story-012-distance-system.md
+production/epics/battle-system/story-013-target-validation.md
+production/epics/battle-system/story-014-signal-integration.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+scripts/battle.gd
+scripts/game/game_state.gd
+---
+
+## Session End: 20260514_101940
+### Uncommitted Changes
+production/epics/battle-system/EPIC.md
+production/epics/battle-system/story-012-distance-system.md
+production/epics/battle-system/story-013-target-validation.md
+production/epics/battle-system/story-014-signal-integration.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+scenes/components/card.tscn
+scripts/battle.gd
+scripts/battle/battle_input_handler.gd
+scripts/game/game_state.gd
+scripts/ui/battle_ui.gd
+---
+
+## Session End: 20260514_104403
+### Uncommitted Changes
+production/epics/battle-system/EPIC.md
+production/epics/battle-system/story-012-distance-system.md
+production/epics/battle-system/story-013-target-validation.md
+production/epics/battle-system/story-014-signal-integration.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+scenes/components/card.tscn
+scripts/battle.gd
+scripts/battle/battle_input_handler.gd
+scripts/game/game_state.gd
+scripts/game/types.gd
+scripts/ui/battle_ui.gd
+---
+
+## Session End: 20260514_105225
+### Uncommitted Changes
+production/epics/battle-system/EPIC.md
+production/epics/battle-system/story-012-distance-system.md
+production/epics/battle-system/story-013-target-validation.md
+production/epics/battle-system/story-014-signal-integration.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+scenes/components/card.tscn
+scripts/battle.gd
+scripts/battle/battle_input_handler.gd
+scripts/game/game_state.gd
+scripts/game/types.gd
+scripts/ui/battle_ui.gd
+scripts/ui/skill_button.gd
+---
+
+## Session End: 20260514_105746
+### Uncommitted Changes
+production/epics/battle-system/EPIC.md
+production/epics/battle-system/story-012-distance-system.md
+production/epics/battle-system/story-013-target-validation.md
+production/epics/battle-system/story-014-signal-integration.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+scenes/components/card.tscn
+scripts/battle.gd
+scripts/battle/battle_input_handler.gd
+scripts/game/game_state.gd
+scripts/game/types.gd
+scripts/ui/battle_ui.gd
+scripts/ui/skill_button.gd
+---
+
+## Session End: 20260514_110317
+### Uncommitted Changes
+production/epics/battle-system/EPIC.md
+production/epics/battle-system/story-012-distance-system.md
+production/epics/battle-system/story-013-target-validation.md
+production/epics/battle-system/story-014-signal-integration.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+scenes/components/card.tscn
+scripts/battle.gd
+scripts/battle/battle_input_handler.gd
+scripts/game/game_state.gd
+scripts/game/types.gd
+scripts/ui/battle_ui.gd
+scripts/ui/skill_button.gd
+---
+
+## Session End: 20260514_110624
+### Uncommitted Changes
+production/epics/battle-system/EPIC.md
+production/epics/battle-system/story-012-distance-system.md
+production/epics/battle-system/story-013-target-validation.md
+production/epics/battle-system/story-014-signal-integration.md
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+scenes/components/card.tscn
+scripts/battle.gd
+scripts/battle/battle_input_handler.gd
+scripts/game/game_state.gd
+scripts/game/types.gd
+scripts/ui/battle_ui.gd
+scripts/ui/skill_button.gd
+---
+
+## Session End: 20260514_111918
+### Commits
+9067b3a fix(battle): 修复战斗UI问题和实现选中高亮
+### Uncommitted Changes
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
