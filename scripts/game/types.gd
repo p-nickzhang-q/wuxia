@@ -85,11 +85,14 @@ enum EffectType {
 }
 
 # ==================== 常量 ====================
-## 默认手牌上限
+## 手牌上限
 const MAX_HAND_SIZE: int = 10
 
-## 默认抽牌数
-const DEFAULT_DRAW_COUNT: int = 5
+## 开局抽牌数
+const INITIAL_DRAW_COUNT: int = 5
+
+## 每回合抽牌数
+const TURN_DRAW_COUNT: int = 2
 
 ## 默认轻功消耗
 const DEFAULT_AGILITY_COST: int = 1

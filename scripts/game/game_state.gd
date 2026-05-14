@@ -51,6 +51,15 @@ var action_history: Array[Dictionary] = []
 ## 上次使用的武功（用于模仿效果）
 var last_used_skill: SkillState = null
 
+## 距离系统（多人战斗）
+var distance_system: DistanceSystem = null
+
+## 战斗模式
+var battle_mode: Types.BattleMode = Types.BattleMode.TEAM
+
+## 所有战斗角色（多人战斗）
+var all_characters: Array = []
+
 # ==================== 工厂方法 ====================
 
 ## 创建游戏状态
@@ -59,9 +68,68 @@ static func create(player_data: Dictionary, enemy_data: Dictionary) -> Dictionar
 	var state := GameState.new()
 	state.player = CharacterState.from_data(player_data)
 	state.enemy = CharacterState.from_data(enemy_data)
+	state.all_characters = [state.player, state.enemy]
 	return {
 		"state": state,
 		"_signals": state  # 用于发射信号
+	}
+
+
+## 创建多人战斗游戏状态
+static func create_team_battle(team_a: Array, team_b: Array) -> Dictionary:
+	var state := GameState.new()
+	state.battle_mode = Types.BattleMode.TEAM
+
+	# 添加所有角色
+	for char_data in team_a:
+		var char_state := CharacterState.from_data(char_data)
+		char_state["team"] = "A"
+		state.all_characters.append(char_state)
+	for char_data in team_b:
+		var char_state := CharacterState.from_data(char_data)
+		char_state["team"] = "B"
+		state.all_characters.append(char_state)
+
+	# 设置玩家和敌人（第一个角色）
+	if state.all_characters.size() > 0:
+		state.player = state.all_characters[0]
+	if state.all_characters.size() > 1:
+		state.enemy = state.all_characters[1]
+
+	# 初始化距离系统
+	state.distance_system = DistanceSystem.new()
+	state.distance_system.assign_seats(state.all_characters, DistanceSystem.BattleMode.TEAM)
+
+	return {
+		"state": state,
+		"_signals": state
+	}
+
+
+## 创建混战模式游戏状态
+static func create_free_for_all(characters: Array) -> Dictionary:
+	var state := GameState.new()
+	state.battle_mode = Types.BattleMode.FREE_FOR_ALL
+
+	# 添加所有角色
+	for i in range(characters.size()):
+		var char_state := CharacterState.from_data(characters[i])
+		char_state["team"] = str(i)  # 每个角色独立队伍
+		state.all_characters.append(char_state)
+
+	# 设置玩家和敌人（前两个角色）
+	if state.all_characters.size() > 0:
+		state.player = state.all_characters[0]
+	if state.all_characters.size() > 1:
+		state.enemy = state.all_characters[1]
+
+	# 初始化距离系统
+	state.distance_system = DistanceSystem.new()
+	state.distance_system.assign_seats(state.all_characters, DistanceSystem.BattleMode.FREE_FOR_ALL)
+
+	return {
+		"state": state,
+		"_signals": state
 	}
 
 
@@ -75,9 +143,18 @@ func start_battle() -> void:
 	CharacterState.reset_for_battle(player)
 	CharacterState.reset_for_battle(enemy)
 
+	# 初始化角色列表（1v1 模式）
+	if all_characters.is_empty():
+		all_characters = [player, enemy]
+
+	# 初始化距离系统（1v1 模式默认 TEAM）
+	if distance_system == null:
+		distance_system = DistanceSystem.new()
+		distance_system.assign_seats(all_characters, DistanceSystem.BattleMode.TEAM)
+
 	# 双方抽初始手牌
-	CharacterState.draw_cards(player, Types.DEFAULT_DRAW_COUNT)
-	CharacterState.draw_cards(enemy, Types.DEFAULT_DRAW_COUNT)
+	CharacterState.draw_cards(player, Types.INITIAL_DRAW_COUNT)
+	CharacterState.draw_cards(enemy, Types.INITIAL_DRAW_COUNT)
 
 	# 确定先手
 	_determine_first_actor()
@@ -105,8 +182,8 @@ func start_new_turn() -> void:
 	CharacterState.on_turn_start(enemy, self)
 
 	# 双方抽牌
-	var player_drawn: Array = CharacterState.draw_cards(player, Types.DEFAULT_DRAW_COUNT)
-	var enemy_drawn: Array = CharacterState.draw_cards(enemy, Types.DEFAULT_DRAW_COUNT)
+	var player_drawn: Array = CharacterState.draw_cards(player, Types.TURN_DRAW_COUNT)
+	var enemy_drawn: Array = CharacterState.draw_cards(enemy, Types.TURN_DRAW_COUNT)
 
 	# 确定先手
 	_determine_first_actor()
@@ -181,18 +258,23 @@ func use_basic_card(card_index: int, target_id: String = "") -> Dictionary:
 		# 自动选择对手
 		target = get_opponent(current_actor)
 	else:
-		# 根据 ID 查找目标
-		if target_id == player.get("id", ""):
-			target = player
-		elif target_id == enemy.get("id", ""):
-			target = enemy
-		else:
+		# 根据 ID 查找目标（支持多人战斗）
+		target = _find_character_by_id(target_id)
+		if target.is_empty():
 			result["error"] = "invalid_target"
 			return result
 
 	# 验证目标存活
 	if CharacterState.is_dead(target):
 		result["error"] = "target_dead"
+		return result
+
+	# 验证目标范围
+	var card_range: int = get_card_range(card)
+	var validation := validate_target(current_actor, target, card_range)
+	if not validation.get("valid", false):
+		result["error"] = "target_out_of_range"
+		result["message"] = validation.get("message", "")
 		return result
 
 	# 消耗轻功
@@ -272,12 +354,9 @@ func use_skill(skill_index: int, card_index: int, target_id: String = "") -> Dic
 		# 自动选择对手
 		target = get_opponent(current_actor)
 	else:
-		# 根据 ID 查找目标
-		if target_id == player.get("id", ""):
-			target = player
-		elif target_id == enemy.get("id", ""):
-			target = enemy
-		else:
+		# 根据 ID 查找目标（支持多人战斗）
+		target = _find_character_by_id(target_id)
+		if target.is_empty():
 			result["error"] = "invalid_target"
 			return result
 
@@ -285,6 +364,15 @@ func use_skill(skill_index: int, card_index: int, target_id: String = "") -> Dic
 	if CharacterState.is_dead(target):
 		result["error"] = "target_dead"
 		return result
+
+	# 验证目标范围（武功有伤害效果时）
+	if skill.damage > 0 or skill.effects.size() > 0:
+		var skill_range: int = get_skill_range(skill)
+		var validation := validate_target(current_actor, target, skill_range)
+		if not validation.get("valid", false):
+			result["error"] = "target_out_of_range"
+			result["message"] = validation.get("message", "")
+			return result
 
 	# 消耗资源
 	current_actor["mp"] = mp - skill.mp_cost
@@ -328,7 +416,13 @@ func use_skill(skill_index: int, card_index: int, target_id: String = "") -> Dic
 
 
 ## 结束当前行动（主动结束回合）
-func pass_turn() -> void:
+## force_end: 是否强制结束回合（玩家点击结束回合按钮时为 true）
+func pass_turn(force_end: bool = false) -> void:
+	# 如果强制结束回合，直接结束
+	if force_end:
+		end_turn()
+		return
+
 	# 切换到对手
 	current_actor = get_opponent(current_actor)
 	actor_changed.emit(current_actor)
@@ -356,6 +450,13 @@ func get_characters() -> Array:
 ## 获取所有存活的战斗角色
 func get_alive_characters() -> Array:
 	var chars: Array = []
+	# 多人战斗模式
+	if all_characters.size() > 2:
+		for c in all_characters:
+			if not CharacterState.is_dead(c):
+				chars.append(c)
+		return chars
+	# 1v1 模式
 	if not player.is_empty() and not CharacterState.is_dead(player):
 		chars.append(player)
 	if not enemy.is_empty() and not CharacterState.is_dead(enemy):
@@ -365,11 +466,58 @@ func get_alive_characters() -> Array:
 
 ## 检查战斗是否结束
 func is_battle_over() -> bool:
+	# 多人战斗模式
+	if all_characters.size() > 2:
+		if battle_mode == Types.BattleMode.TEAM:
+			# 阵营对战：检查是否有一方全灭
+			var team_a_alive: bool = false
+			var team_b_alive: bool = false
+			for c in all_characters:
+				if not CharacterState.is_dead(c):
+					var team: String = c.get("team", "A")
+					if team == "A":
+						team_a_alive = true
+					else:
+						team_b_alive = true
+			return not team_a_alive or not team_b_alive
+		else:
+			# 混战模式：检查是否只剩一人
+			var alive_count: int = 0
+			for c in all_characters:
+				if not CharacterState.is_dead(c):
+					alive_count += 1
+			return alive_count <= 1
+	# 1v1 模式
 	return CharacterState.is_dead(player) or CharacterState.is_dead(enemy)
 
 
 ## 获取胜利者
 func get_winner() -> Dictionary:
+	# 多人战斗模式
+	if all_characters.size() > 2:
+		if battle_mode == Types.BattleMode.TEAM:
+			# 阵营对战：返回存活队伍的第一个角色
+			var team_a_alive: Array = []
+			var team_b_alive: Array = []
+			for c in all_characters:
+				if not CharacterState.is_dead(c):
+					var team: String = c.get("team", "A")
+					if team == "A":
+						team_a_alive.append(c)
+					else:
+						team_b_alive.append(c)
+			if team_a_alive.size() > 0 and team_b_alive.size() == 0:
+				return team_a_alive[0]
+			if team_b_alive.size() > 0 and team_a_alive.size() == 0:
+				return team_b_alive[0]
+			return {}  # 平局
+		else:
+			# 混战模式：返回最后存活的角色
+			for c in all_characters:
+				if not CharacterState.is_dead(c):
+					return c
+			return {}
+	# 1v1 模式
 	# 先检查平局情况
 	if CharacterState.is_dead(player) and CharacterState.is_dead(enemy):
 		return {}  # 平局，无胜利者
@@ -382,6 +530,41 @@ func get_winner() -> Dictionary:
 
 ## 获取失败者
 func get_loser() -> Dictionary:
+	# 多人战斗模式
+	if all_characters.size() > 2:
+		if battle_mode == Types.BattleMode.TEAM:
+			# 阵营对战：返回全灭队伍的第一个角色
+			var team_a_dead: Array = []
+			var team_b_dead: Array = []
+			for c in all_characters:
+				if CharacterState.is_dead(c):
+					var team: String = c.get("team", "A")
+					if team == "A":
+						team_a_dead.append(c)
+					else:
+						team_b_dead.append(c)
+			# 检查哪个队伍全灭
+			var team_a_alive: bool = false
+			var team_b_alive: bool = false
+			for c in all_characters:
+				if not CharacterState.is_dead(c):
+					var team: String = c.get("team", "A")
+					if team == "A":
+						team_a_alive = true
+					else:
+						team_b_alive = true
+			if not team_a_alive and team_a_dead.size() > 0:
+				return team_a_dead[0]
+			if not team_b_alive and team_b_dead.size() > 0:
+				return team_b_dead[0]
+			return {}
+		else:
+			# 混战模式：返回所有死亡角色（除最后存活者外）
+			for c in all_characters:
+				if CharacterState.is_dead(c):
+					return c
+			return {}
+	# 1v1 模式
 	# 先检查平局情况
 	if CharacterState.is_dead(player) and CharacterState.is_dead(enemy):
 		return {}  # 平局，无失败者
@@ -394,9 +577,37 @@ func get_loser() -> Dictionary:
 
 ## 获取对手
 func get_opponent(character: Dictionary) -> Dictionary:
+	# 多人战斗模式：返回最近的敌方存活角色
+	if all_characters.size() > 2:
+		var char_team: String = character.get("team", "A")
+		for c in all_characters:
+			if c != character and not CharacterState.is_dead(c):
+				var c_team: String = c.get("team", "B")
+				# 阵营对战模式：返回敌方
+				if battle_mode == Types.BattleMode.TEAM:
+					if char_team != c_team:
+						return c
+				else:
+					# 混战模式：返回第一个非己角色
+					return c
+		return {}
+	# 1v1 模式
 	if character == player:
 		return enemy
 	return player
+
+
+## 根据 ID 查找角色（支持多人战斗）
+func _find_character_by_id(id: String) -> Dictionary:
+	for c in all_characters:
+		if c.get("id", "") == id:
+			return c
+	# 兼容 1v1 模式
+	if player.get("id", "") == id:
+		return player
+	if enemy.get("id", "") == id:
+		return enemy
+	return {}
 
 
 ## 检查是否轮到指定角色行动
@@ -419,6 +630,22 @@ func get_current_actor_name() -> String:
 ## 获取行动顺序（按轻功降序）
 func get_turn_order() -> Array:
 	var order: Array = []
+
+	# 多人战斗模式
+	if all_characters.size() > 2:
+		# 收集所有存活角色
+		var alive_chars: Array = []
+		for c in all_characters:
+			if not CharacterState.is_dead(c):
+				alive_chars.append(c)
+
+		# 按轻功降序排序
+		alive_chars.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+			return a.get("agility", 0) > b.get("agility", 0))
+
+		return alive_chars
+
+	# 1v1 模式
 	var player_agility: int = player.get("agility", 0)
 	var enemy_agility: int = enemy.get("agility", 0)
 
@@ -446,6 +673,97 @@ func get_targets_for(character: Dictionary) -> Array:
 	return []
 
 
+## 验证目标选择
+## actor: 行动角色
+## target: 目标角色
+## range_val: 攻击范围
+## 返回: {"valid": bool, "message": String}
+func validate_target(actor: Dictionary, target: Dictionary, range_val: int) -> Dictionary:
+	var result := {"valid": false, "message": ""}
+
+	# 检查目标是否死亡
+	if CharacterState.is_dead(target):
+		result["message"] = "目标已死亡"
+		return result
+
+	# 阵营对战模式禁止队友攻击
+	if battle_mode == Types.BattleMode.TEAM:
+		var actor_team: String = actor.get("team", "A")
+		var target_team: String = target.get("team", "B")
+		if actor_team == target_team:
+			result["message"] = "不能攻击队友"
+			return result
+
+	# 距离验证
+	if distance_system != null and range_val > 0:
+		var actor_seat: int = distance_system.get_seat_index(actor)
+		var target_seat: int = distance_system.get_seat_index(target)
+
+		if actor_seat >= 0 and target_seat >= 0:
+			var distance: int = DistanceSystem.calculate_actual_distance(
+				actor_seat, target_seat, all_characters
+			)
+
+			if distance > range_val:
+				result["message"] = "超出攻击范围（距离:%d，范围:%d）" % [distance, range_val]
+				return result
+
+	result["valid"] = true
+	return result
+
+
+## 获取有效目标列表
+## actor: 行动角色
+## card_or_skill: 卡牌或武功（需要有 range 属性）
+func get_valid_targets(actor: Dictionary, card_or_skill: Dictionary) -> Array:
+	var targets: Array = []
+	var range_val: int = _get_attack_range(card_or_skill)
+
+	for c in all_characters:
+		if c == actor:
+			continue
+		if CharacterState.is_dead(c):
+			continue
+
+		var validation := validate_target(actor, c, range_val)
+		if validation.get("valid", false):
+			targets.append(c)
+
+	return targets
+
+
+## 获取卡牌或武功的攻击范围
+func _get_attack_range(card_or_skill: Dictionary) -> int:
+	# 检查是否有 range 属性
+	if card_or_skill.has("range"):
+		return card_or_skill.get("range", 1)
+
+	# 检查是否有 range_requirement 属性（武功）
+	if card_or_skill.has("range_requirement"):
+		return card_or_skill.get("range_requirement", 0)
+
+	# 默认范围 1
+	return 1
+
+
+## 获取卡牌攻击范围（基于卡牌类型）
+static func get_card_range(card: CardState) -> int:
+	match card.type:
+		Types.CardType.EMPTY_HAND, Types.CardType.LEG:
+			return 1  # 空手、腿法：相邻
+		Types.CardType.SHORT_WEAPON:
+			return 2  # 短兵：中距离
+		Types.CardType.LONG_WEAPON:
+			return 3  # 长兵：远距离
+		_:
+			return 1
+
+
+## 获取武功攻击范围
+static func get_skill_range(skill: SkillState) -> int:
+	return skill.range_requirement if skill.range_requirement > 0 else 1
+
+
 ## 记录行动到历史
 func record_action(action: Dictionary) -> void:
 	var record := action.duplicate()
@@ -470,6 +788,15 @@ func get_battle_summary() -> Dictionary:
 
 ## 根据轻功决定先手
 func _determine_first_actor() -> void:
+	# 多人战斗模式
+	if all_characters.size() > 2:
+		var order := get_turn_order()
+		if order.size() > 0:
+			current_actor = order[0]
+		actor_changed.emit(current_actor)
+		return
+
+	# 1v1 模式
 	var player_agility: int = player.get("agility", 0)
 	var enemy_agility: int = enemy.get("agility", 0)
 
@@ -486,26 +813,39 @@ func _check_actor_switch() -> void:
 	if should_switch_actor():
 		switch_actor()
 
-		# 如果双方都无轻功，结束回合
-		var current_agility: int = current_actor.get("agility", 0)
-		var opponent := get_opponent(current_actor)
-		var opponent_agility: int = opponent.get("agility", 0)
+		# 检查是否所有角色都无轻功
+		var all_zero: bool = true
+		for c in get_alive_characters():
+			if c.get("agility", 0) > 0:
+				all_zero = false
+				break
 
-		if current_agility <= 0 and opponent_agility <= 0:
+		if all_zero:
 			end_turn()
 
 
 ## 判断是否应该切换行动方
-## 当前角色轻功 <= 敌方最高轻功时切换
+## 当前角色轻功 <= 其他角色最高轻功时切换
 func should_switch_actor() -> bool:
 	if current_actor.is_empty():
 		return false
 
+	var current_agility: int = current_actor.get("agility", 0)
+
+	# 多人战斗模式：检查是否有其他角色轻功更高
+	if all_characters.size() > 2:
+		for c in all_characters:
+			if c != current_actor and not CharacterState.is_dead(c):
+				var c_agility: int = c.get("agility", 0)
+				if current_agility <= c_agility:
+					return true
+		return false
+
+	# 1v1 模式
 	var opponent := get_opponent(current_actor)
 	if opponent.is_empty() or CharacterState.is_dead(opponent):
 		return false
 
-	var current_agility: int = current_actor.get("agility", 0)
 	var opponent_agility: int = opponent.get("agility", 0)
 
 	return current_agility <= opponent_agility

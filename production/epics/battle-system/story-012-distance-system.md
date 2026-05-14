@@ -1,7 +1,7 @@
 # Story 012: 多人战斗距离系统
 
 > **Epic**: 战斗系统
-> **Status**: Ready
+> **Status**: Done
 > **Layer**: Feature
 > **Type**: Logic
 > **Manifest Version**: N/A (control-manifest 不存在)
@@ -22,14 +22,14 @@
 
 *From GDD `design/gdd/battle-system.md`, scoped to this story:*
 
-- [ ] DistanceSystem 类定义完成
-- [ ] assign_seats(characters, mode) 方法：按战斗模式分配座位
-- [ ] calculate_distance(seat_a, seat_b, total_seats) 方法：计算物理距离
-- [ ] calculate_actual_distance(seat_a, seat_b, characters) 方法：跳过死亡角色计算实际距离
-- [ ] get_targetsInRange(actor, range, characters) 方法：返回范围内目标列表
-- [ ] 圆形布局：座位按圆形排列，索引 0 到 N-1
-- [ ] 死亡角色不计入距离计算
-- [ ] 战斗模式：team（阵营对战）、freeforall（混战）
+- [x] DistanceSystem 类定义完成
+- [x] assign_seats(characters, mode) 方法：按战斗模式分配座位
+- [x] calculate_distance(seat_a, seat_b, total_seats) 方法：计算物理距离
+- [x] calculate_actual_distance(seat_a, seat_b, characters) 方法：跳过死亡角色计算实际距离
+- [x] get_targetsInRange(actor, range, characters) 方法：返回范围内目标列表
+- [x] 圆形布局：座位按圆形排列，索引 0 到 N-1
+- [x] 死亡角色不计入距离计算
+- [x] 战斗模式：team（阵营对战）、freeforall（混战）
 
 ---
 
@@ -157,7 +157,7 @@ func get_targets_in_range(actor: Character, range_val: int, characters: Array[Ch
 
 **Story Type**: Logic
 **Required evidence**: `tests/unit/distance_system_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Status**: [x] Created at `tests/unit/distance_system_test.gd` — 22 tests passing
 
 ---
 

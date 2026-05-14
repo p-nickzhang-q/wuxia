@@ -3,8 +3,8 @@
 > **Layer**: Core + Feature
 > **GDD**: design/gdd/battle-system.md
 > **Architecture Module**: BattleManager
-> **Status**: Ready
-> **Stories**: Not yet created — run `/create-stories battle-system`
+> **Status**: Complete
+> **Stories**: All 14 stories completed
 
 ## Overview
 
@@ -81,21 +81,21 @@ scripts/game/
 
 | # | Story | Type | Status | ADR |
 |---|-------|------|--------|-----|
-| 001 | Character 类基础实现 | Logic | Ready | ADR-001 |
-| 002 | BattleManager 类基础实现 | Logic | Ready | ADR-001 |
-| 003 | 回合流程管理 | Logic | Ready | ADR-001, ADR-003 |
-| 004 | 轻功行动顺序系统 | Logic | Ready | ADR-001 |
-| 005 | 基础招式卡牌使用验证 | Logic | Ready | ADR-001 |
-| 006 | 武功招式使用验证 | Logic | Ready | ADR-001 |
-| 007 | 伤害计算与护盾系统 | Logic | Ready | ADR-001 |
-| 008 | 内功触发时机系统 | Integration | Ready | ADR-003 |
-| 009 | 状态效果系统（DoT/Debuff） | Logic | Ready | ADR-001 |
-| 010 | 游戏结束条件判断 | Logic | Ready | ADR-001 |
-| 011 | AI 决策逻辑 | Logic | Ready | ADR-001 |
-| 012 | 多人战斗距离系统 | Logic | Ready | ADR-001 |
-| 013 | 目标选择与攻击范围验证 | Logic | Ready | ADR-001 |
-| 014 | 战斗信号系统集成 | Integration | Ready | ADR-003 |
+| 001 | Character 类基础实现 | Logic | Done | ADR-001 |
+| 002 | BattleManager 类基础实现 | Logic | Done | ADR-001 |
+| 003 | 回合流程管理 | Logic | Done | ADR-001, ADR-003 |
+| 004 | 轻功行动顺序系统 | Logic | Done | ADR-001 |
+| 005 | 基础招式卡牌使用验证 | Logic | Done | ADR-001 |
+| 006 | 武功招式使用验证 | Logic | Done | ADR-001 |
+| 007 | 伤害计算与护盾系统 | Logic | Done | ADR-001 |
+| 008 | 内功触发时机系统 | Integration | Done | ADR-003 |
+| 009 | 状态效果系统（DoT/Debuff） | Logic | Done | ADR-001 |
+| 010 | 游戏结束条件判断 | Logic | Done | ADR-001 |
+| 011 | AI 决策逻辑 | Logic | Done | ADR-001 |
+| 012 | 多人战斗距离系统 | Logic | Done | ADR-001 |
+| 013 | 目标选择与攻击范围验证 | Logic | Done | ADR-001 |
+| 014 | 战斗信号系统集成 | Integration | Done | ADR-003 |
 
 ## Next Step
 
-Run `/story-readiness production/epics/battle-system/story-001-character-class.md` to begin implementation.
+All stories completed. Run `/team-qa sprint` for full QA cycle verification.

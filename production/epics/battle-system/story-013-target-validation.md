@@ -1,7 +1,7 @@
 # Story 013: 目标选择与攻击范围验证
 
 > **Epic**: 战斗系统
-> **Status**: Ready
+> **Status**: Done
 > **Layer**: Feature
 > **Type**: Logic
 > **Manifest Version**: N/A (control-manifest 不存在)
@@ -22,13 +22,13 @@
 
 *From GDD `design/gdd/battle-system.md`, scoped to this story:*
 
-- [ ] 目标超出范围时返回错误，不执行行动
-- [ ] 目标已死亡时需重新选择目标
-- [ ] 阵营对战模式禁止队友攻击
-- [ ] 混战模式允许攻击任何人
-- [ ] 武功招式自定义 range 属性
-- [ ] 基础招式卡牌 range 属性：空手=1, 短兵=2, 长兵=3
-- [ ] get_valid_targets(actor, card_or_skill) 方法：返回有效目标列表
+- [x] 目标超出范围时返回错误，不执行行动
+- [x] 目标已死亡时需重新选择目标
+- [x] 阵营对战模式禁止队友攻击
+- [x] 混战模式允许攻击任何人
+- [x] 武功招式自定义 range 属性
+- [x] 基础招式卡牌 range 属性：空手=1, 短兵=2, 长兵=3
+- [x] get_valid_targets(actor, card_or_skill) 方法：返回有效目标列表
 
 ---
 
@@ -143,8 +143,8 @@ func _validate_target(actor: Character, target: Character, range_val: int) -> Di
 ## Test Evidence
 
 **Story Type**: Logic
-**Required evidence**: `tests/unit/battle_manager_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Required evidence**: `tests/unit/target_validation_test.gd` — must exist and pass
+**Status**: [x] Created at `tests/unit/target_validation_test.gd` — 14 tests passing
 
 ---
 

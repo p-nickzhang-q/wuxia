@@ -19,8 +19,9 @@ layout_mode = 3
 anchors_preset = 0
 offset_right = 100.0
 offset_bottom = 140.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
+custom_minimum_size = Vector2(100, 140)
+size_flags_horizontal = 0
+size_flags_vertical = 0
 mouse_filter = 0
 script = ExtResource("1")
 

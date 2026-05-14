@@ -390,10 +390,12 @@ func set_target_selection_mode(enabled: bool) -> void:
 
 ## 更新行动按钮状态
 func _update_action_buttons(in_target_mode: bool = false) -> void:
+	# 确认按钮：在选择目标时启用
 	if confirm_button:
 		confirm_button.disabled = not in_target_mode
+	# 取消按钮：在选择目标或有选中卡牌时启用
 	if cancel_button:
-		cancel_button.disabled = not in_target_mode and _selected_card_data.is_empty()
+		cancel_button.disabled = not in_target_mode and _selected_card_data.is_empty() and _selected_skill == null
 
 
 ## 设置选中的卡牌

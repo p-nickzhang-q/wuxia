@@ -1,7 +1,7 @@
 # Story 014: 战斗信号系统集成
 
 > **Epic**: 战斗系统
-> **Status**: Ready
+> **Status**: Done
 > **Layer**: Core
 > **Type**: Integration
 > **Manifest Version**: N/A (control-manifest 不存在)
@@ -23,12 +23,12 @@
 
 *From GDD `design/gdd/battle-system.md`, scoped to this story:*
 
-- [ ] BattleManager 信号完整声明：turn_changed, damage_dealt, battle_ended, card_played, skill_used, hp_changed, shield_changed
-- [ ] 信号在正确时机发射
-- [ ] battle.tscn 场景订阅所有必要信号
-- [ ] 信号参数类型正确（Character, int, String 等）
-- [ ] 场景退出时断开信号连接（防止内存泄漏）
-- [ ] 信号驱动 UI 更新（HP 条、护盾显示、战斗日志）
+- [x] BattleManager 信号完整声明：turn_changed, damage_dealt, battle_ended, card_played, skill_used, hp_changed, shield_changed
+- [x] 信号在正确时机发射
+- [x] battle.tscn 场景订阅所有必要信号
+- [x] 信号参数类型正确（Character, int, String 等）
+- [x] 场景退出时断开信号连接（防止内存泄漏）
+- [x] 信号驱动 UI 更新（HP 条、护盾显示、战斗日志）
 
 ---
 
@@ -137,7 +137,7 @@ func _on_battle_ended(winner: Character, loser: Character) -> void:
 
 **Story Type**: Integration
 **Required evidence**: `tests/integration/signal_integration_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Status**: [x] Created at `tests/integration/signal_integration_test.gd` — 11 tests passing
 
 ---
 

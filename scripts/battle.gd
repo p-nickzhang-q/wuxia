@@ -30,6 +30,8 @@ const UI_REFRESH_INTERVAL: float = 0.1
 @onready var skill_container: HBoxContainer = $BattleUI/BottomBar/SkillRow/SkillContainer
 @onready var hand_container: HBoxContainer = $BattleUI/BottomBar/HandRow/HandArea/HandContainer
 @onready var end_turn_button: Button = $BattleUI/BottomBar/HandRow/EndTurnButton
+@onready var confirm_button: Button = $BattleUI/BottomBar/HandRow/ActionButtons/ConfirmButton
+@onready var cancel_button: Button = $BattleUI/BottomBar/HandRow/ActionButtons/CancelButton
 
 ## 提示框
 @onready var tooltip: Tooltip = $BattleUI/Tooltip
@@ -62,6 +64,12 @@ func _ready() -> void:
 	# 连接结束回合按钮
 	if end_turn_button:
 		end_turn_button.pressed.connect(_on_end_turn_pressed)
+
+	# 连接确认/取消按钮
+	if confirm_button:
+		confirm_button.pressed.connect(_on_confirm_pressed)
+	if cancel_button:
+		cancel_button.pressed.connect(_on_cancel_pressed)
 
 	# 连接角色面板点击信号
 	if player_panel:
@@ -255,7 +263,7 @@ func _execute_ai_decision(action: Dictionary) -> void:
 
 		"pass":
 			_log("敌人结束回合")
-			game_state.pass_turn()
+			game_state.pass_turn(true)
 
 
 ## 延迟执行 AI 行动（已废弃，使用 _process 计时器）
@@ -487,6 +495,9 @@ func _on_card_ui_clicked(card: CardState) -> void:
 	if input_handler:
 		input_handler.handle_card_click(card_index)
 
+	# 更新选中高亮
+	_update_selection_highlights()
+
 
 ## 结束回合按钮处理
 func _on_end_turn_pressed() -> void:
@@ -499,6 +510,39 @@ func _on_end_turn_pressed() -> void:
 	# 使用输入处理器处理
 	if input_handler:
 		input_handler.handle_end_turn()
+
+
+## 确认按钮处理
+func _on_confirm_pressed() -> void:
+	if game_state == null or input_handler == null:
+		return
+
+	# 目前确认按钮用于确认目标选择
+	if input_handler.is_selecting_target() and input_handler.valid_targets.size() > 0:
+		# 选择第一个有效目标
+		input_handler.handle_target_click(0)
+
+
+## 取消按钮处理
+func _on_cancel_pressed() -> void:
+	if input_handler == null:
+		return
+
+	# 取消当前选择，重置状态
+	input_handler.cancel_selection()
+	_log("取消选择")
+
+	# 清除角色面板的高亮状态
+	if player_panel:
+		player_panel.set_targetable(false)
+	if enemy_panel:
+		enemy_panel.set_targetable(false)
+
+	# 清除媒介卡牌高亮
+	_clear_medium_highlight()
+
+	# 清除选中高亮
+	_update_selection_highlights()
 
 
 ## 角色面板点击处理
@@ -576,7 +620,8 @@ func _execute_end_turn() -> void:
 	if game_state == null:
 		return
 
-	game_state.pass_turn()
+	# 玩家主动结束回合，强制结束
+	game_state.pass_turn(true)
 	_update_ui()
 	_render_hand()
 
@@ -607,6 +652,12 @@ func _on_target_selected(target) -> void:
 
 ## 输入状态改变处理
 func _on_input_state_changed(new_state: int) -> void:
+	# 更新按钮状态
+	_update_action_buttons()
+
+	# 更新卡牌和技能的高亮状态
+	_update_selection_highlights()
+
 	# 处理媒介卡牌选择状态
 	if new_state == BattleInputHandler.InputState.SELECTING_MEDIUM:
 		_log("请选择媒介卡牌...")
@@ -622,6 +673,64 @@ func _on_input_state_changed(new_state: int) -> void:
 			player_panel.set_targetable(false)
 		if enemy_panel:
 			enemy_panel.set_targetable(false)
+
+
+## 更新选中高亮状态
+func _update_selection_highlights() -> void:
+	# 更新手牌高亮
+	_update_hand_selection_highlight()
+	# 更新技能高亮
+	_update_skill_selection_highlight()
+
+
+## 更新手牌选中高亮
+func _update_hand_selection_highlight() -> void:
+	if hand_container == null or input_handler == null:
+		return
+
+	var children := hand_container.get_children()
+	for i in range(children.size()):
+		var card_ui: CardUI = children[i]
+		if card_ui is CardUI:
+			# 检查是否被选中
+			var is_selected: bool = (input_handler.selected_card == i)
+			card_ui.set_selected(is_selected)
+
+
+## 更新技能选中高亮
+func _update_skill_selection_highlight() -> void:
+	if skill_container == null or input_handler == null:
+		return
+
+	var children := skill_container.get_children()
+	for i in range(children.size()):
+		var skill_button: SkillButton = children[i]
+		if skill_button is SkillButton:
+			# 检查是否被选中
+			var is_selected: bool = (input_handler.selected_skill == i)
+			skill_button.set_selected(is_selected)
+
+
+## 更新行动按钮状态
+func _update_action_buttons() -> void:
+	if cancel_button == null:
+		return
+
+	# 取消按钮：在选择卡牌、武功、媒介或目标时启用
+	var can_cancel: bool = false
+	if input_handler:
+		match input_handler.current_state:
+			BattleInputHandler.InputState.SELECTING_CARD, \
+			BattleInputHandler.InputState.SELECTING_SKILL, \
+			BattleInputHandler.InputState.SELECTING_MEDIUM, \
+			BattleInputHandler.InputState.SELECTING_TARGET:
+				can_cancel = true
+
+	cancel_button.disabled = not can_cancel
+
+	# 确认按钮：目前只在选择目标时有用
+	if confirm_button:
+		confirm_button.disabled = not (input_handler and input_handler.is_selecting_target())
 
 
 ## 武功按钮点击处理
@@ -651,6 +760,9 @@ func _on_skill_pressed(skill: SkillState, button: SkillButton) -> void:
 	# 使用输入处理器处理
 	if input_handler:
 		input_handler.handle_skill_click(skill_index)
+
+	# 更新选中高亮
+	_update_selection_highlights()
 
 
 # ==================== 游戏状态信号处理 ====================
@@ -732,6 +844,41 @@ func _on_game_ended(winner: Dictionary, loser: Dictionary) -> void:
 ## 日志消息处理
 func _on_log_message(text: String) -> void:
 	_log(text)
+
+
+## 场景退出时断开信号连接（防止内存泄漏）
+func _exit_tree() -> void:
+	_disconnect_game_state_signals()
+
+
+## 断开游戏状态信号连接
+func _disconnect_game_state_signals() -> void:
+	if game_state == null:
+		return
+
+	# 断开所有信号连接
+	if game_state.turn_started.is_connected(_on_turn_started):
+		game_state.turn_started.disconnect(_on_turn_started)
+	if game_state.turn_ended.is_connected(_on_turn_ended):
+		game_state.turn_ended.disconnect(_on_turn_ended)
+	if game_state.actor_changed.is_connected(_on_actor_changed):
+		game_state.actor_changed.disconnect(_on_actor_changed)
+	if game_state.card_played.is_connected(_on_card_played):
+		game_state.card_played.disconnect(_on_card_played)
+	if game_state.skill_used.is_connected(_on_skill_used):
+		game_state.skill_used.disconnect(_on_skill_used)
+	if game_state.damage_dealt.is_connected(_on_damage_dealt):
+		game_state.damage_dealt.disconnect(_on_damage_dealt)
+	if game_state.shield_gained.is_connected(_on_shield_gained):
+		game_state.shield_gained.disconnect(_on_shield_gained)
+	if game_state.character_healed.is_connected(_on_character_healed):
+		game_state.character_healed.disconnect(_on_character_healed)
+	if game_state.passive_triggered.is_connected(_on_passive_triggered):
+		game_state.passive_triggered.disconnect(_on_passive_triggered)
+	if game_state.game_ended.is_connected(_on_game_ended):
+		game_state.game_ended.disconnect(_on_game_ended)
+	if game_state.log_message.is_connected(_on_log_message):
+		game_state.log_message.disconnect(_on_log_message)
 
 
 ## 动画开始处理

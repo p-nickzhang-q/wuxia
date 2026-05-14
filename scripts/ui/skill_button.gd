@@ -33,6 +33,12 @@ var current_agility: int = 0
 var hand: Array = []
 ## 是否禁用（外部控制）
 var force_disabled: bool = false
+## 是否被选中
+var is_selected: bool = false
+
+# ==================== 高亮颜色 ====================
+## 被选中的边框颜色
+const SELECTED_BORDER_COLOR: Color = Color(1.0, 0.8, 0.2, 1.0)  # 金色
 
 
 func _ready() -> void:
@@ -115,6 +121,31 @@ func refresh() -> void:
 
 	# 更新可用性
 	_update_availability()
+
+
+## 设置是否被选中
+func set_selected(value: bool) -> void:
+	is_selected = value
+	_update_style()
+
+
+## 更新样式（选中高亮）
+func _update_style() -> void:
+	if is_selected:
+		# 选中时显示金色边框
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0.15, 0.25, 0.15, 1.0)
+		style.border_color = SELECTED_BORDER_COLOR
+		style.set_border_width_all(3)
+		style.set_corner_radius_all(8)
+		add_theme_stylebox_override("normal", style)
+		add_theme_stylebox_override("hover", style)
+		add_theme_stylebox_override("pressed", style)
+	else:
+		# 移除自定义样式
+		remove_theme_stylebox_override("normal")
+		remove_theme_stylebox_override("hover")
+		remove_theme_stylebox_override("pressed")
 
 
 # ==================== 事件处理 ====================

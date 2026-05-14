@@ -90,10 +90,16 @@ func set_state(new_state: InputState) -> void:
 	current_state = new_state
 
 	# 清理旧状态相关数据
+	# 注意：切换到目标选择状态时不清除选中的卡牌/武功，以便高亮显示
 	match old_state:
-		InputState.SELECTING_CARD, InputState.SELECTING_SKILL:
-			selected_card = -1
-			selected_skill = -1
+		InputState.SELECTING_CARD:
+			# 只有切换到 NONE 或 WAITING_AI 时才清除
+			if new_state != InputState.SELECTING_TARGET:
+				selected_card = -1
+		InputState.SELECTING_SKILL:
+			# 只有切换到 NONE 或 WAITING_AI 时才清除
+			if new_state != InputState.SELECTING_TARGET and new_state != InputState.SELECTING_MEDIUM:
+				selected_skill = -1
 		InputState.SELECTING_MEDIUM:
 			_medium_candidates.clear()
 		InputState.SELECTING_TARGET:
@@ -144,9 +150,15 @@ func handle_skill_click(skill_index: int) -> bool:
 	if actor == null or actor.is_empty():
 		return false
 
-	# 只在选择武功状态下处理
-	if current_state != InputState.NONE and current_state != InputState.SELECTING_SKILL:
+	# 在空闲、选择卡牌、选择武功或选择媒介状态下都可以选择武功
+	# 允许切换武功选择（清除之前的卡牌/媒介选择）
+	if current_state != InputState.NONE and current_state != InputState.SELECTING_SKILL and current_state != InputState.SELECTING_CARD and current_state != InputState.SELECTING_MEDIUM:
 		return false
+
+	# 如果当前在选择卡牌或媒介状态，清除卡牌选择
+	if current_state == InputState.SELECTING_CARD or current_state == InputState.SELECTING_MEDIUM:
+		selected_card = -1
+		_medium_candidates.clear()
 
 	# 获取武功列表
 	var skills: Array = actor.get("skills", [])
@@ -254,6 +266,9 @@ func _handle_card_selection(card_index: int, actor) -> bool:
 	selected_card = card_index
 	selected_skill = -1  # 清除武功选择
 	_current_actor = actor
+
+	# 设置状态为选择卡牌
+	set_state(InputState.SELECTING_CARD)
 
 	# 如果需要目标，进入目标选择
 	if card.requires_target:
@@ -405,19 +420,9 @@ func is_selecting_target() -> bool:
 
 ## 取消当前选择
 func cancel_selection() -> void:
-	match current_state:
-		InputState.SELECTING_CARD, InputState.SELECTING_SKILL:
-			selected_card = -1
-			selected_skill = -1
-			set_state(InputState.NONE)
-		InputState.SELECTING_MEDIUM:
-			selected_card = -1
-			_medium_candidates.clear()
-			set_state(InputState.SELECTING_SKILL)
-		InputState.SELECTING_TARGET:
-			valid_targets.clear()
-			# 返回到卡牌或武功选择状态
-			if selected_skill >= 0:
-				set_state(InputState.SELECTING_SKILL)
-			else:
-				set_state(InputState.SELECTING_CARD)
+	# 无论当前什么状态，都清除所有选择并返回到 NONE
+	selected_card = -1
+	selected_skill = -1
+	valid_targets.clear()
+	_medium_candidates.clear()
+	set_state(InputState.NONE)
